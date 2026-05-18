@@ -43,6 +43,13 @@ const Calculator = {
     return `${sign}${h} 小时 ${m} 分钟`;
   },
 
+  /** 时长分钟 → 纯数字分钟格式（如 +80min） */
+  formatDurationMin(totalMinutes) {
+    const sign = totalMinutes >= 0 ? '+' : '−';
+    const abs = Math.abs(totalMinutes);
+    return `${sign}${abs}min`;
+  },
+
   /** 目标时间距今还有多久 */
   getTimeDiff(targetDate) {
     const diffMs = targetDate.getTime() - Date.now();

@@ -236,20 +236,27 @@ body {
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  padding: 0 4px;
+  padding: 6px 8px;
   min-width: 56px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.time-arrow:active {
+  background: var(--bg-input);
 }
 
 .arrow-duration {
-  font-size: 0.72rem;
-  font-weight: 600;
+  font-size: 0.78rem;
+  font-weight: 700;
   color: var(--accent);
   white-space: nowrap;
   margin-bottom: 2px;
+  font-variant-numeric: tabular-nums;
 }
 
 .arrow-line {
-  font-size: 1.1rem;
+  font-size: 1rem;
   color: var(--text-secondary);
   line-height: 1;
 }

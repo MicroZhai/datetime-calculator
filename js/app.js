@@ -127,6 +127,12 @@
           e.stopPropagation();
           return;
         }
+        if (action === 'edit-duration') {
+          UI.openSheet(id);
+          setTimeout(() => document.getElementById('input-hours').focus(), 400);
+          e.stopPropagation();
+          return;
+        }
         return;
       }
 

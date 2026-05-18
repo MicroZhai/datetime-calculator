@@ -64,7 +64,7 @@ const UI = {
     const resultTime = Calculator.formatTime(result);
     const resultDateStr = Calculator.formatDate(result);
 
-    const durationLabel = Calculator.formatDuration(calc.durationMinutes);
+    const durationLabel = Calculator.formatDurationMin(calc.durationMinutes);
     const baseLabel = calc.isBaseTimeNow ? '到温时间' : '基准';
     const countdown = Calculator.getTimeDiff(result);
 
@@ -82,7 +82,7 @@ const UI = {
             <div class="time-date js-base-date">${baseDateStr}</div>
           </div>
 
-          <div class="time-arrow">
+          <div class="time-arrow" data-action="edit-duration" data-id="${calc.id}">
             <div class="arrow-duration">${durationLabel}</div>
             <div class="arrow-line">→</div>
           </div>
