@@ -7,7 +7,15 @@ const Storage = {
       const raw = localStorage.getItem(STORAGE_KEY);
       if (!raw) return [];
       const list = JSON.parse(raw);
-      list.sort((a, b) => b.createdAt - a.createdAt);
+      let migrated = false;
+      for (const c of list) {
+        if (!c.segments) {
+          c.segments = [{ name: '', durationMinutes: c.durationMinutes || 0 }];
+          delete c.durationMinutes;
+          migrated = true;
+        }
+      }
+      if (migrated) this._write(list);
       return list;
     } catch {
       return [];

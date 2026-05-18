@@ -3,14 +3,15 @@
 
   /* ========== 初始化 ========== */
   function init() {
-    // 首次使用：造一个示例计算器
     if (Storage.getAll().length === 0) {
       Storage.save({
         id: String(Date.now()),
         name: '示例计算器',
         isBaseTimeNow: true,
         baseTime: 'now',
-        durationMinutes: 256,
+        segments: [
+          { name: '', durationMinutes: 256 }
+        ],
         createdAt: Date.now()
       });
     }
@@ -39,11 +40,11 @@
     document.getElementById('sheet-close-btn').addEventListener('click', () => UI.closeSheet());
     document.getElementById('sheet-overlay').addEventListener('click', () => UI.closeSheet());
 
-    // 分段控件：切换基准时间模式
+    // 分段控件
     document.getElementById('seg-now').addEventListener('click', () => UI._setBaseTimeMode(true));
     document.getElementById('seg-manual').addEventListener('click', () => UI._setBaseTimeMode(false));
 
-    // 重置为"现在"
+    // 重置为"到温时间"
     document.getElementById('reset-now-btn').addEventListener('click', () => {
       UI._setBaseTimeMode(true);
       const now = new Date();
@@ -51,27 +52,44 @@
       document.getElementById('input-time').value = now.toTimeString().slice(0, 5);
     });
 
-    // 正负切换
-    document.getElementById('toggle-sign-btn').addEventListener('click', () => {
-      UI._isNegative = !UI._isNegative;
-      UI._updateSignBtn();
+    // 编辑弹窗事件代理：时段操作 + 添加时段
+    document.getElementById('segments-container').addEventListener('click', e => {
+      const editor = e.target.closest('.seg-editor');
+      if (!editor) return;
+      const idx = parseInt(editor.dataset.segIdx);
+
+      // 删除时段
+      if (e.target.closest('.js-seg-del')) {
+        UI.removeSegment(idx);
+        return;
+      }
+      // 正负切换
+      if (e.target.closest('.js-seg-sign')) {
+        UI.toggleSegmentSign(idx);
+        return;
+      }
+      // 点击时段内任意位置 → 设为活跃时段
+      UI._activeSegIdx = idx;
     });
 
-    // 快捷时长按钮
+    // 添加时段按钮
+    document.getElementById('add-segment-btn').addEventListener('click', () => {
+      UI.addSegment();
+    });
+
+    // 快捷时长按钮 → 填入最后时段
     document.querySelectorAll('.quick-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         const mins = parseInt(btn.dataset.minutes);
-        document.getElementById('input-hours').value = Math.floor(mins / 60);
-        document.getElementById('input-minutes').value = mins % 60;
-        UI._isNegative = false;
-        UI._updateSignBtn();
+        UI.setQuickDuration(mins);
       });
     });
 
     // 保存
     document.getElementById('save-btn').addEventListener('click', () => {
       const data = UI.readSheet();
-      if (data.durationMinutes === 0) {
+      const totalMin = data.segments.reduce((sum, s) => sum + s.durationMinutes, 0);
+      if (totalMin === 0 && data.segments.length === 1) {
         UI.showToast('请输入时长');
         return;
       }
@@ -98,7 +116,7 @@
       UI.showToast('已删除');
     });
 
-    // 列表点击事件代理 —— 卡片点击 / 菜单按钮 / 复制按钮
+    // 列表点击事件代理
     document.getElementById('calc-list').addEventListener('click', e => {
       const card = e.target.closest('.calc-card');
       if (!card) return;
@@ -116,10 +134,7 @@
         if (action === 'copy') {
           const calc = Storage.getAll().find(c => c.id === id);
           if (calc) {
-            const result = Calculator.calcResult(
-              calc.isBaseTimeNow ? 'now' : calc.baseTime,
-              calc.durationMinutes
-            );
+            const result = Calculator.getFinalResult(calc);
             const text = `${Calculator.formatDate(result)} ${Calculator.formatTime(result)}`;
             navigator.clipboard.writeText(text).then(() => UI.showToast('已复制'))
               .catch(() => UI.showToast('复制失败'));
@@ -129,14 +144,12 @@
         }
         if (action === 'edit-duration') {
           UI.openSheet(id);
-          setTimeout(() => document.getElementById('input-hours').focus(), 400);
           e.stopPropagation();
           return;
         }
         return;
       }
 
-      // 点击卡片主体 → 编辑
       UI.openSheet(id);
     });
 
@@ -163,7 +176,7 @@
       }
     });
 
-    // 键盘：ESC 关闭弹窗
+    // ESC 关闭弹窗
     document.addEventListener('keydown', e => {
       if (e.key === 'Escape') {
         UI.hideContextMenu();
@@ -179,14 +192,10 @@
   let _listTimer = null;
 
   function startLiveRefresh() {
-    // 时钟每秒刷新
     UI.updateClock();
     _clockTimer = setInterval(() => UI.updateClock(), 1000);
-
-    // 列表每分钟刷新（重排序 + 更新"到温时间"模式卡片）
     _listTimer = setInterval(() => UI.refreshLiveCards(), 60000);
 
-    // 页面不可见时暂停，重新可见时立即刷新
     document.addEventListener('visibilitychange', () => {
       if (document.hidden) {
         clearInterval(_clockTimer);
@@ -204,13 +213,10 @@
   /* ========== Service Worker ========== */
   function registerSW() {
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('sw.js').catch(() => {
-        // 静默失败，离线也能用（浏览器首次缓存了）
-      });
+      navigator.serviceWorker.register('sw.js').catch(() => {});
     }
   }
 
-  // 启动
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);
   } else {

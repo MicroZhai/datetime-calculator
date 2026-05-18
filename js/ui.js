@@ -1,25 +1,17 @@
 const UI = {
-  // 当前正在编辑的计算器 id（null 表示新建）
   _editingId: null,
-  // 当前右键菜单目标的计算器 id
   _contextTargetId: null,
-  // 是否正在展示负时长
-  _isNegative: false,
+  _segments: [],        // 编辑中的时段数据 [{name, durationMinutes, isNegative}]
+  _activeSegIdx: 0,     // 快捷时长按钮作用的时段索引
 
   /* ========== 列表渲染 ========== */
 
   renderList() {
     const calculators = Storage.getAll();
 
-    // 按结果时间从早到晚排序
+    // 按出炉时间从早到晚排序
     calculators.sort((a, b) => {
-      const tA = Calculator.calcResult(
-        a.isBaseTimeNow ? 'now' : a.baseTime, a.durationMinutes
-      );
-      const tB = Calculator.calcResult(
-        b.isBaseTimeNow ? 'now' : b.baseTime, b.durationMinutes
-      );
-      return tA - tB;
+      return Calculator.getFinalResult(a) - Calculator.getFinalResult(b);
     });
 
     const listEl = document.getElementById('calc-list');
@@ -36,11 +28,9 @@ const UI = {
   },
 
   refreshLiveCards() {
-    // 重新渲染整个列表（更新时间 + 重排序）
     this.renderList();
   },
 
-  /** 更新顶部当前时间显示 */
   updateClock() {
     const now = new Date();
     const timeEl = document.getElementById('current-time-display');
@@ -60,17 +50,32 @@ const UI = {
     const baseDate = calc.isBaseTimeNow ? new Date() : new Date(calc.baseTime);
     const baseTime = Calculator.formatTime(baseDate);
     const baseDateStr = Calculator.formatDate(baseDate);
+    const baseLabel = calc.isBaseTimeNow ? '到温时间' : '基准时间';
 
-    const result = Calculator.calcResult(
+    const chain = Calculator.calcSegmentChain(
       calc.isBaseTimeNow ? 'now' : calc.baseTime,
-      calc.durationMinutes
+      calc.segments
     );
-    const resultTime = Calculator.formatTime(result);
-    const resultDateStr = Calculator.formatDate(result);
+    const last = chain[chain.length - 1];
+    const finalTime = Calculator.formatTime(last.time);
+    const finalDate = Calculator.formatDate(last.time);
+    const countdown = Calculator.getTimeDiff(last.time);
 
-    const durationLabel = Calculator.formatDurationMin(calc.durationMinutes);
-    const baseLabel = calc.isBaseTimeNow ? '到温时间' : '基准';
-    const countdown = Calculator.getTimeDiff(result);
+    // 时段行 HTML
+    let segRows = '';
+    const showNum = calc.segments.length > 1;
+    chain.forEach((s, i) => {
+      const num = showNum ? `<span class="card-seg-num">${this._numToCircle(i + 1)}</span>` : '';
+      const name = s.name ? `<span class="card-seg-name">${this._escape(s.name)}</span>` : '';
+      const dur = Calculator.formatDurationMin(s.duration);
+      segRows += `
+        <div class="card-seg-row">
+          ${num}${name}
+          <span class="card-seg-dur" data-action="edit-duration" data-id="${calc.id}">${dur}</span>
+          <span class="card-seg-arrow">→</span>
+          <span class="card-seg-time">${Calculator.formatTime(s.time)}</span>
+        </div>`;
+    });
 
     return `
       <div class="calc-card" data-id="${calc.id}">
@@ -79,23 +84,20 @@ const UI = {
           <button class="card-menu-btn" data-action="menu" data-id="${calc.id}" aria-label="更多">⋮</button>
         </div>
 
-        <div class="card-times">
-          <div class="time-block time-block--base">
-            <div class="time-label">${baseLabel}</div>
-            <div class="time-value js-base-time">${baseTime}</div>
-            <div class="time-date js-base-date">${baseDateStr}</div>
-          </div>
+        <div class="card-base">
+          <div class="card-base-label">${baseLabel}</div>
+          <div class="card-base-time js-base-time">${baseTime}</div>
+          <div class="card-base-date js-base-date">${baseDateStr}</div>
+        </div>
 
-          <div class="time-arrow" data-action="edit-duration" data-id="${calc.id}">
-            <div class="arrow-duration">${durationLabel}</div>
-            <div class="arrow-line">→</div>
-          </div>
+        <div class="card-seg-rows">${segRows}</div>
 
-          <div class="time-block time-block--result">
-            <div class="time-label">出炉时间</div>
-            <div class="time-value time-value--result js-result-time">${resultTime}</div>
-            <div class="time-date js-result-date">${resultDateStr}</div>
-          </div>
+        <hr class="card-divider">
+
+        <div class="card-final">
+          <div class="card-final-label">出炉时间</div>
+          <div class="card-final-time js-result-time">${finalTime}</div>
+          <div class="card-final-date js-result-date">${finalDate}</div>
         </div>
 
         <div class="card-footer">
@@ -131,13 +133,19 @@ const UI = {
       document.getElementById('input-time').value = now.toTimeString().slice(0, 5);
     }
 
-    // 时长
-    const dur = calc ? calc.durationMinutes : 0;
-    this._isNegative = dur < 0;
-    const abs = Math.abs(dur);
-    document.getElementById('input-hours').value = Math.floor(abs / 60);
-    document.getElementById('input-minutes').value = abs % 60;
-    this._updateSignBtn();
+    // 时段数据（深拷贝）
+    if (calc && calc.segments) {
+      this._segments = calc.segments.map(s => ({
+        name: s.name || '',
+        durationMinutes: Math.abs(s.durationMinutes),
+        isNegative: s.durationMinutes < 0
+      }));
+    } else {
+      this._segments = [{ name: '', durationMinutes: 0, isNegative: false }];
+    }
+    this._activeSegIdx = this._segments.length - 1;
+
+    this._rebuildSegmentEditors();
 
     // 显示弹窗
     document.getElementById('sheet-overlay').classList.remove('hidden');
@@ -150,26 +158,90 @@ const UI = {
     document.getElementById('edit-sheet').classList.remove('open');
     document.body.style.overflow = '';
     this._editingId = null;
+    this._segments = [];
   },
 
   _setBaseTimeMode(isNow) {
     const segNow = document.getElementById('seg-now');
     const segManual = document.getElementById('seg-manual');
     const group = document.getElementById('manual-time-group');
-
     segNow.classList.toggle('active', isNow);
     segManual.classList.toggle('active', !isNow);
     group.classList.toggle('hidden', isNow);
   },
 
-  _updateSignBtn() {
-    const btn = document.getElementById('toggle-sign-btn');
-    btn.textContent = this._isNegative ? '⊖' : '⊕';
-    btn.classList.toggle('is-negative', this._isNegative);
+  /** 重建所有时段编辑器 DOM */
+  _rebuildSegmentEditors() {
+    const container = document.getElementById('segments-container');
+    container.innerHTML = this._segments.map((s, i) => this._renderSegmentEditor(i, s)).join('');
   },
 
-  /** 从弹窗表单读取当前值 */
+  /** 渲染单个时段编辑器 */
+  _renderSegmentEditor(i, seg) {
+    const label = this._segments.length > 1 ? `时段 ${this._numToCircle(i + 1)}` : '时段';
+    const signClass = seg.isNegative ? ' is-negative' : '';
+    const signText = seg.isNegative ? '⊖' : '⊕';
+    return `
+      <div class="seg-editor" data-seg-idx="${i}">
+        <div class="seg-editor-top">
+          <span class="seg-editor-label">${label}</span>
+          <input type="text" class="seg-editor-name js-seg-name"
+                 placeholder="名称（选填）" value="${this._escapeAttr(seg.name)}" maxlength="10">
+          <button class="seg-editor-del js-seg-del" title="删除时段">✕</button>
+        </div>
+        <div class="seg-editor-row">
+          <div class="seg-editor-field">
+            <input type="number" class="js-seg-hours" min="0" max="999"
+                   value="${Math.floor(seg.durationMinutes / 60)}" inputmode="numeric">
+            <span>h</span>
+          </div>
+          <div class="seg-editor-field">
+            <input type="number" class="js-seg-minutes" min="0" max="59"
+                   value="${seg.durationMinutes % 60}" inputmode="numeric">
+            <span>m</span>
+          </div>
+          <button class="seg-editor-sign${signClass} js-seg-sign">${signText}</button>
+        </div>
+      </div>`;
+  },
+
+  /** 添加时段 */
+  addSegment() {
+    this._segments.push({ name: '', durationMinutes: 0, isNegative: false });
+    this._activeSegIdx = this._segments.length - 1;
+    this._rebuildSegmentEditors();
+  },
+
+  /** 删除时段 */
+  removeSegment(idx) {
+    if (this._segments.length <= 1) {
+      this.showToast('至少保留一个时段');
+      return;
+    }
+    this._segments.splice(idx, 1);
+    this._activeSegIdx = Math.min(this._activeSegIdx, this._segments.length - 1);
+    this._rebuildSegmentEditors();
+  },
+
+  /** 从编辑器 DOM 同步数据到 _segments 数组，再读取出干净数据 */
   readSheet() {
+    // 先从 DOM 同步
+    const editors = document.querySelectorAll('.seg-editor');
+    editors.forEach(el => {
+      const i = parseInt(el.dataset.segIdx);
+      const nameEl = el.querySelector('.js-seg-name');
+      const hoursEl = el.querySelector('.js-seg-hours');
+      const minEl = el.querySelector('.js-seg-minutes');
+      const signEl = el.querySelector('.js-seg-sign');
+      if (nameEl) this._segments[i].name = nameEl.value.trim();
+      if (hoursEl && minEl) {
+        const h = parseInt(hoursEl.value) || 0;
+        const m = parseInt(minEl.value) || 0;
+        this._segments[i].durationMinutes = h * 60 + m;
+      }
+      if (signEl) this._segments[i].isNegative = signEl.classList.contains('is-negative');
+    });
+
     const name = document.getElementById('input-name').value.trim() || '未命名计算器';
     const isBaseTimeNow = document.getElementById('seg-now').classList.contains('active');
     let baseTime;
@@ -181,12 +253,28 @@ const UI = {
         document.getElementById('input-time').value
       );
     }
-    const hours = parseInt(document.getElementById('input-hours').value) || 0;
-    const minutes = parseInt(document.getElementById('input-minutes').value) || 0;
-    let totalMinutes = hours * 60 + minutes;
-    if (this._isNegative) totalMinutes = -totalMinutes;
 
-    return { name, isBaseTimeNow, baseTime, durationMinutes: totalMinutes };
+    const segments = this._segments.map(s => ({
+      name: s.name,
+      durationMinutes: s.isNegative ? -s.durationMinutes : s.durationMinutes
+    }));
+
+    return { name, isBaseTimeNow, baseTime, segments };
+  },
+
+  /** 设置最后一个时段为快捷时长 */
+  setQuickDuration(minutes) {
+    const idx = this._activeSegIdx;
+    if (idx < 0 || idx >= this._segments.length) return;
+    this._segments[idx].durationMinutes = minutes;
+    this._segments[idx].isNegative = false;
+    this._rebuildSegmentEditors();
+  },
+
+  /** 切换指定时段的正负 */
+  toggleSegmentSign(idx) {
+    this._segments[idx].isNegative = !this._segments[idx].isNegative;
+    this._rebuildSegmentEditors();
   },
 
   /* ========== 右键菜单 ========== */
@@ -194,7 +282,6 @@ const UI = {
   showContextMenu(x, y, calcId) {
     this._contextTargetId = calcId;
     const menu = document.getElementById('context-menu');
-    // 确保菜单不超出屏幕
     const maxX = window.innerWidth - 160;
     const maxY = window.innerHeight - 100;
     menu.style.left = Math.min(x, maxX) + 'px';
@@ -223,5 +310,14 @@ const UI = {
     const div = document.createElement('div');
     div.textContent = str;
     return div.innerHTML;
+  },
+
+  _escapeAttr(str) {
+    return str.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  },
+
+  _numToCircle(n) {
+    const circles = ['①', '②', '③', '④', '⑤', '⑥', '⑦', '⑧', '⑨', '⑩'];
+    return circles[n - 1] || n + ' ';
   }
 };

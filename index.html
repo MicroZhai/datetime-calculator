@@ -74,25 +74,18 @@
         <button id="reset-now-btn" class="btn-text">🕐 重置为"到温时间"</button>
       </div>
 
-      <!-- 时长 -->
+      <!-- 时段列表 -->
       <div class="form-group">
-        <label for="input-hours">时长</label>
-        <div class="duration-row">
-          <div class="duration-field">
-            <input type="number" id="input-hours" min="0" max="999" value="0" inputmode="numeric">
-            <span>小时</span>
-          </div>
-          <div class="duration-field">
-            <input type="number" id="input-minutes" min="0" max="59" value="0" inputmode="numeric">
-            <span>分钟</span>
-          </div>
-          <button id="toggle-sign-btn" class="sign-btn" title="切换正负">⊕</button>
+        <label>时段列表</label>
+        <div id="segments-container">
+          <!-- JS 动态渲染时段编辑器 -->
         </div>
+        <button id="add-segment-btn" class="btn-add-segment">+ 添加时段</button>
       </div>
 
       <!-- 快捷时长 -->
       <div class="form-group">
-        <label>快捷时长</label>
+        <label>快捷时长（填入最后时段）</label>
         <div class="quick-durations">
           <button class="quick-btn" data-minutes="30">30 分钟</button>
           <button class="quick-btn" data-minutes="60">1 小时</button>

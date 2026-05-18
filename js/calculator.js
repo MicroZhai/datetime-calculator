@@ -71,6 +71,36 @@ const Calculator = {
     return diffMs >= 0 ? `距今还有 ${text}` : `已过去 ${text}`;
   },
 
+  /**
+   * 计算整个时段链的结果
+   * @returns {Array<{name, duration, time: Date, totalMinFromBase: number}>}
+   */
+  calcSegmentChain(baseTime, segments) {
+    let current = baseTime === 'now' ? new Date() : new Date(baseTime);
+    const results = [];
+    let totalMin = 0;
+    for (const seg of segments) {
+      current = new Date(current.getTime() + seg.durationMinutes * 60 * 1000);
+      totalMin += seg.durationMinutes;
+      results.push({
+        name: seg.name,
+        duration: seg.durationMinutes,
+        time: current,
+        totalMinFromBase: totalMin
+      });
+    }
+    return results;
+  },
+
+  /** 获取计算器最终出炉时间 */
+  getFinalResult(calc) {
+    let current = calc.isBaseTimeNow ? new Date() : new Date(calc.baseTime);
+    for (const seg of calc.segments) {
+      current = new Date(current.getTime() + seg.durationMinutes * 60 * 1000);
+    }
+    return current;
+  },
+
   /** 获取当前时间的 ISO 字符串 (精确到分钟) */
   getNowISO() {
     const d = new Date();
