@@ -1,0 +1,654 @@
+/* ====== CSS 变量：浅色 / 深色主题 ====== */
+:root {
+  --bg: #f2f2f7;
+  --bg-card: #ffffff;
+  --bg-sheet: #ffffff;
+  --bg-input: #f5f5f7;
+  --bg-seg-active: #000000;
+  --text-primary: #1c1c1e;
+  --text-secondary: #8e8e93;
+  --text-seg-active: #ffffff;
+  --text-seg: #1c1c1e;
+  --border: #e5e5ea;
+  --shadow-card: 0 2px 8px rgba(0,0,0,0.08);
+  --shadow-sheet: 0 -4px 24px rgba(0,0,0,0.15);
+  --overlay: rgba(0,0,0,0.3);
+  --danger: #ff3b30;
+  --accent: #000000;
+  --accent-hover: #333333;
+  --toast-bg: #1c1c1e;
+  --toast-text: #ffffff;
+  --sign-future: #34c759;
+  --sign-past: #ff9500;
+  --handle: #c6c6c8;
+  color-scheme: light;
+}
+
+[data-theme="dark"] {
+  --bg: #000000;
+  --bg-card: #1c1c1e;
+  --bg-sheet: #1c1c1e;
+  --bg-input: #2c2c2e;
+  --bg-seg-active: #ffffff;
+  --text-primary: #ffffff;
+  --text-secondary: #8e8e93;
+  --text-seg-active: #000000;
+  --text-seg: #ffffff;
+  --border: #38383a;
+  --shadow-card: 0 2px 8px rgba(0,0,0,0.4);
+  --shadow-sheet: 0 -4px 24px rgba(0,0,0,0.5);
+  --overlay: rgba(0,0,0,0.6);
+  --accent: #ffffff;
+  --accent-hover: #cccccc;
+  --toast-bg: #2c2c2e;
+  --toast-text: #ffffff;
+  --handle: #545458;
+  color-scheme: dark;
+}
+
+/* ====== 基础重置 ====== */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+               "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue", Arial,
+               sans-serif;
+  font-size: 16px;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text-primary);
+  min-height: 100dvh;
+  padding-bottom: env(safe-area-inset-bottom, 0);
+  transition: background 0.3s, color 0.3s;
+  overflow-x: hidden;
+}
+
+.hidden {
+  display: none !important;
+}
+
+/* ====== 顶部栏 ====== */
+#top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: var(--bg);
+  transition: background 0.3s;
+}
+
+.app-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.icon-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: none;
+  background: var(--bg-card);
+  color: var(--text-primary);
+  font-size: 1.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s;
+  box-shadow: var(--shadow-card);
+}
+.icon-btn:active {
+  transform: scale(0.94);
+}
+#new-btn {
+  font-size: 1.4rem;
+  font-weight: 300;
+  line-height: 1;
+}
+
+/* ====== 计算器列表 ====== */
+#calc-list {
+  padding: 8px 16px 120px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.calc-card {
+  background: var(--bg-card);
+  border-radius: 16px;
+  padding: 16px 20px;
+  box-shadow: var(--shadow-card);
+  cursor: pointer;
+  position: relative;
+  transition: transform 0.15s, box-shadow 0.15s, background 0.3s;
+  user-select: none;
+}
+.calc-card:active {
+  transform: scale(0.985);
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.card-name {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+  margin-right: 8px;
+}
+
+.card-menu-btn {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 1rem;
+  cursor: pointer;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.card-menu-btn:active {
+  background: var(--bg-input);
+}
+
+/* ====== 卡片双时间栏 ====== */
+.card-times {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+}
+
+.time-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 0;
+}
+
+.time-block--base {
+  flex: 1;
+}
+
+.time-block--result {
+  flex: 1.3;
+}
+
+.time-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 2px;
+}
+
+.time-value {
+  font-size: 1.8rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+
+.time-value--result {
+  font-size: 2.4rem;
+  font-weight: 800;
+}
+
+.time-date {
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+  margin-top: 1px;
+  white-space: nowrap;
+}
+
+/* ====== 箭头区域 ====== */
+.time-arrow {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  padding: 0 4px;
+  min-width: 56px;
+}
+
+.arrow-duration {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--accent);
+  white-space: nowrap;
+  margin-bottom: 2px;
+}
+
+.arrow-line {
+  font-size: 1.1rem;
+  color: var(--text-secondary);
+  line-height: 1;
+}
+
+/* ====== 卡片底部 ====== */
+.card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+
+.card-countdown {
+  font-size: 0.82rem;
+  color: var(--accent);
+  font-weight: 500;
+}
+
+.card-copy-btn {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+.card-copy-btn:active {
+  background: var(--bg-input);
+}
+
+/* ====== 空状态 ====== */
+#empty-state {
+  text-align: center;
+  padding: 80px 40px 40px;
+  color: var(--text-secondary);
+}
+.empty-icon {
+  font-size: 4rem;
+  margin-bottom: 16px;
+}
+#empty-state p {
+  font-size: 1rem;
+  margin-bottom: 24px;
+}
+
+/* ====== 按钮 ====== */
+.btn-primary {
+  display: block;
+  width: 100%;
+  padding: 14px;
+  border: none;
+  border-radius: 12px;
+  background: var(--accent);
+  color: var(--text-seg-active);
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.btn-primary:active {
+  background: var(--accent-hover);
+}
+
+.btn-danger {
+  display: block;
+  width: 100%;
+  padding: 14px;
+  border: none;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--danger);
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  margin-top: 8px;
+}
+.btn-danger:active {
+  background: rgba(255,59,48,0.1);
+}
+
+.btn-text {
+  background: none;
+  border: none;
+  color: var(--accent);
+  font-size: 0.85rem;
+  cursor: pointer;
+  padding: 6px 0;
+}
+
+/* ====== 底部弹窗遮罩 ====== */
+.sheet-overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--overlay);
+  z-index: 100;
+  transition: opacity 0.3s;
+}
+.sheet-overlay.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* ====== 底部弹窗 ====== */
+.edit-sheet {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  max-height: 85dvh;
+  background: var(--bg-sheet);
+  border-radius: 20px 20px 0 0;
+  z-index: 101;
+  display: flex;
+  flex-direction: column;
+  transform: translateY(100%);
+  transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1);
+  box-shadow: var(--shadow-sheet);
+  padding-bottom: env(safe-area-inset-bottom, 12px);
+}
+.edit-sheet.open {
+  transform: translateY(0);
+}
+
+.sheet-handle {
+  width: 36px;
+  height: 5px;
+  background: var(--handle);
+  border-radius: 3px;
+  margin: 10px auto 0;
+  flex-shrink: 0;
+}
+
+.sheet-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px 8px;
+  flex-shrink: 0;
+}
+.sheet-header h2 {
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+.sheet-header .icon-btn {
+  box-shadow: none;
+}
+
+.sheet-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0 20px 16px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.sheet-footer {
+  flex-shrink: 0;
+  padding: 8px 20px 16px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ====== 表单 ====== */
+.form-group {
+  margin-bottom: 20px;
+}
+.form-group > label {
+  display: block;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 8px;
+}
+
+input[type="text"],
+input[type="number"] {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg-input);
+  color: var(--text-primary);
+  font-size: 1rem;
+  font-family: inherit;
+  transition: border-color 0.2s, background 0.3s, color 0.3s;
+}
+input[type="text"]:focus,
+input[type="number"]:focus,
+input[type="date"]:focus,
+input[type="time"]:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+/* 分段控件 */
+.segmented-control {
+  display: flex;
+  background: var(--bg-input);
+  border-radius: 10px;
+  padding: 3px;
+}
+.seg-btn {
+  flex: 1;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-seg);
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+  font-family: inherit;
+}
+.seg-btn.active {
+  background: var(--bg-seg-active);
+  color: var(--text-seg-active);
+}
+
+/* 手动时间选择 */
+.time-row {
+  display: flex;
+  gap: 8px;
+}
+.time-input {
+  flex: 1;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg-input);
+  color: var(--text-primary);
+  font-size: 0.95rem;
+  font-family: inherit;
+  transition: border-color 0.2s, background 0.3s, color 0.3s;
+}
+
+/* 时长输入 */
+.duration-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.duration-field {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 4px 10px;
+  transition: border-color 0.2s, background 0.3s;
+}
+.duration-field input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  padding: 8px 0;
+  font-size: 1.2rem;
+  font-weight: 600;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  min-width: 0;
+}
+.duration-field input:focus {
+  outline: none;
+}
+.duration-field span {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  flex-shrink: 0;
+}
+
+.sign-btn {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--bg-input);
+  font-size: 1.3rem;
+  cursor: pointer;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s, color 0.2s;
+  color: var(--text-primary);
+}
+.sign-btn:active {
+  background: var(--accent);
+  color: var(--text-seg-active);
+}
+.sign-btn.is-negative {
+  color: var(--sign-past);
+}
+
+/* 快捷时长按钮 */
+.quick-durations {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.quick-btn {
+  padding: 8px 14px;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  background: var(--bg-input);
+  color: var(--text-primary);
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+  font-family: inherit;
+}
+.quick-btn:active {
+  background: var(--accent);
+  color: var(--text-seg-active);
+  border-color: var(--accent);
+}
+
+/* ====== 右键菜单 ====== */
+.context-menu {
+  position: fixed;
+  background: var(--bg-sheet);
+  border-radius: 14px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.2);
+  z-index: 200;
+  overflow: hidden;
+  min-width: 140px;
+  transition: opacity 0.15s;
+}
+.context-menu.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+.context-menu button {
+  display: block;
+  width: 100%;
+  padding: 12px 18px;
+  border: none;
+  background: transparent;
+  color: var(--text-primary);
+  font-size: 0.95rem;
+  text-align: left;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.15s;
+}
+.context-menu button:active {
+  background: var(--bg-input);
+}
+
+/* ====== Toast ====== */
+.toast {
+  position: fixed;
+  bottom: 100px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--toast-bg);
+  color: var(--toast-text);
+  padding: 10px 20px;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  z-index: 300;
+  opacity: 0;
+  transition: opacity 0.25s;
+  pointer-events: none;
+}
+.toast.visible {
+  opacity: 1;
+}
+
+/* ====== 响应式 ====== */
+@media (min-width: 768px) {
+  #calc-list {
+    max-width: 500px;
+    margin: 0 auto;
+  }
+  #top-bar {
+    max-width: 500px;
+    margin: 0 auto;
+  }
+  .edit-sheet {
+    max-width: 500px;
+    left: 50%;
+    transform: translate(-50%, 100%);
+  }
+  .edit-sheet.open {
+    transform: translate(-50%, 0);
+  }
+}
+
+/* ====== 无障碍 ====== */
+@media (prefers-reduced-motion: reduce) {
+  .edit-sheet {
+    transition: none;
+  }
+}
