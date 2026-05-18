@@ -175,19 +175,26 @@
   }
 
   /* ========== 实时刷新 ========== */
-  let _refreshTimer = null;
+  let _clockTimer = null;
+  let _listTimer = null;
 
   function startLiveRefresh() {
-    _refreshTimer = setInterval(() => {
-      UI.refreshLiveCards();
-    }, 60000); // 每分钟刷新
+    // 时钟每秒刷新
+    UI.updateClock();
+    _clockTimer = setInterval(() => UI.updateClock(), 1000);
 
-    // 页面不可见时暂停，重新可见时立即刷新一次
+    // 列表每分钟刷新（重排序 + 更新"到温时间"模式卡片）
+    _listTimer = setInterval(() => UI.refreshLiveCards(), 60000);
+
+    // 页面不可见时暂停，重新可见时立即刷新
     document.addEventListener('visibilitychange', () => {
       if (document.hidden) {
-        clearInterval(_refreshTimer);
-        _refreshTimer = null;
+        clearInterval(_clockTimer);
+        clearInterval(_listTimer);
+        _clockTimer = null;
+        _listTimer = null;
       } else {
+        UI.updateClock();
         UI.refreshLiveCards();
         startLiveRefresh();
       }

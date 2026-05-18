@@ -10,6 +10,18 @@ const UI = {
 
   renderList() {
     const calculators = Storage.getAll();
+
+    // 按结果时间从早到晚排序
+    calculators.sort((a, b) => {
+      const tA = Calculator.calcResult(
+        a.isBaseTimeNow ? 'now' : a.baseTime, a.durationMinutes
+      );
+      const tB = Calculator.calcResult(
+        b.isBaseTimeNow ? 'now' : b.baseTime, b.durationMinutes
+      );
+      return tA - tB;
+    });
+
     const listEl = document.getElementById('calc-list');
     const emptyEl = document.getElementById('empty-state');
 
@@ -24,32 +36,24 @@ const UI = {
   },
 
   refreshLiveCards() {
-    const calculators = Storage.getAll();
+    // 重新渲染整个列表（更新时间 + 重排序）
+    this.renderList();
+  },
+
+  /** 更新顶部当前时间显示 */
+  updateClock() {
     const now = new Date();
-    calculators.forEach(c => {
-      if (!c.isBaseTimeNow) return;
-      const card = document.querySelector(`[data-id="${c.id}"]`);
-      if (!card) return;
-
-      // 更新基准时间（显示当前时间）
-      const baseEl = card.querySelector('.js-base-time');
-      const baseDateEl = card.querySelector('.js-base-date');
-      if (baseEl) baseEl.textContent = Calculator.formatTime(now);
-      if (baseDateEl) baseDateEl.textContent = Calculator.formatDate(now);
-
-      // 更新计算结果
-      const result = Calculator.calcResult('now', c.durationMinutes);
-      const resultEl = card.querySelector('.js-result-time');
-      const resultDateEl = card.querySelector('.js-result-date');
-      if (resultEl) resultEl.textContent = Calculator.formatTime(result);
-      if (resultDateEl) resultDateEl.textContent = Calculator.formatDate(result);
-
-      // 更新倒计时
-      const diffEl = card.querySelector('.js-countdown');
-      if (diffEl) {
-        diffEl.textContent = Calculator.getTimeDiff(result);
-      }
-    });
+    const timeEl = document.getElementById('current-time-display');
+    const dateEl = document.getElementById('current-date-display');
+    if (timeEl) {
+      const h = String(now.getHours()).padStart(2, '0');
+      const m = String(now.getMinutes()).padStart(2, '0');
+      const s = String(now.getSeconds()).padStart(2, '0');
+      timeEl.textContent = `${h}:${m}:${s}`;
+    }
+    if (dateEl) {
+      dateEl.textContent = Calculator.formatDate(now);
+    }
   },
 
   _renderCard(calc) {
