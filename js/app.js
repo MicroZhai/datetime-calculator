@@ -212,9 +212,29 @@
 
   /* ========== Service Worker ========== */
   function registerSW() {
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('sw.js').catch(() => {});
-    }
+    if (!('serviceWorker' in navigator)) return;
+
+    navigator.serviceWorker.register('sw.js').then(reg => {
+      // 检测到新 SW 版本 → 自动刷新
+      reg.addEventListener('updatefound', () => {
+        const newWorker = reg.installing;
+        if (!newWorker) return;
+        newWorker.addEventListener('statechange', () => {
+          if (newWorker.state === 'activated' && navigator.serviceWorker.controller) {
+            window.location.reload();
+          }
+        });
+      });
+
+      // 监听 SW 发来的更新消息
+      navigator.serviceWorker.addEventListener('message', event => {
+        if (event.data === 'update') {
+          window.location.reload();
+        }
+      });
+
+      // 如果已有 SW 在等待，立即通知
+    }).catch(() => {});
   }
 
   if (document.readyState === 'loading') {

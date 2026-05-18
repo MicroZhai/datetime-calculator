@@ -1,4 +1,4 @@
-const CACHE_NAME = 'dtc-v1';
+const CACHE_NAME = 'dtc-v2';
 
 const FILES_TO_CACHE = [
   '.',
@@ -14,7 +14,7 @@ const FILES_TO_CACHE = [
   'icons/icon-512.png'
 ];
 
-// 安装：预缓存所有静态文件
+// 安装：预缓存文件
 self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME).then(cache => cache.addAll(FILES_TO_CACHE))
@@ -22,36 +22,39 @@ self.addEventListener('install', event => {
   self.skipWaiting();
 });
 
-// 激活：清理旧版本缓存
+// 激活：清理旧缓存 + 通知所有页面刷新
 self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys().then(keys =>
       Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))
-    )
+    ).then(() => {
+      // 通知所有打开的页面刷新
+      self.clients.matchAll({ type: 'window' }).then(clients => {
+        clients.forEach(client => client.postMessage('update'));
+      });
+    })
   );
   self.clients.claim();
 });
 
-// 请求拦截：缓存优先，网络回退
+// 请求拦截：网络优先，缓存回退
 self.addEventListener('fetch', event => {
-  // 只处理 GET 请求
   if (event.request.method !== 'GET') return;
 
   event.respondWith(
-    caches.match(event.request).then(cached => {
-      if (cached) return cached;
-
-      return fetch(event.request).then(response => {
-        // 不缓存非成功响应
-        if (!response || response.status !== 200) return response;
-
+    fetch(event.request, { cache: 'no-cache' }).then(response => {
+      // 网络成功 → 更新缓存 + 返回
+      if (response && response.status === 200) {
         const clone = response.clone();
         caches.open(CACHE_NAME).then(cache => {
           cache.put(event.request, clone);
         });
-        return response;
-      }).catch(() => {
-        // 网络不可用且缓存未命中，返回离线页
+      }
+      return response;
+    }).catch(() => {
+      // 网络失败 → 返回缓存
+      return caches.match(event.request).then(cached => {
+        if (cached) return cached;
         if (event.request.mode === 'navigate') {
           return caches.match('index.html');
         }
