@@ -197,113 +197,153 @@ body {
   background: var(--bg-input);
 }
 
-/* ====== 卡片时段链 ====== */
-.card-base {
-  margin-bottom: 8px;
+/* ====== 卡片三列布局 ====== */
+.card-times {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2px;
 }
 
-.card-base-label {
-  font-size: 0.7rem;
+.time-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 0;
+}
+
+.time-block--base {
+  flex: 1.2;
+}
+
+.time-block--result {
+  flex: 1.2;
+}
+
+.time-label {
+  font-size: 0.68rem;
   font-weight: 600;
   color: var(--text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  margin-bottom: 1px;
+  margin-bottom: 2px;
 }
 
-.card-base-time {
-  font-size: 1.5rem;
+.time-value {
+  font-size: 1.8rem;
   font-weight: 700;
+  letter-spacing: 0.02em;
+  line-height: 1.15;
   font-variant-numeric: tabular-nums;
-  line-height: 1.2;
 }
 
-.card-base-date {
-  font-size: 0.72rem;
+.time-value--result {
+  font-size: 2.2rem;
+  font-weight: 800;
+}
+
+.time-date {
+  font-size: 0.68rem;
   color: var(--text-secondary);
-}
-
-.card-seg-rows {
-  margin: 4px 0;
-}
-
-.card-seg-row {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 3px 0;
-  font-size: 0.82rem;
-}
-
-.card-seg-num {
-  color: var(--text-secondary);
-  font-size: 0.7rem;
-  flex-shrink: 0;
-  width: 16px;
-}
-
-.card-seg-name {
-  flex-shrink: 0;
-  font-weight: 500;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  margin-top: 1px;
   white-space: nowrap;
 }
 
-.card-seg-dur {
-  color: var(--accent);
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-  flex-shrink: 0;
-  cursor: pointer;
-  padding: 2px 6px;
-  border-radius: 6px;
-  transition: background 0.15s;
+/* ====== 中间列：时段信息 ====== */
+.time-mid {
+  flex: 0 1 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  padding: 0 4px;
+  min-width: 0;
 }
-.card-seg-dur:active {
+
+/* 单时段 */
+.mid-single {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.mid-single-dur {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 8px;
+  transition: background 0.15s;
+  white-space: nowrap;
+}
+.mid-single-dur:active {
   background: var(--bg-input);
 }
 
-.card-seg-arrow {
+.mid-single-arrow {
+  font-size: 1rem;
   color: var(--text-secondary);
+}
+
+/* 多时段明细行 */
+.mid-row {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 0.7rem;
+  white-space: nowrap;
+}
+
+.mid-seg-num {
+  color: var(--text-secondary);
+  font-size: 0.62rem;
   flex-shrink: 0;
 }
 
-.card-seg-time {
+.mid-seg-name {
+  font-weight: 500;
+  flex-shrink: 0;
+  max-width: 36px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mid-seg-dur {
+  color: var(--accent);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  padding: 1px 4px;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+.mid-seg-dur:active {
+  background: var(--bg-input);
+}
+
+.mid-seg-arrow {
+  color: var(--text-secondary);
+  flex-shrink: 0;
+  font-size: 0.65rem;
+}
+
+.mid-seg-time {
   font-variant-numeric: tabular-nums;
   font-weight: 500;
+  flex-shrink: 0;
 }
 
-.card-divider {
-  border: none;
-  border-top: 1px solid var(--border);
-  margin: 8px 0;
-}
-
-.card-final {
-  text-align: center;
-}
-
-.card-final-label {
-  font-size: 0.7rem;
+.mid-total {
+  font-size: 0.68rem;
   font-weight: 600;
   color: var(--text-secondary);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.card-final-time {
-  font-size: 2.4rem;
-  font-weight: 800;
-  letter-spacing: 0.02em;
-  line-height: 1.2;
-  font-variant-numeric: tabular-nums;
-}
-
-.card-final-date {
-  font-size: 0.8rem;
-  color: var(--text-secondary);
+  margin-top: 2px;
+  padding-top: 2px;
+  border-top: 1px solid var(--border);
 }
 
 /* ====== 卡片底部 ====== */

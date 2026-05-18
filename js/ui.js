@@ -61,21 +61,35 @@ const UI = {
     const finalDate = Calculator.formatDate(last.time);
     const countdown = Calculator.getTimeDiff(last.time);
 
-    // 时段行 HTML
-    let segRows = '';
+    // 总时长
+    const totalMin = calc.segments.reduce((s, c) => s + c.durationMinutes, 0);
+
+    // 中间列：单时段显示时长，多时段显示明细行
+    let midHTML;
     const showNum = calc.segments.length > 1;
-    chain.forEach((s, i) => {
-      const num = showNum ? `<span class="card-seg-num">${this._numToCircle(i + 1)}</span>` : '';
-      const name = s.name ? `<span class="card-seg-name">${this._escape(s.name)}</span>` : '';
-      const dur = Calculator.formatDurationMin(s.duration);
-      segRows += `
-        <div class="card-seg-row">
-          ${num}${name}
-          <span class="card-seg-dur" data-action="edit-duration" data-id="${calc.id}">${dur}</span>
-          <span class="card-seg-arrow">→</span>
-          <span class="card-seg-time">${Calculator.formatTime(s.time)}</span>
+    if (showNum) {
+      let rows = '';
+      chain.forEach((s, i) => {
+        const seg = calc.segments[i];
+        const num = this._numToCircle(i + 1);
+        const name = seg.name ? `<span class="mid-seg-name">${this._escape(seg.name)}</span>` : '';
+        rows += `
+          <div class="mid-row">
+            <span class="mid-seg-num">${num}</span>${name}
+            <span class="mid-seg-dur" data-action="edit-duration" data-id="${calc.id}">${Calculator.formatDurationMin(s.duration)}</span>
+            <span class="mid-seg-arrow">→</span>
+            <span class="mid-seg-time">${Calculator.formatTime(s.time)}</span>
+          </div>`;
+      });
+      midHTML = `${rows}<div class="mid-total">总 ${Calculator.formatDurationMin(totalMin)}</div>`;
+    } else {
+      const dur = Calculator.formatDurationMin(totalMin);
+      midHTML = `
+        <div class="mid-single">
+          <span class="mid-single-dur" data-action="edit-duration" data-id="${calc.id}">${dur}</span>
+          <span class="mid-single-arrow">→</span>
         </div>`;
-    });
+    }
 
     return `
       <div class="calc-card" data-id="${calc.id}">
@@ -84,20 +98,22 @@ const UI = {
           <button class="card-menu-btn" data-action="menu" data-id="${calc.id}" aria-label="更多">⋮</button>
         </div>
 
-        <div class="card-base">
-          <div class="card-base-label">${baseLabel}</div>
-          <div class="card-base-time js-base-time">${baseTime}</div>
-          <div class="card-base-date js-base-date">${baseDateStr}</div>
-        </div>
+        <div class="card-times">
+          <div class="time-block time-block--base">
+            <div class="time-label">${baseLabel}</div>
+            <div class="time-value js-base-time">${baseTime}</div>
+            <div class="time-date js-base-date">${baseDateStr}</div>
+          </div>
 
-        <div class="card-seg-rows">${segRows}</div>
+          <div class="time-mid">
+            ${midHTML}
+          </div>
 
-        <hr class="card-divider">
-
-        <div class="card-final">
-          <div class="card-final-label">出炉时间</div>
-          <div class="card-final-time js-result-time">${finalTime}</div>
-          <div class="card-final-date js-result-date">${finalDate}</div>
+          <div class="time-block time-block--result">
+            <div class="time-label">出炉时间</div>
+            <div class="time-value time-value--result js-result-time">${finalTime}</div>
+            <div class="time-date js-result-date">${finalDate}</div>
+          </div>
         </div>
 
         <div class="card-footer">
