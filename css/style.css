@@ -8,7 +8,11 @@
   --text-secondary: #8e8e93;
   --text-seg-active: #ffffff;
   --border: #e5e5ea;
-  --shadow-card: 0 2px 8px rgba(0,0,0,0.08);
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 20px;
+  --radius-xl: 24px;
+  --shadow-card: 0 1px 3px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.07);
   --shadow-sheet: 0 -4px 24px rgba(0,0,0,0.15);
   --overlay: rgba(0,0,0,0.3);
   --danger: #ff3b30;
@@ -25,17 +29,17 @@
   --bg-card: #1c1c1e;
   --bg-sheet: #1c1c1e;
   --bg-input: #2c2c2e;
-  --text-primary: #ffffff;
-  --text-secondary: #8e8e93;
+  --text-primary: #f0f0f0;
+  --text-secondary: #98989d;
   --text-seg-active: #000000;
   --border: #38383a;
-  --shadow-card: 0 2px 8px rgba(0,0,0,0.4);
-  --shadow-sheet: 0 -4px 24px rgba(0,0,0,0.5);
-  --overlay: rgba(0,0,0,0.6);
-  --accent: #ffffff;
-  --accent-hover: #cccccc;
+  --shadow-card: 0 2px 12px rgba(0,0,0,0.3), 0 0 0 0.5px rgba(255,255,255,0.08);
+  --shadow-sheet: 0 -4px 24px rgba(0,0,0,0.5), 0 0 0 0.5px rgba(255,255,255,0.06);
+  --overlay: rgba(0,0,0,0.7);
+  --accent: #f0f0f0;
+  --accent-hover: #d0d0d0;
   --toast-bg: #2c2c2e;
-  --toast-text: #ffffff;
+  --toast-text: #f0f0f0;
   --handle: #545458;
   color-scheme: dark;
 }
@@ -84,9 +88,9 @@ body {
 }
 
 .app-title {
-  font-size: 1.1rem;
-  font-weight: 600;
-  letter-spacing: 0.02em;
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
 }
 
 .icon-btn {
@@ -116,7 +120,7 @@ body {
 /* ====== 开始时间 ====== */
 #current-time-bar {
   text-align: center;
-  padding: 16px 16px 4px;
+  padding: 18px 16px 6px;
 }
 
 .current-time-text {
@@ -128,28 +132,33 @@ body {
 }
 
 .current-date-text {
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   color: var(--text-secondary);
-  margin-top: 2px;
+  margin-top: 4px;
 }
 
 /* ====== 计算器列表 ====== */
 #calc-list {
-  padding: 8px 16px 120px;
+  padding: 10px 16px 120px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 14px;
 }
 
 .calc-card {
   background: var(--bg-card);
-  border-radius: 16px;
-  padding: 16px 20px;
+  border-radius: var(--radius-lg);
+  padding: 18px 20px;
   box-shadow: var(--shadow-card);
   cursor: pointer;
   position: relative;
-  transition: transform 0.15s, box-shadow 0.15s, background 0.3s;
+  transition: transform 0.15s, box-shadow 0.2s, background 0.3s;
   user-select: none;
+  animation: cardIn 0.35s ease both;
+}
+@keyframes cardIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 .calc-card:active {
   transform: scale(0.985);
@@ -159,13 +168,13 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 12px;
+  margin-bottom: 14px;
 }
 
 .card-name {
-  font-size: 0.9rem;
+  font-size: 0.92rem;
   color: var(--text-secondary);
-  font-weight: 500;
+  font-weight: 600;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -189,6 +198,7 @@ body {
 }
 .card-menu-btn:active {
   background: var(--bg-input);
+  transform: scale(0.92);
 }
 
 /* ====== 卡片三列布局 ====== */
@@ -215,16 +225,16 @@ body {
 }
 
 .time-label {
-  font-size: 0.68rem;
-  font-weight: 600;
+  font-size: 0.66rem;
+  font-weight: 500;
   color: var(--text-secondary);
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin-bottom: 2px;
+  letter-spacing: 0.06em;
+  margin-bottom: 3px;
 }
 
 .time-value {
-  font-size: 1.8rem;
+  font-size: 1.9rem;
   font-weight: 700;
   letter-spacing: 0.02em;
   line-height: 1.15;
@@ -232,8 +242,8 @@ body {
 }
 
 .time-value--result {
-  font-size: 2.2rem;
-  font-weight: 800;
+  font-size: 1.9rem;
+  font-weight: 700;
 }
 
 .time-date {
@@ -264,18 +274,19 @@ body {
 }
 
 .mid-single-dur {
-  font-size: 0.82rem;
+  font-size: 0.85rem;
   font-weight: 700;
   color: var(--accent);
   font-variant-numeric: tabular-nums;
   cursor: pointer;
-  padding: 4px 8px;
-  border-radius: 8px;
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
   transition: background 0.15s;
   white-space: nowrap;
 }
 .mid-single-dur:active {
   background: var(--bg-input);
+  transform: scale(0.96);
 }
 
 /* ====== 卡片底部 ====== */
@@ -300,6 +311,7 @@ body {
 }
 .card-copy-btn:active {
   background: var(--bg-input);
+  transform: scale(0.94);
 }
 
 /* ====== 空状态 ====== */
@@ -323,16 +335,17 @@ body {
   width: 100%;
   padding: 14px;
   border: none;
-  border-radius: 12px;
+  border-radius: var(--radius-sm);
   background: var(--accent);
   color: var(--text-seg-active);
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: background 0.2s, transform 0.1s;
 }
 .btn-primary:active {
   background: var(--accent-hover);
+  transform: scale(0.98);
 }
 
 .btn-danger {
@@ -340,23 +353,25 @@ body {
   width: 100%;
   padding: 14px;
   border: none;
-  border-radius: 12px;
+  border-radius: var(--radius-sm);
   background: transparent;
   color: var(--danger);
   font-size: 0.95rem;
   font-weight: 500;
   cursor: pointer;
   margin-top: 8px;
+  transition: background 0.2s, transform 0.1s;
 }
 .btn-danger:active {
   background: rgba(255,59,48,0.1);
+  transform: scale(0.98);
 }
 
 /* 此刻按钮（同行内联） */
 .btn-now-inline {
-  padding: 10px 10px;
+  padding: 10px 12px;
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: var(--radius-sm);
   background: var(--bg-input);
   color: var(--text-primary);
   font-size: 0.85rem;
@@ -369,6 +384,7 @@ body {
 .btn-now-inline:active {
   background: var(--accent);
   color: var(--text-seg-active);
+  transform: scale(0.96);
 }
 
 /* ====== 底部弹窗遮罩 ====== */
@@ -377,7 +393,7 @@ body {
   inset: 0;
   background: var(--overlay);
   z-index: 100;
-  transition: opacity 0.3s;
+  transition: opacity 0.3s ease;
 }
 .sheet-overlay.hidden {
   opacity: 0;
@@ -392,17 +408,19 @@ body {
   right: 0;
   max-height: 85dvh;
   background: var(--bg-sheet);
-  border-radius: 20px 20px 0 0;
+  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
   z-index: 101;
   display: flex;
   flex-direction: column;
   transform: translateY(100%);
-  transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1);
+  opacity: 0;
+  transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1), opacity 0.25s ease;
   box-shadow: var(--shadow-sheet);
   padding-bottom: env(safe-area-inset-bottom, 12px);
 }
 .edit-sheet.open {
   transform: translateY(0);
+  opacity: 1;
 }
 
 .sheet-handle {
@@ -445,7 +463,7 @@ body {
 
 /* ====== 表单 ====== */
 .form-group {
-  margin-bottom: 20px;
+  margin-bottom: 22px;
 }
 .form-group > label {
   display: block;
@@ -462,12 +480,12 @@ input[type="number"] {
   width: 100%;
   padding: 12px 14px;
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: var(--radius-sm);
   background: var(--bg-input);
   color: var(--text-primary);
   font-size: 1rem;
   font-family: inherit;
-  transition: border-color 0.2s, background 0.3s, color 0.3s;
+  transition: border-color 0.2s, box-shadow 0.2s, background 0.3s, color 0.3s;
 }
 input[type="text"]:focus,
 input[type="number"]:focus,
@@ -475,6 +493,7 @@ input[type="date"]:focus,
 input[type="time"]:focus {
   outline: none;
   border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(128,128,128,0.12);
 }
 
 /* 时间输入 */
@@ -486,19 +505,19 @@ input[type="time"]:focus {
   flex: 1;
   padding: 10px 12px;
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: var(--radius-sm);
   background: var(--bg-input);
   color: var(--text-primary);
   font-size: 0.95rem;
   font-family: inherit;
-  transition: border-color 0.2s, background 0.3s, color 0.3s;
+  transition: border-color 0.2s, box-shadow 0.2s, background 0.3s, color 0.3s;
 }
 
 /* 时段编辑器 */
 .seg-editor {
   border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 12px;
+  border-radius: var(--radius-md);
+  padding: 14px;
   margin-bottom: 10px;
   background: var(--bg-input);
 }
@@ -521,7 +540,7 @@ input[type="time"]:focus {
   flex: 1;
   padding: 6px 10px;
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   background: var(--bg-card);
   color: var(--text-primary);
   font-size: 0.9rem;
@@ -530,6 +549,7 @@ input[type="time"]:focus {
 .seg-editor-name:focus {
   outline: none;
   border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(128,128,128,0.1);
 }
 
 .seg-editor-del {
@@ -563,8 +583,13 @@ input[type="time"]:focus {
   gap: 4px;
   background: var(--bg-card);
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   padding: 2px 8px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.seg-editor-field:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(128,128,128,0.1);
 }
 .seg-editor-field input {
   flex: 1;
@@ -592,7 +617,7 @@ input[type="time"]:focus {
 .seg-editor-clear {
   width: 40px;
   height: 40px;
-  border-radius: 10px;
+  border-radius: var(--radius-sm);
   border: 1px solid var(--border);
   background: var(--bg-card);
   color: var(--text-secondary);
@@ -640,7 +665,7 @@ input[type="time"]:focus {
   flex: 1;
   padding: 8px 10px;
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   background: var(--bg-card);
   color: var(--text-primary);
   font-size: 0.9rem;
@@ -650,6 +675,7 @@ input[type="time"]:focus {
 .seg-time-input:focus {
   outline: none;
   border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(128,128,128,0.1);
 }
 
 /* ====== 卡片计算明细（表格布局） ====== */
@@ -751,9 +777,9 @@ input[type="time"]:focus {
 .btn-add-segment {
   display: block;
   width: 100%;
-  padding: 10px;
+  padding: 12px;
   border: 1px dashed var(--border);
-  border-radius: 10px;
+  border-radius: var(--radius-sm);
   background: transparent;
   color: var(--text-secondary);
   font-size: 0.9rem;
@@ -763,6 +789,7 @@ input[type="time"]:focus {
 }
 .btn-add-segment:active {
   background: var(--bg-input);
+  transform: scale(0.98);
 }
 
 /* 快捷时长按钮（历史记录两排显示） */
@@ -774,7 +801,7 @@ input[type="time"]:focus {
 .quick-btn {
   padding: 8px 6px;
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: var(--radius-sm);
   background: var(--bg-input);
   color: var(--text-primary);
   font-size: 0.78rem;
@@ -788,13 +815,14 @@ input[type="time"]:focus {
   background: var(--accent);
   color: var(--text-seg-active);
   border-color: var(--accent);
+  transform: scale(0.95);
 }
 
 /* ====== 右键菜单 ====== */
 .context-menu {
   position: fixed;
   background: var(--bg-sheet);
-  border-radius: 14px;
+  border-radius: var(--radius-md);
   box-shadow: 0 4px 24px rgba(0,0,0,0.2);
   z-index: 200;
   overflow: hidden;
@@ -820,26 +848,31 @@ input[type="time"]:focus {
 }
 .context-menu button:active {
   background: var(--bg-input);
+  transform: scale(0.97);
 }
 
 /* ====== Toast ====== */
 .toast {
   position: fixed;
-  bottom: 100px;
+  bottom: 120px;
   left: 50%;
-  transform: translateX(-50%);
+  transform: translateX(-50%) translateY(12px) scale(0.95);
   background: var(--toast-bg);
   color: var(--toast-text);
-  padding: 10px 20px;
-  border-radius: 20px;
-  font-size: 0.9rem;
+  padding: 11px 24px;
+  border-radius: var(--radius-xl);
+  font-size: 0.88rem;
+  font-weight: 500;
   z-index: 300;
   opacity: 0;
-  transition: opacity 0.25s;
   pointer-events: none;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+  transition: opacity 0.3s cubic-bezier(0.22, 0.61, 0.36, 1),
+              transform 0.3s cubic-bezier(0.22, 0.61, 0.36, 1);
 }
 .toast.visible {
   opacity: 1;
+  transform: translateX(-50%) translateY(0) scale(1);
 }
 
 /* ====== 响应式 ====== */

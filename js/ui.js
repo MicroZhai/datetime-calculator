@@ -167,11 +167,14 @@ const UI = {
   },
 
   closeSheet() {
-    document.getElementById('sheet-overlay').classList.add('hidden');
     document.getElementById('edit-sheet').classList.remove('open');
+    document.getElementById('sheet-overlay').classList.add('hidden');
     document.body.style.overflow = '';
-    this._editingId = null;
-    this._segments = [];
+    // 等动画播完再清理状态
+    setTimeout(() => {
+      this._editingId = null;
+      this._segments = [];
+    }, 350);
   },
 
   _syncAllFromDOM() {
@@ -495,7 +498,7 @@ const UI = {
     el.textContent = msg;
     el.classList.add('visible');
     clearTimeout(this._toastTimer);
-    this._toastTimer = setTimeout(() => el.classList.remove('visible'), 1800);
+    this._toastTimer = setTimeout(() => el.classList.remove('visible'), 2000);
   },
 
   /* ========== 工具 ========== */
