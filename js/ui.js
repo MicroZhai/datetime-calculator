@@ -66,46 +66,53 @@ const UI = {
     const finalTimeDisplay = isZero ? '无变化' : finalTime;
 
     // 跨天标签
-    let crossDayTag = '';
     const baseDay = new Date(baseDate.getFullYear(), baseDate.getMonth(), baseDate.getDate());
     const lastDay = new Date(last.time.getFullYear(), last.time.getMonth(), last.time.getDate());
     const dayDiff = Math.round((lastDay - baseDay) / 86400000);
+    let crossDayTag = '';
     if (!isZero && dayDiff !== 0) {
-      const label = dayDiff > 0 ? `+${dayDiff}天` : `${dayDiff}天`;
-      crossDayTag = `<span class="cross-day-tag">${label}</span>`;
+      crossDayTag = `<span class="cross-day-tag">${dayDiff > 0 ? '+' + dayDiff + '天' : dayDiff + '天'}</span>`;
     }
 
-    // 计算过程明细 + 段间间隔
-    let calcDetailHTML = '';
-    chain.forEach((s, i) => {
-      const seg = calc.segments[i];
-      const num = this._numToCircle(i + 1);
-      const nameStr = seg.name ? ` ${this._escape(seg.name)}` : '';
-      calcDetailHTML += `
-        <div class="card-calc-row">
-          <span class="card-calc-num">${num}${nameStr}</span>
-          <span class="card-calc-start">${Calculator.formatDateTime(s.startTime)}</span>
-          <span class="card-calc-dur">${Calculator.formatDurationMin(s.duration)}</span>
-          <span class="card-calc-arrow">→</span>
-          <span class="card-calc-end">${Calculator.formatDateTime(s.time)}</span>
-        </div>`;
+    // 过程详情（默认隐藏）
+    let detailHTML = '';
+    if (!isZero) {
+      chain.forEach((s, i) => {
+        const seg = calc.segments[i];
+        const sDay = new Date(s.startTime.getFullYear(), s.startTime.getMonth(), s.startTime.getDate());
+        const eDay = new Date(s.time.getFullYear(), s.time.getMonth(), s.time.getDate());
+        const sDiff = Math.round((sDay - baseDay) / 86400000);
+        const eDiff = Math.round((eDay - baseDay) / 86400000);
+        let sTag = '', eTag = '';
+        if (sDiff === 1) sTag = ' <span class="card-inline-tag">次日</span>';
+        else if (sDiff > 1) sTag = ` <span class="card-inline-tag">+${sDiff}天</span>`;
+        else if (sDiff < 0) sTag = ` <span class="card-inline-tag">${sDiff}天</span>`;
+        if (eDiff === 1) eTag = ' <span class="card-inline-tag">次日</span>';
+        else if (eDiff > 1) eTag = ` <span class="card-inline-tag">+${eDiff}天</span>`;
+        else if (eDiff < 0) eTag = ` <span class="card-inline-tag">${eDiff}天</span>`;
 
-      if (i < chain.length - 1) {
-        const nextStart = chain[i + 1].startTime;
-        const gapMs = nextStart.getTime() - s.time.getTime();
-        const gapMin = Math.round(gapMs / 60000);
-        const gapLabel = gapMin === 0 ? '连续' : (gapMin > 0 ? `+${gapMin}min` : `${gapMin}min`);
-        calcDetailHTML += `
-        <div class="card-calc-gap">
-          <span class="card-calc-gap-text">↳ 间隔 ${gapLabel}</span>
-        </div>`;
-      }
-    });
+        const label = seg.name || `时段${i + 1}`;
+        const dur = Calculator.formatDurationMin(s.duration);
+        detailHTML += `
+          <div class="card-timeline-row">
+            <span class="card-tl-num">${label}</span>
+            <span class="card-tl-time">${Calculator.formatDateTime(s.startTime)}${sTag}</span>
+            <span class="card-tl-dur">${dur}</span>
+            <span class="card-tl-arrow">→</span>
+            <span class="card-tl-time">${Calculator.formatDateTime(s.time)}${eTag}</span>
+          </div>`;
+      });
+    } else {
+      detailHTML = '<div class="card-timeline-row card-tl-none">无时段数据</div>';
+    }
+
+    const pinIcon = calc.pinned ? '<span class="card-pin-icon">📌</span>' : '';
+    const pinnedClass = calc.pinned ? ' pinned' : '';
 
     return `
-      <div class="calc-card" data-id="${calc.id}">
+      <div class="calc-card${pinnedClass}" data-id="${calc.id}">
         <div class="card-header">
-          <span class="card-name">${this._escape(calc.name)}</span>
+          <span class="card-name">${pinIcon}${this._escape(calc.name)}</span>
           <button class="card-menu-btn" data-action="menu" data-id="${calc.id}" aria-label="更多">⋮</button>
         </div>
 
@@ -130,19 +137,12 @@ const UI = {
           </div>
         </div>
 
-        <div class="card-calc-detail">
-          <div class="card-calc-header">
-            <span class="card-calc-title">计算过程</span>
-            <span class="card-calc-hdr">开始时间</span>
-            <span class="card-calc-hdr">输入时间</span>
-            <span></span>
-            <span class="card-calc-hdr">结束时间</span>
-          </div>
-          ${calcDetailHTML}
-        </div>
+        <button class="card-expand-btn" data-action="expand" data-id="${calc.id}">
+          <span class="card-expand-arrow">▲</span> 收起过程
+        </button>
 
-        <div class="card-footer">
-          <button class="card-copy-btn" data-action="copy" data-id="${calc.id}" title="复制结果">📋 复制结束时间</button>
+        <div class="card-process-detail" style="display:block">
+          ${detailHTML}
         </div>
       </div>`;
   },

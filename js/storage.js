@@ -15,6 +15,7 @@ const Storage = {
           delete c.durationMinutes;
           migrated = true;
         }
+        if (c.pinned === undefined) { c.pinned = false; migrated = true; }
       }
       if (migrated) this._write(list);
       return list;

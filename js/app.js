@@ -181,7 +181,7 @@
         const existing = Storage.getAll().find(c => c.id === UI._editingId);
         calc = { ...existing, ...data };
       } else {
-        calc = { id: String(Date.now()), createdAt: Date.now(), ...data };
+        calc = { id: String(Date.now()), createdAt: Date.now(), pinned: false, ...data };
       }
 
       Storage.save(calc);
@@ -257,6 +257,22 @@
         }
         if (action === 'edit-duration') {
           UI.openSheet(id);
+          e.stopPropagation();
+          return;
+        }
+        if (action === 'expand') {
+          const detail = card.querySelector('.card-process-detail');
+          const btn = actionBtn;
+          const arrow = btn.querySelector('.card-expand-arrow');
+          if (detail.style.display === 'none') {
+            detail.style.display = 'block';
+            arrow.textContent = '▲';
+            btn.childNodes[btn.childNodes.length - 1].textContent = ' 收起过程';
+          } else {
+            detail.style.display = 'none';
+            arrow.textContent = '▼';
+            btn.childNodes[btn.childNodes.length - 1].textContent = ' 展开过程';
+          }
           e.stopPropagation();
           return;
         }

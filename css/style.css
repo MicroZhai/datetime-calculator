@@ -240,6 +240,87 @@ body {
   transform: scale(0.92);
 }
 
+/* ====== 展开/收起按钮 ====== */
+.card-expand-btn {
+  display: block;
+  width: 100%;
+  padding: 8px 0 6px;
+  border: none;
+  border-top: 1px dashed var(--border);
+  background: none;
+  color: var(--text-secondary);
+  font-size: 0.72rem;
+  cursor: pointer;
+  font-family: inherit;
+  text-align: center;
+  transition: color 0.15s;
+  margin-top: 8px;
+}
+.card-expand-btn:active {
+  color: var(--text-primary);
+}
+
+.card-expand-arrow {
+  font-size: 0.6rem;
+  margin-right: 2px;
+}
+
+/* ====== 过程详情（竖线时间轴） ====== */
+.card-process-detail {
+  border-left: 1.5px solid var(--border);
+  margin: 4px 0 6px 4px;
+  padding-left: 10px;
+}
+
+.card-timeline-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.72rem;
+  padding: 3px 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.card-tl-num {
+  color: var(--text-secondary);
+  font-weight: 500;
+  font-size: 0.68rem;
+  flex-shrink: 0;
+  min-width: 32px;
+}
+
+.card-tl-time {
+  color: var(--text-primary);
+  flex-shrink: 0;
+}
+
+.card-tl-dur {
+  color: var(--accent);
+  font-weight: 600;
+  background: var(--bg-input);
+  padding: 1px 8px;
+  border-radius: 12px;
+  font-size: 0.7rem;
+  flex-shrink: 0;
+}
+
+.card-tl-arrow {
+  color: var(--text-secondary);
+  flex-shrink: 0;
+}
+
+.card-tl-none {
+  color: var(--text-secondary);
+  font-style: italic;
+  padding-left: 0;
+}
+
+.card-inline-tag {
+  font-size: 0.6rem;
+  color: var(--text-secondary);
+  margin-left: 2px;
+}
+
 /* ====== 卡片三列布局 ====== */
 .card-times {
   display: flex;
@@ -966,6 +1047,17 @@ input[type="time"]:focus {
   padding: 60px 20px;
   color: var(--text-secondary);
   font-size: 0.9rem;
+}
+
+/* ====== 卡片置顶标识 ====== */
+.card-pin-icon {
+  font-size: 0.75rem;
+  margin-right: 4px;
+  vertical-align: middle;
+}
+.calc-card.pinned {
+  border-left: 3px solid var(--accent);
+  padding-left: 17px;
 }
 
 /* 历史记录空状态（旧保留兼容） */
