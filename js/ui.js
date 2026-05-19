@@ -139,8 +139,8 @@ const UI = {
     document.getElementById('input-name').value = calc ? calc.name : '';
 
     const baseDate = calc ? new Date(calc.baseTime) : new Date();
-    document.getElementById('input-date').value = baseDate.toISOString().slice(0, 10);
-    document.getElementById('input-time').value = baseDate.toTimeString().slice(0, 5);
+    document.getElementById('input-date').value = Calculator.toLocalDateStr(baseDate);
+    document.getElementById('input-time').value = Calculator.toLocalTimeStr(baseDate);
 
     if (calc && calc.segments) {
       this._segments = calc.segments.map(s => ({
@@ -248,9 +248,9 @@ const UI = {
             <label class="seg-editor-time-label">开始时间</label>
             <div class="seg-time-row">
               <input type="date" class="seg-time-input js-seg-start-date"
-                     value="${startTime.toISOString().slice(0, 10)}">
+                     value="${Calculator.toLocalDateStr(startTime)}">
               <input type="time" class="seg-time-input js-seg-start-time"
-                     value="${startTime.toTimeString().slice(0, 5)}">
+                     value="${Calculator.toLocalTimeStr(startTime)}">
             </div>
           </div>
 
@@ -275,9 +275,9 @@ const UI = {
             <label class="seg-editor-time-label">结束时间</label>
             <div class="seg-time-row">
               <input type="date" class="seg-time-input js-seg-end-date"
-                     value="${endTime.toISOString().slice(0, 10)}">
+                     value="${Calculator.toLocalDateStr(endTime)}">
               <input type="time" class="seg-time-input js-seg-end-time"
-                     value="${endTime.toTimeString().slice(0, 5)}">
+                     value="${Calculator.toLocalTimeStr(endTime)}">
             </div>
           </div>
         </div>
@@ -306,15 +306,21 @@ const UI = {
     const startTime = new Date(startStr);
     if (isNaN(startTime.getTime())) return;
 
-    const seg = this._segments[idx];
-    const actualDuration = seg.isNegative ? -seg.durationMinutes : seg.durationMinutes;
+    // 从 DOM 读取时长
+    const hoursEl = editor.querySelector('.js-seg-hours');
+    const minEl = editor.querySelector('.js-seg-minutes');
+    const signEl = editor.querySelector('.js-seg-sign');
+    const h = parseInt(hoursEl && hoursEl.value) || 0;
+    const m = parseInt(minEl && minEl.value) || 0;
+    const isNeg = signEl && signEl.classList.contains('is-negative');
+    const actualDuration = isNeg ? -(h * 60 + m) : (h * 60 + m);
     const endTime = new Date(startTime.getTime() + actualDuration * 60 * 1000);
 
     // 更新结束时间
     const endDateEl = editor.querySelector('.js-seg-end-date');
     const endTimeEl = editor.querySelector('.js-seg-end-time');
-    if (endDateEl) endDateEl.value = endTime.toISOString().slice(0, 10);
-    if (endTimeEl) endTimeEl.value = endTime.toTimeString().slice(0, 5);
+    if (endDateEl) endDateEl.value = Calculator.toLocalDateStr(endTime);
+    if (endTimeEl) endTimeEl.value = Calculator.toLocalTimeStr(endTime);
 
     // 不再向下传播——各段独立
   },
@@ -345,13 +351,13 @@ const UI = {
 
     const startDateEl = editor.querySelector('.js-seg-start-date');
     const startTimeEl = editor.querySelector('.js-seg-start-time');
-    if (startDateEl) startDateEl.value = startTime.toISOString().slice(0, 10);
-    if (startTimeEl) startTimeEl.value = startTime.toTimeString().slice(0, 5);
+    if (startDateEl) startDateEl.value = Calculator.toLocalDateStr(startTime);
+    if (startTimeEl) startTimeEl.value = Calculator.toLocalTimeStr(startTime);
 
     // 首段开始时间变化 → 同步基准时间
     if (idx === 0) {
-      document.getElementById('input-date').value = startTime.toISOString().slice(0, 10);
-      document.getElementById('input-time').value = startTime.toTimeString().slice(0, 5);
+      document.getElementById('input-date').value = Calculator.toLocalDateStr(startTime);
+      document.getElementById('input-time').value = Calculator.toLocalTimeStr(startTime);
     }
 
     // 不再向下传播
@@ -383,8 +389,8 @@ const UI = {
 
     const endDateEl = editor.querySelector('.js-seg-end-date');
     const endTimeEl = editor.querySelector('.js-seg-end-time');
-    if (endDateEl) endDateEl.value = endTime.toISOString().slice(0, 10);
-    if (endTimeEl) endTimeEl.value = endTime.toTimeString().slice(0, 5);
+    if (endDateEl) endDateEl.value = Calculator.toLocalDateStr(endTime);
+    if (endTimeEl) endTimeEl.value = Calculator.toLocalTimeStr(endTime);
 
     // 首段开始时间变化 → 同步基准时间
     if (idx === 0) {

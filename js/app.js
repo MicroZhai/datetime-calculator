@@ -43,8 +43,8 @@
     // "此刻"按钮
     document.getElementById('now-btn').addEventListener('click', () => {
       const now = new Date();
-      document.getElementById('input-date').value = now.toISOString().slice(0, 10);
-      document.getElementById('input-time').value = now.toTimeString().slice(0, 5);
+      document.getElementById('input-date').value = Calculator.toLocalDateStr(now);
+      document.getElementById('input-time').value = Calculator.toLocalTimeStr(now);
       // 清零所有时段数据
       UI._segments.forEach(s => {
         s.durationMinutes = 0;

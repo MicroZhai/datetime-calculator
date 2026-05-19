@@ -4,11 +4,9 @@
   --bg-card: #ffffff;
   --bg-sheet: #ffffff;
   --bg-input: #f5f5f7;
-  --bg-seg-active: #000000;
   --text-primary: #1c1c1e;
   --text-secondary: #8e8e93;
   --text-seg-active: #ffffff;
-  --text-seg: #1c1c1e;
   --border: #e5e5ea;
   --shadow-card: 0 2px 8px rgba(0,0,0,0.08);
   --shadow-sheet: 0 -4px 24px rgba(0,0,0,0.15);
@@ -18,7 +16,6 @@
   --accent-hover: #333333;
   --toast-bg: #1c1c1e;
   --toast-text: #ffffff;
-  --sign-future: #34c759;
   --sign-past: #ff9500;
   --handle: #c6c6c8;
   color-scheme: light;
@@ -29,11 +26,9 @@
   --bg-card: #1c1c1e;
   --bg-sheet: #1c1c1e;
   --bg-input: #2c2c2e;
-  --bg-seg-active: #ffffff;
   --text-primary: #ffffff;
   --text-secondary: #8e8e93;
   --text-seg-active: #000000;
-  --text-seg: #ffffff;
   --border: #38383a;
   --shadow-card: 0 2px 8px rgba(0,0,0,0.4);
   --shadow-sheet: 0 -4px 24px rgba(0,0,0,0.5);
@@ -282,68 +277,6 @@ body {
 }
 .mid-single-dur:active {
   background: var(--bg-input);
-}
-
-.mid-single-arrow {
-  font-size: 1rem;
-  color: var(--text-secondary);
-}
-
-/* 多时段明细行 */
-.mid-row {
-  display: flex;
-  align-items: center;
-  gap: 2px;
-  font-size: 0.7rem;
-  white-space: nowrap;
-}
-
-.mid-seg-num {
-  color: var(--text-secondary);
-  font-size: 0.62rem;
-  flex-shrink: 0;
-}
-
-.mid-seg-name {
-  font-weight: 500;
-  flex-shrink: 0;
-  max-width: 36px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.mid-seg-dur {
-  color: var(--accent);
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-  cursor: pointer;
-  padding: 1px 4px;
-  border-radius: 4px;
-  flex-shrink: 0;
-}
-.mid-seg-dur:active {
-  background: var(--bg-input);
-}
-
-.mid-seg-arrow {
-  color: var(--text-secondary);
-  flex-shrink: 0;
-  font-size: 0.65rem;
-}
-
-.mid-seg-time {
-  font-variant-numeric: tabular-nums;
-  font-weight: 500;
-  flex-shrink: 0;
-}
-
-.mid-total {
-  font-size: 0.68rem;
-  font-weight: 600;
-  color: var(--text-secondary);
-  margin-top: 2px;
-  padding-top: 2px;
-  border-top: 1px solid var(--border);
 }
 
 /* ====== 卡片底部 ====== */
