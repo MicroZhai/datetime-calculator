@@ -22,6 +22,28 @@
     bindEvents();
     startLiveClock();
     registerSW();
+
+    // 桌面快捷菜单 URL 参数检测
+    handleShortcutAction();
+  }
+
+  function handleShortcutAction() {
+    const params = new URLSearchParams(window.location.search);
+    const action = params.get('action');
+    if (!action) return;
+
+    if (action === 'new') {
+      UI.openSheet(null);
+    } else if (action === 'history') {
+      UI.openHistory();
+    }
+
+    // 清理 URL 参数，防止刷新重复触发
+    if (window.history && window.history.replaceState) {
+      const url = new URL(window.location);
+      url.search = '';
+      window.history.replaceState({}, '', url);
+    }
   }
 
   /* ========== 事件绑定 ========== */
@@ -45,11 +67,16 @@
     // 清空历史
     document.getElementById('clear-history-btn').addEventListener('click', () => UI.clearHistory());
 
-    // 历史列表内 ✕ 删除
+    // 历史列表内删除 + 复用
     document.getElementById('history-list').addEventListener('click', e => {
       const delBtn = e.target.closest('.js-history-del');
       if (delBtn) {
         UI.deleteHistoryItem(delBtn.dataset.id);
+        return;
+      }
+      const reuseBtn = e.target.closest('.js-history-reuse');
+      if (reuseBtn) {
+        UI.reuseHistory(reuseBtn.dataset.id);
       }
     });
 

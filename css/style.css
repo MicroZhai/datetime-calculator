@@ -916,6 +916,31 @@ input[type="time"]:focus {
   margin-top: 6px;
 }
 
+.history-card-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.history-card-reuse {
+  padding: 5px 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-input);
+  color: var(--text-primary);
+  font-size: 0.7rem;
+  cursor: pointer;
+  font-family: inherit;
+  white-space: nowrap;
+  transition: background 0.2s;
+}
+.history-card-reuse:active {
+  background: var(--accent);
+  color: var(--text-seg-active);
+}
+
 .history-card-del {
   width: 30px;
   height: 30px;

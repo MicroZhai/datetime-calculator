@@ -621,9 +621,38 @@ const UI = {
             </div>
             <div class="history-card-time">保存于 ${this._escape(r.savedAt)}</div>
           </div>
-          <button class="history-card-del js-history-del" data-id="${r.id}" title="删除">✕</button>
+          <div class="history-card-actions">
+            <button class="history-card-reuse js-history-reuse" data-id="${r.id}" title="再用一次">🔄 再用一次</button>
+            <button class="history-card-del js-history-del" data-id="${r.id}" title="删除">✕</button>
+          </div>
         </div>`;
     }).join('');
+  },
+
+  reuseHistory(id) {
+    const record = History.getAll().find(r => r.id === id);
+    if (!record) return;
+    this.closeHistory();
+    this.openSheet(null);
+    // 预填数据
+    if (record.baseTime) {
+      const d = new Date(record.baseTime);
+      document.getElementById('input-date').value = Calculator.toLocalDateStr(d);
+      document.getElementById('input-time').value = Calculator.toLocalTimeStr(d);
+    }
+    if (record.segments && record.segments.length > 0) {
+      this._segments = record.segments.map(s => ({
+        name: s.name || '',
+        durationMinutes: Math.abs(s.durationMinutes),
+        isNegative: s.durationMinutes < 0
+      }));
+    }
+    if (record.calcName) {
+      document.getElementById('input-name').value = record.calcName + ' (副本)';
+    }
+    this._activeSegIdx = this._segments.length - 1;
+    this._rebuildSegmentEditors();
+    this._dirty = true;
   },
 
   _renderOldHistoryCard(r) {
