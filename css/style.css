@@ -652,7 +652,7 @@ input[type="time"]:focus {
   border-color: var(--accent);
 }
 
-/* ====== 卡片计算明细 ====== */
+/* ====== 卡片计算明细（表格布局） ====== */
 .card-calc-detail {
   margin-top: 10px;
   padding-top: 10px;
@@ -660,37 +660,79 @@ input[type="time"]:focus {
 }
 
 .card-calc-title {
-  font-size: 0.7rem;
-  font-weight: 600;
+  font-size: 0.62rem;
+  font-weight: 700;
+  font-style: italic;
   color: var(--text-secondary);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  margin-bottom: 6px;
+  text-align: center;
+}
+
+.card-calc-header,
+.card-calc-row {
+  display: grid;
+  grid-template-columns: 44px 1fr 56px 16px 1fr;
+  align-items: center;
+  gap: 2px;
+  font-variant-numeric: tabular-nums;
+}
+
+.card-calc-header {
+  font-size: 0.62rem;
+  padding: 2px 0 5px;
+  color: var(--text-secondary);
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 2px;
 }
 
 .card-calc-row {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 0.75rem;
+  font-size: 0.73rem;
   padding: 3px 0;
   color: var(--text-primary);
-  font-variant-numeric: tabular-nums;
 }
 
 .card-calc-num {
   color: var(--text-secondary);
   font-weight: 500;
-  min-width: 32px;
-  flex-shrink: 0;
+  text-align: center;
+}
+
+.card-calc-hdr {
+  font-weight: 600;
+  font-size: 0.62rem;
+  text-align: center;
+}
+
+.card-calc-hdr:first-of-type {
+  text-align: left;
+}
+
+.card-calc-hdr:last-of-type {
+  text-align: right;
+}
+
+.card-calc-start {
+  text-align: left;
 }
 
 .card-calc-dur {
   color: var(--accent);
   font-weight: 600;
+  text-align: center;
+}
+
+.card-calc-arrow {
+  text-align: center;
+  color: var(--text-secondary);
+}
+
+.card-calc-end {
+  text-align: right;
 }
 
 .card-calc-gap {
+  display: flex;
+  align-items: center;
+  padding: 2px 0 2px 28px;
   font-style: italic;
 }
 

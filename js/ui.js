@@ -61,7 +61,7 @@ const UI = {
     const totalMin = calc.segments.reduce((s, c) => s + c.durationMinutes, 0);
     const totalDur = Calculator.formatDurationMin(totalMin);
 
-    // 阶段时间明细 + 段间间隔（始终显示）
+    // 计算过程明细 + 段间间隔
     let calcDetailHTML = '';
     chain.forEach((s, i) => {
       const seg = calc.segments[i];
@@ -70,10 +70,10 @@ const UI = {
       calcDetailHTML += `
         <div class="card-calc-row">
           <span class="card-calc-num">${num}${nameStr}</span>
-          <span>${Calculator.formatDateTime(s.startTime)}</span>
+          <span class="card-calc-start">${Calculator.formatDateTime(s.startTime)}</span>
           <span class="card-calc-dur">${Calculator.formatDurationMin(s.duration)}</span>
-          <span>→</span>
-          <span>${Calculator.formatDateTime(s.time)}</span>
+          <span class="card-calc-arrow">→</span>
+          <span class="card-calc-end">${Calculator.formatDateTime(s.time)}</span>
         </div>`;
 
       if (i < chain.length - 1) {
@@ -82,8 +82,7 @@ const UI = {
         const gapMin = Math.round(gapMs / 60000);
         const gapLabel = gapMin === 0 ? '连续' : (gapMin > 0 ? `+${gapMin}min` : `${gapMin}min`);
         calcDetailHTML += `
-        <div class="card-calc-row card-calc-gap">
-          <span class="card-calc-num"></span>
+        <div class="card-calc-gap">
           <span class="card-calc-gap-text">↳ 间隔 ${gapLabel}</span>
         </div>`;
       }
@@ -117,7 +116,13 @@ const UI = {
         </div>
 
         <div class="card-calc-detail">
-          <div class="card-calc-title">阶段时间</div>
+          <div class="card-calc-header">
+            <span class="card-calc-title">计算过程</span>
+            <span class="card-calc-hdr">开始时间</span>
+            <span class="card-calc-hdr">输入时间</span>
+            <span></span>
+            <span class="card-calc-hdr">结束时间</span>
+          </div>
           ${calcDetailHTML}
         </div>
 
