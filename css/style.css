@@ -364,6 +364,33 @@ body {
   transform: scale(0.94);
 }
 
+/* ====== 底部悬浮新建按钮 ====== */
+.fab-btn {
+  position: fixed;
+  bottom: 28px;
+  right: 20px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: none;
+  background: var(--accent);
+  color: var(--text-seg-active);
+  font-size: 1.6rem;
+  font-weight: 300;
+  cursor: pointer;
+  z-index: 50;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.18);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s, box-shadow 0.2s, background 0.3s;
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+.fab-btn:active {
+  transform: scale(0.92);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+}
+
 /* ====== 空状态 ====== */
 #empty-state {
   text-align: center;
@@ -817,11 +844,106 @@ input[type="time"]:focus {
   font-size: 0.7rem;
 }
 
-/* 历史记录空状态 */
-.history-empty {
-  font-size: 0.82rem;
+/* ====== 历史记录卡片 ====== */
+.history-card {
+  background: var(--bg-card);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  margin-bottom: 10px;
+  box-shadow: var(--shadow-card);
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.history-card-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.history-card-name {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.history-card-line {
+  font-size: 0.85rem;
+  margin-bottom: 3px;
+  font-variant-numeric: tabular-nums;
+}
+
+.history-card-label {
+  color: var(--text-secondary);
+  font-weight: 500;
+  font-size: 0.75rem;
+}
+
+.history-card-process {
+  margin-top: 6px;
+  margin-bottom: 4px;
+}
+
+.history-process-row {
+  font-size: 0.73rem;
+  padding: 1px 0 1px 8px;
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+.history-process-label {
+  font-weight: 500;
   color: var(--text-secondary);
 }
+
+.history-process-dur {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.history-process-none {
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
+.history-card-time {
+  font-size: 0.65rem;
+  color: var(--text-secondary);
+  margin-top: 6px;
+}
+
+.history-card-del {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  cursor: pointer;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 2px;
+}
+.history-card-del:active {
+  background: var(--bg-input);
+  color: var(--danger);
+}
+
+.history-empty {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+/* 历史记录空状态（旧保留兼容） */
 
 /* 添加时段按钮 */
 .btn-add-segment {

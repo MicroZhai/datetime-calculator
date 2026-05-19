@@ -33,8 +33,25 @@
     });
 
     // 新建计算器
-    document.getElementById('new-btn').addEventListener('click', () => UI.openSheet(null));
-    document.getElementById('empty-new-btn').addEventListener('click', () => UI.openSheet(null));
+    const openNewSheet = () => UI.openSheet(null);
+    document.getElementById('new-btn-bottom').addEventListener('click', openNewSheet);
+    document.getElementById('empty-new-btn').addEventListener('click', openNewSheet);
+
+    // 历史记录
+    document.getElementById('history-btn').addEventListener('click', () => UI.openHistory());
+    document.getElementById('history-close-btn').addEventListener('click', () => UI.closeHistory());
+    document.getElementById('history-overlay').addEventListener('click', () => UI.closeHistory());
+
+    // 清空历史
+    document.getElementById('clear-history-btn').addEventListener('click', () => UI.clearHistory());
+
+    // 历史列表内 ✕ 删除
+    document.getElementById('history-list').addEventListener('click', e => {
+      const delBtn = e.target.closest('.js-history-del');
+      if (delBtn) {
+        UI.deleteHistoryItem(delBtn.dataset.id);
+      }
+    });
 
     // 关闭弹窗
     document.getElementById('sheet-close-btn').addEventListener('click', () => UI.closeSheet());
@@ -144,6 +161,33 @@
       UI.closeSheet(true);
       UI.renderList();
       UI.showToast('已保存');
+
+      // 记录历史
+      const finalResult = Calculator.getFinalResult(calc);
+      const baseDate = new Date(calc.baseTime);
+
+      // 跨天标识
+      const baseDay = new Date(baseDate.getFullYear(), baseDate.getMonth(), baseDate.getDate());
+      const resultDay = new Date(finalResult.getFullYear(), finalResult.getMonth(), finalResult.getDate());
+      const dayDiff = Math.round((resultDay - baseDay) / 86400000);
+      let crossTag = '';
+      if (dayDiff === 1) crossTag = ' (次日)';
+      else if (dayDiff > 1) crossTag = ` (+${dayDiff}天)`;
+      else if (dayDiff < 0) crossTag = ` (${dayDiff}天)`;
+
+      History.add({
+        id: String(Date.now()),
+        calcName: data.name,
+        baseTime: calc.baseTime,
+        baseTimeFormatted: Calculator.formatDateTime(baseDate),
+        resultTime: finalResult.toISOString(),
+        resultTimeFormatted: Calculator.formatDateTime(finalResult) + crossTag,
+        segments: calc.segments.map(s => ({
+          name: s.name || '',
+          durationMinutes: s.durationMinutes
+        })),
+        savedAt: `${Calculator.toLocalDateStr(new Date())} ${Calculator.toLocalTimeStr(new Date())}`
+      });
     });
 
     // 删除（弹窗内）

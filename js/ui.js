@@ -543,6 +543,116 @@ const UI = {
     return text;
   },
 
+  /* ========== 历史记录 ========== */
+
+  openHistory() {
+    this.renderHistory();
+    document.getElementById('history-overlay').classList.remove('hidden');
+    document.getElementById('history-sheet').classList.add('open');
+    document.body.style.overflow = 'hidden';
+  },
+
+  closeHistory() {
+    document.getElementById('history-sheet').classList.remove('open');
+    document.getElementById('history-overlay').classList.add('hidden');
+    document.body.style.overflow = '';
+  },
+
+  renderHistory() {
+    const list = History.getAll();
+    const container = document.getElementById('history-list');
+    if (list.length === 0) {
+      container.innerHTML = '<div class="history-empty">暂无计算历史</div>';
+      return;
+    }
+    container.innerHTML = list.map(r => {
+      // 兼容旧记录（无 segments 字段）
+      if (!r.segments && r.summary) {
+        return this._renderOldHistoryCard(r);
+      }
+
+      const segs = r.segments || [];
+      const totalMin = segs.reduce((s, c) => s + c.durationMinutes, 0);
+      const isZero = totalMin === 0;
+
+      const endDisplay = isZero ? '与开始时间相同' : this._escape(r.resultTimeFormatted);
+
+      let processHTML = '';
+      if (!isZero) {
+        const baseMs = new Date(r.baseTime).getTime();
+        const baseDay = new Date(new Date(r.baseTime).getFullYear(), new Date(r.baseTime).getMonth(), new Date(r.baseTime).getDate());
+        let accumMin = 0;
+        segs.forEach((s, i) => {
+          accumMin += s.durationMinutes;
+          const midTime = new Date(baseMs + accumMin * 60 * 1000);
+          const midDay = new Date(midTime.getFullYear(), midTime.getMonth(), midTime.getDate());
+          const dayDiff = Math.round((midDay - baseDay) / 86400000);
+          let midTag = '';
+          if (dayDiff === 1) midTag = ' (次日)';
+          else if (dayDiff > 1) midTag = ` (+${dayDiff}天)`;
+          else if (dayDiff < 0) midTag = ` (${dayDiff}天)`;
+
+          const label = s.name || `时段${i + 1}`;
+          processHTML += `
+            <div class="history-process-row">
+              <span class="history-process-label">${this._escape(label)}</span>
+              <span class="history-process-dur">${Calculator.formatDurationMin(s.durationMinutes)}</span>
+              <span>→</span>
+              <span>${Calculator.formatTime(midTime)}${midTag}</span>
+            </div>`;
+        });
+      } else {
+        processHTML = '<div class="history-process-row history-process-none">无变化</div>';
+      }
+
+      return `
+        <div class="history-card" data-id="${r.id}">
+          <div class="history-card-main">
+            <div class="history-card-name">${this._escape(r.calcName)}</div>
+            <div class="history-card-line">
+              <span class="history-card-label">开始：</span>${this._escape(r.baseTimeFormatted || '—')}
+            </div>
+            <div class="history-card-line">
+              <span class="history-card-label">结束：</span>${endDisplay}
+            </div>
+            <div class="history-card-process">
+              <span class="history-card-label">过程：</span>
+              ${processHTML}
+            </div>
+            <div class="history-card-time">保存于 ${this._escape(r.savedAt)}</div>
+          </div>
+          <button class="history-card-del js-history-del" data-id="${r.id}" title="删除">✕</button>
+        </div>`;
+    }).join('');
+  },
+
+  _renderOldHistoryCard(r) {
+    return `
+      <div class="history-card" data-id="${r.id}">
+        <div class="history-card-main">
+          <div class="history-card-name">${this._escape(r.calcName)}</div>
+          <div class="history-card-line">${this._escape(r.resultDate || '')} ${this._escape(r.resultTime || '')}</div>
+          <div class="history-card-line" style="font-size:0.73rem;color:var(--text-secondary)">${this._escape(r.summary || '')}</div>
+          <div class="history-card-time">保存于 ${this._escape(r.savedAt)}</div>
+        </div>
+        <button class="history-card-del js-history-del" data-id="${r.id}" title="删除">✕</button>
+      </div>`;
+  },
+
+  clearHistory() {
+    const self = this;
+    this.showConfirm('确定清空全部计算历史吗？此操作不可撤销。', '清空', 'confirm-btn--danger', () => {
+      History.clear();
+      self.renderHistory();
+      self.showToast('历史已清空');
+    });
+  },
+
+  deleteHistoryItem(id) {
+    History.remove(id);
+    this.renderHistory();
+  },
+
   /* ========== 右键菜单 ========== */
 
   showContextMenu(x, y, calcId) {
