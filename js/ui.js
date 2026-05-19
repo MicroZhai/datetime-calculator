@@ -323,9 +323,14 @@ const UI = {
     const endTime = new Date(endStr);
     if (isNaN(endTime.getTime())) return;
 
-    // 时长固定
-    const seg = this._segments[idx];
-    const actualDuration = seg.isNegative ? -seg.durationMinutes : seg.durationMinutes;
+    // 从 DOM 读取时长（确保是最新值）
+    const hoursEl = editor.querySelector('.js-seg-hours');
+    const minEl = editor.querySelector('.js-seg-minutes');
+    const signEl = editor.querySelector('.js-seg-sign');
+    const h = parseInt(hoursEl && hoursEl.value) || 0;
+    const m = parseInt(minEl && minEl.value) || 0;
+    const isNeg = signEl && signEl.classList.contains('is-negative');
+    const actualDuration = isNeg ? -(h * 60 + m) : (h * 60 + m);
 
     // 反算开始时间
     const startTime = new Date(endTime.getTime() - actualDuration * 60 * 1000);
@@ -356,9 +361,14 @@ const UI = {
     const startTime = new Date(startStr);
     if (isNaN(startTime.getTime())) return;
 
-    // 时长固定
-    const seg = this._segments[idx];
-    const actualDuration = seg.isNegative ? -seg.durationMinutes : seg.durationMinutes;
+    // 从 DOM 读取时长（确保是最新值）
+    const hoursEl = editor.querySelector('.js-seg-hours');
+    const minEl = editor.querySelector('.js-seg-minutes');
+    const signEl = editor.querySelector('.js-seg-sign');
+    const h = parseInt(hoursEl && hoursEl.value) || 0;
+    const m = parseInt(minEl && minEl.value) || 0;
+    const isNeg = signEl && signEl.classList.contains('is-negative');
+    const actualDuration = isNeg ? -(h * 60 + m) : (h * 60 + m);
 
     // 重算结束时间
     const endTime = new Date(startTime.getTime() + actualDuration * 60 * 1000);
