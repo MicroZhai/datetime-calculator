@@ -92,7 +92,7 @@ const Calculator = {
     return results;
   },
 
-  /** 获取计算器最终出炉时间 */
+  /** 获取计算器最终结束时间 */
   getFinalResult(calc) {
     let current = calc.isBaseTimeNow ? new Date() : new Date(calc.baseTime);
     for (const seg of calc.segments) {

@@ -9,7 +9,7 @@ const UI = {
   renderList() {
     const calculators = Storage.getAll();
 
-    // 按出炉时间从早到晚排序
+    // 按结束时间从早到晚排序
     calculators.sort((a, b) => {
       return Calculator.getFinalResult(a) - Calculator.getFinalResult(b);
     });
@@ -50,7 +50,7 @@ const UI = {
     const baseDate = calc.isBaseTimeNow ? new Date() : new Date(calc.baseTime);
     const baseTime = Calculator.formatTime(baseDate);
     const baseDateStr = Calculator.formatDate(baseDate);
-    const baseLabel = calc.isBaseTimeNow ? '到温时间' : '基准时间';
+    const baseLabel = '开始时间';
 
     const chain = Calculator.calcSegmentChain(
       calc.isBaseTimeNow ? 'now' : calc.baseTime,
@@ -110,7 +110,7 @@ const UI = {
           </div>
 
           <div class="time-block time-block--result">
-            <div class="time-label">出炉时间</div>
+            <div class="time-label">结束时间</div>
             <div class="time-value time-value--result js-result-time">${finalTime}</div>
             <div class="time-date js-result-date">${finalDate}</div>
           </div>
@@ -135,7 +135,7 @@ const UI = {
     // 名称
     document.getElementById('input-name').value = calc ? calc.name : '';
 
-    // 基准时间模式
+    // 开始时间模式
     const isNow = calc ? calc.isBaseTimeNow : true;
     this._setBaseTimeMode(isNow);
 

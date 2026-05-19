@@ -44,7 +44,7 @@
     document.getElementById('seg-now').addEventListener('click', () => UI._setBaseTimeMode(true));
     document.getElementById('seg-manual').addEventListener('click', () => UI._setBaseTimeMode(false));
 
-    // 重置为"到温时间"
+    // 重置为当前时间
     document.getElementById('reset-now-btn').addEventListener('click', () => {
       UI._setBaseTimeMode(true);
       const now = new Date();
