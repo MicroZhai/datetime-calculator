@@ -320,6 +320,16 @@ const UI = {
     return new Date(`${dateStr}T${timeStr}:00`).toISOString();
   },
 
+  _readDurationFromDOM(editor) {
+    const hoursEl = editor.querySelector('.js-seg-hours');
+    const minEl = editor.querySelector('.js-seg-minutes');
+    let h = parseInt(hoursEl && hoursEl.value) || 0;
+    let m = parseInt(minEl && minEl.value) || 0;
+    const clamped = this._clampDuration(h, m, editor);
+    if (clamped.capped) { h = clamped.h; m = clamped.m; }
+    return { h, m, total: h * 60 + m };
+  },
+
   _clampDuration(h, m, editor) {
     const total = h * 60 + m;
     if (total <= 9999) return { h, m, capped: false };
@@ -352,14 +362,8 @@ const UI = {
     const startTime = new Date(startStr);
     if (isNaN(startTime.getTime())) return;
 
-    // 从 DOM 读取时长
-    const hoursEl = editor.querySelector('.js-seg-hours');
-    const minEl = editor.querySelector('.js-seg-minutes');
-    let h = parseInt(hoursEl && hoursEl.value) || 0;
-    let m = parseInt(minEl && minEl.value) || 0;
-    const clamped = this._clampDuration(h, m, editor);
-    if (clamped.capped) { h = clamped.h; m = clamped.m; }
-    const actualDuration = h * 60 + m;
+    const dur = this._readDurationFromDOM(editor);
+    const actualDuration = dur.total;
     const endTime = new Date(startTime.getTime() + actualDuration * 60 * 1000);
 
     // 更新结束时间
@@ -383,14 +387,8 @@ const UI = {
     const endTime = new Date(endStr);
     if (isNaN(endTime.getTime())) return;
 
-    // 从 DOM 读取时长（确保是最新值）
-    const hoursEl = editor.querySelector('.js-seg-hours');
-    const minEl = editor.querySelector('.js-seg-minutes');
-    let h = parseInt(hoursEl && hoursEl.value) || 0;
-    let m = parseInt(minEl && minEl.value) || 0;
-    const clamped = this._clampDuration(h, m, editor);
-    if (clamped.capped) { h = clamped.h; m = clamped.m; }
-    const actualDuration = h * 60 + m;
+    const dur = this._readDurationFromDOM(editor);
+    const actualDuration = dur.total;
 
     // 反算开始时间
     const startTime = new Date(endTime.getTime() - actualDuration * 60 * 1000);
@@ -421,14 +419,8 @@ const UI = {
     const startTime = new Date(startStr);
     if (isNaN(startTime.getTime())) return;
 
-    // 从 DOM 读取时长（确保是最新值）
-    const hoursEl = editor.querySelector('.js-seg-hours');
-    const minEl = editor.querySelector('.js-seg-minutes');
-    let h = parseInt(hoursEl && hoursEl.value) || 0;
-    let m = parseInt(minEl && minEl.value) || 0;
-    const clamped = this._clampDuration(h, m, editor);
-    if (clamped.capped) { h = clamped.h; m = clamped.m; }
-    const actualDuration = h * 60 + m;
+    const dur = this._readDurationFromDOM(editor);
+    const actualDuration = dur.total;
 
     // 重算结束时间
     const endTime = new Date(startTime.getTime() + actualDuration * 60 * 1000);

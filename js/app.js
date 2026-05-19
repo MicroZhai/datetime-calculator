@@ -244,17 +244,6 @@
           e.stopPropagation();
           return;
         }
-        if (action === 'copy') {
-          const calc = Storage.getAll().find(c => c.id === id);
-          if (calc) {
-            const result = Calculator.getFinalResult(calc);
-            const text = `${Calculator.formatDate(result)} ${Calculator.formatTime(result)}`;
-            navigator.clipboard.writeText(text).then(() => UI.showToast('已复制'))
-              .catch(() => UI.showToast('复制失败'));
-          }
-          e.stopPropagation();
-          return;
-        }
         if (action === 'edit-duration') {
           UI.openSheet(id);
           e.stopPropagation();
