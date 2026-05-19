@@ -16,7 +16,6 @@
   --accent-hover: #333333;
   --toast-bg: #1c1c1e;
   --toast-text: #ffffff;
-  --sign-past: #ff9500;
   --handle: #c6c6c8;
   color-scheme: light;
 }
@@ -353,20 +352,21 @@ body {
   background: rgba(255,59,48,0.1);
 }
 
-/* 此刻按钮 */
-.btn-now {
-  padding: 8px 16px;
+/* 此刻按钮（同行内联） */
+.btn-now-inline {
+  padding: 10px 10px;
   border: 1px solid var(--border);
-  border-radius: 20px;
+  border-radius: 10px;
   background: var(--bg-input);
   color: var(--text-primary);
   font-size: 0.85rem;
   cursor: pointer;
   font-family: inherit;
-  margin-top: 8px;
+  flex-shrink: 0;
+  white-space: nowrap;
   transition: background 0.2s;
 }
-.btn-now:active {
+.btn-now-inline:active {
   background: var(--accent);
   color: var(--text-seg-active);
 }
@@ -588,27 +588,26 @@ input[type="time"]:focus {
   flex-shrink: 0;
 }
 
-.seg-editor-sign {
+/* 清除时长按钮 */
+.seg-editor-clear {
   width: 40px;
   height: 40px;
   border-radius: 10px;
   border: 1px solid var(--border);
   background: var(--bg-card);
-  font-size: 1.2rem;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
   cursor: pointer;
   flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: background 0.2s, color 0.2s;
-  color: var(--text-primary);
+  font-family: inherit;
 }
-.seg-editor-sign:active {
-  background: var(--accent);
-  color: var(--text-seg-active);
-}
-.seg-editor-sign.is-negative {
-  color: var(--sign-past);
+.seg-editor-clear:active {
+  background: var(--danger);
+  color: #fff;
 }
 
 /* 时段三时间字段 */

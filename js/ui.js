@@ -176,14 +176,12 @@ const UI = {
       const nameEl = el.querySelector('.js-seg-name');
       const hoursEl = el.querySelector('.js-seg-hours');
       const minEl = el.querySelector('.js-seg-minutes');
-      const signEl = el.querySelector('.js-seg-sign');
       if (nameEl) this._segments[i].name = nameEl.value.trim();
       if (hoursEl && minEl) {
         const h = parseInt(hoursEl.value) || 0;
         const m = parseInt(minEl.value) || 0;
         this._segments[i].durationMinutes = h * 60 + m;
       }
-      if (signEl) this._segments[i].isNegative = signEl.classList.contains('is-negative');
     });
   },
 
@@ -231,9 +229,6 @@ const UI = {
     const actualDuration = seg.isNegative ? -seg.durationMinutes : seg.durationMinutes;
     const endTime = new Date(startTime.getTime() + actualDuration * 60 * 1000);
 
-    const signClass = seg.isNegative ? ' is-negative' : '';
-    const signText = seg.isNegative ? '⊖' : '⊕';
-
     return `
       <div class="seg-editor" data-seg-idx="${i}">
         <div class="seg-editor-top">
@@ -267,7 +262,7 @@ const UI = {
                        value="${seg.durationMinutes % 60}" inputmode="numeric">
                 <span>m</span>
               </div>
-              <button class="seg-editor-sign${signClass} js-seg-sign">${signText}</button>
+              <button class="seg-editor-clear js-seg-clear" title="清除时长">✕</button>
             </div>
           </div>
 
@@ -309,11 +304,9 @@ const UI = {
     // 从 DOM 读取时长
     const hoursEl = editor.querySelector('.js-seg-hours');
     const minEl = editor.querySelector('.js-seg-minutes');
-    const signEl = editor.querySelector('.js-seg-sign');
     const h = parseInt(hoursEl && hoursEl.value) || 0;
     const m = parseInt(minEl && minEl.value) || 0;
-    const isNeg = signEl && signEl.classList.contains('is-negative');
-    const actualDuration = isNeg ? -(h * 60 + m) : (h * 60 + m);
+    const actualDuration = h * 60 + m;
     const endTime = new Date(startTime.getTime() + actualDuration * 60 * 1000);
 
     // 更新结束时间
@@ -340,11 +333,9 @@ const UI = {
     // 从 DOM 读取时长（确保是最新值）
     const hoursEl = editor.querySelector('.js-seg-hours');
     const minEl = editor.querySelector('.js-seg-minutes');
-    const signEl = editor.querySelector('.js-seg-sign');
     const h = parseInt(hoursEl && hoursEl.value) || 0;
     const m = parseInt(minEl && minEl.value) || 0;
-    const isNeg = signEl && signEl.classList.contains('is-negative');
-    const actualDuration = isNeg ? -(h * 60 + m) : (h * 60 + m);
+    const actualDuration = h * 60 + m;
 
     // 反算开始时间
     const startTime = new Date(endTime.getTime() - actualDuration * 60 * 1000);
@@ -378,11 +369,9 @@ const UI = {
     // 从 DOM 读取时长（确保是最新值）
     const hoursEl = editor.querySelector('.js-seg-hours');
     const minEl = editor.querySelector('.js-seg-minutes');
-    const signEl = editor.querySelector('.js-seg-sign');
     const h = parseInt(hoursEl && hoursEl.value) || 0;
     const m = parseInt(minEl && minEl.value) || 0;
-    const isNeg = signEl && signEl.classList.contains('is-negative');
-    const actualDuration = isNeg ? -(h * 60 + m) : (h * 60 + m);
+    const actualDuration = h * 60 + m;
 
     // 重算结束时间
     const endTime = new Date(startTime.getTime() + actualDuration * 60 * 1000);
@@ -457,8 +446,9 @@ const UI = {
     this._rebuildSegmentEditors();
   },
 
-  toggleSegmentSign(idx) {
-    this._segments[idx].isNegative = !this._segments[idx].isNegative;
+  clearSegmentDuration(idx) {
+    this._segments[idx].durationMinutes = 0;
+    this._segments[idx].isNegative = false;
     this._rebuildSegmentEditors();
   },
 

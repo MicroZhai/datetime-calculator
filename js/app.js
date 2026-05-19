@@ -64,8 +64,8 @@
         UI.removeSegment(idx);
         return;
       }
-      if (e.target.closest('.js-seg-sign')) {
-        UI.toggleSegmentSign(idx);
+      if (e.target.closest('.js-seg-clear')) {
+        UI.clearSegmentDuration(idx);
         return;
       }
       UI._activeSegIdx = idx;
