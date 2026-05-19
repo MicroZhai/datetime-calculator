@@ -350,16 +350,10 @@ body {
 .card-footer {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  margin-top: 10px;
-  padding-top: 10px;
+  justify-content: flex-end;
+  margin-top: 6px;
+  padding-top: 6px;
   border-top: 1px solid var(--border);
-}
-
-.card-countdown {
-  font-size: 0.82rem;
-  color: var(--accent);
-  font-weight: 500;
 }
 
 .card-copy-btn {
@@ -426,13 +420,22 @@ body {
   background: rgba(255,59,48,0.1);
 }
 
-.btn-text {
-  background: none;
-  border: none;
-  color: var(--accent);
+/* 此刻按钮 */
+.btn-now {
+  padding: 8px 16px;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  background: var(--bg-input);
+  color: var(--text-primary);
   font-size: 0.85rem;
   cursor: pointer;
-  padding: 6px 0;
+  font-family: inherit;
+  margin-top: 8px;
+  transition: background 0.2s;
+}
+.btn-now:active {
+  background: var(--accent);
+  color: var(--text-seg-active);
 }
 
 /* ====== 底部弹窗遮罩 ====== */
@@ -541,32 +544,7 @@ input[type="time"]:focus {
   border-color: var(--accent);
 }
 
-/* 分段控件 */
-.segmented-control {
-  display: flex;
-  background: var(--bg-input);
-  border-radius: 10px;
-  padding: 3px;
-}
-.seg-btn {
-  flex: 1;
-  padding: 8px 12px;
-  border: none;
-  border-radius: 8px;
-  background: transparent;
-  color: var(--text-seg);
-  font-size: 0.9rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background 0.2s, color 0.2s;
-  font-family: inherit;
-}
-.seg-btn.active {
-  background: var(--bg-seg-active);
-  color: var(--text-seg-active);
-}
-
-/* 手动时间选择 */
+/* 时间输入 */
 .time-row {
   display: flex;
   gap: 8px;
@@ -700,6 +678,101 @@ input[type="time"]:focus {
   color: var(--sign-past);
 }
 
+/* 时段三时间字段 */
+.seg-editor-times {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.seg-editor-time-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.seg-editor-time-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.seg-time-row {
+  display: flex;
+  gap: 6px;
+}
+
+.seg-time-input {
+  flex: 1;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg-card);
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  font-family: inherit;
+  min-width: 0;
+}
+.seg-time-input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+/* ====== 卡片计算明细 ====== */
+.card-calc-detail {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+
+.card-calc-title {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 6px;
+}
+
+.card-calc-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.75rem;
+  padding: 3px 0;
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+.card-calc-num {
+  color: var(--text-secondary);
+  font-weight: 500;
+  min-width: 32px;
+  flex-shrink: 0;
+}
+
+.card-calc-dur {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.card-calc-gap {
+  font-style: italic;
+}
+
+.card-calc-gap-text {
+  color: var(--text-secondary);
+  font-size: 0.7rem;
+}
+
+/* 历史记录空状态 */
+.history-empty {
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+}
+
 /* 添加时段按钮 */
 .btn-add-segment {
   display: block;
@@ -718,22 +791,24 @@ input[type="time"]:focus {
   background: var(--bg-input);
 }
 
-/* 快捷时长按钮 */
+/* 快捷时长按钮（历史记录两排显示） */
 .quick-durations {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 6px;
 }
 .quick-btn {
-  padding: 8px 14px;
+  padding: 8px 6px;
   border: 1px solid var(--border);
-  border-radius: 20px;
+  border-radius: 10px;
   background: var(--bg-input);
   color: var(--text-primary);
-  font-size: 0.85rem;
+  font-size: 0.78rem;
   cursor: pointer;
+  text-align: center;
   transition: background 0.2s, border-color 0.2s;
   font-family: inherit;
+  white-space: nowrap;
 }
 .quick-btn:active {
   background: var(--accent);

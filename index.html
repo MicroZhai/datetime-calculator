@@ -56,22 +56,14 @@
         <input type="text" id="input-name" maxlength="30" placeholder="例如：会议结束时间">
       </div>
 
-      <!-- 开始时间模式 -->
+      <!-- 计算 — 开始时间 -->
       <div class="form-group">
         <label>开始时间</label>
-        <div class="segmented-control">
-          <button id="seg-now" class="seg-btn active">实时</button>
-          <button id="seg-manual" class="seg-btn">手动设置</button>
-        </div>
-      </div>
-
-      <!-- 手动时间选择（默认隐藏） -->
-      <div id="manual-time-group" class="form-group hidden">
         <div class="time-row">
           <input type="date" id="input-date" class="time-input">
           <input type="time" id="input-time" class="time-input">
         </div>
-        <button id="reset-now-btn" class="btn-text">🕐 重置为当前时间</button>
+        <button id="now-btn" class="btn-now">🕐 此刻</button>
       </div>
 
       <!-- 时段列表 -->
@@ -83,16 +75,11 @@
         <button id="add-segment-btn" class="btn-add-segment">+ 添加时段</button>
       </div>
 
-      <!-- 快捷时长 -->
+      <!-- 时长历史 -->
       <div class="form-group">
-        <label>快捷时长（填入最后时段）</label>
-        <div class="quick-durations">
-          <button class="quick-btn" data-minutes="30">30 分钟</button>
-          <button class="quick-btn" data-minutes="60">1 小时</button>
-          <button class="quick-btn" data-minutes="120">2 小时</button>
-          <button class="quick-btn" data-minutes="180">3 小时</button>
-          <button class="quick-btn" data-minutes="480">8 小时</button>
-          <button class="quick-btn" data-minutes="1440">1 天</button>
+        <label>历史时长（填入当前时段）</label>
+        <div id="duration-history" class="quick-durations">
+          <!-- JS 动态渲染 -->
         </div>
       </div>
     </div>

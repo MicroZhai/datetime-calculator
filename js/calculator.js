@@ -22,6 +22,15 @@ const Calculator = {
     return `${h}:${m}`;
   },
 
+  /** 格式化为 M月d日 HH:MM（短日期+时间） */
+  formatDateTime(date) {
+    const M = date.getMonth() + 1;
+    const d = date.getDate();
+    const h = String(date.getHours()).padStart(2, '0');
+    const m = String(date.getMinutes()).padStart(2, '0');
+    return `${M}月${d}日 ${h}:${m}`;
+  },
+
   /** 格式化为 YYYY-MM-DD（中文习惯：无前导零的月日） */
   formatDate(date) {
     const y = date.getFullYear();
@@ -50,41 +59,22 @@ const Calculator = {
     return `${sign}${abs}min`;
   },
 
-  /** 目标时间距今还有多久 */
-  getTimeDiff(targetDate) {
-    const diffMs = targetDate.getTime() - Date.now();
-    const absMs = Math.abs(diffMs);
-    const absMin = Math.floor(absMs / 60000);
-
-    if (absMin < 1) {
-      return diffMs >= 0 ? '即将到达' : '刚刚过去';
-    }
-
-    const h = Math.floor(absMin / 60);
-    const m = absMin % 60;
-
-    let text;
-    if (h === 0) text = `${m} 分钟`;
-    else if (m === 0) text = `${h} 小时`;
-    else text = `${h} 小时 ${m} 分钟`;
-
-    return diffMs >= 0 ? `距今还有 ${text}` : `已过去 ${text}`;
-  },
-
   /**
    * 计算整个时段链的结果
-   * @returns {Array<{name, duration, time: Date, totalMinFromBase: number}>}
+   * @returns {Array<{name, duration, startTime: Date, time: Date, totalMinFromBase: number}>}
    */
   calcSegmentChain(baseTime, segments) {
     let current = baseTime === 'now' ? new Date() : new Date(baseTime);
     const results = [];
     let totalMin = 0;
     for (const seg of segments) {
+      const startTime = new Date(current);
       current = new Date(current.getTime() + seg.durationMinutes * 60 * 1000);
       totalMin += seg.durationMinutes;
       results.push({
         name: seg.name,
         duration: seg.durationMinutes,
+        startTime: startTime,
         time: current,
         totalMinFromBase: totalMin
       });
@@ -99,30 +89,5 @@ const Calculator = {
       current = new Date(current.getTime() + seg.durationMinutes * 60 * 1000);
     }
     return current;
-  },
-
-  /** 获取当前时间的 ISO 字符串 (精确到分钟) */
-  getNowISO() {
-    const d = new Date();
-    // 取整到分钟
-    d.setSeconds(0, 0);
-    return d.toISOString();
-  },
-
-  /** 格式化 ISO 时间为本地 datetime-local 值 */
-  toDateTimeLocal(isoStr) {
-    const d = new Date(isoStr);
-    const y = d.getFullYear();
-    const M = String(d.getMonth() + 1).padStart(2, '0');
-    const day = String(d.getDate()).padStart(2, '0');
-    const date = `${y}-${M}-${day}`;
-    const time = d.toTimeString().slice(0, 5);
-    return { date, time };
-  },
-
-  /** 从 date + time 字符串合并为 ISO */
-  fromDateTimeLocal(dateStr, timeStr) {
-    const d = new Date(`${dateStr}T${timeStr}:00`);
-    return d.toISOString();
   }
 };

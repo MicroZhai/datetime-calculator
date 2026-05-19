@@ -7,8 +7,8 @@
       Storage.save({
         id: String(Date.now()),
         name: '示例计算器',
-        isBaseTimeNow: true,
-        baseTime: 'now',
+        isBaseTimeNow: false,
+        baseTime: new Date().toISOString(),
         segments: [
           { name: '', durationMinutes: 256 }
         ],
@@ -20,7 +20,7 @@
     document.getElementById('theme-btn').textContent = Theme.getIcon();
     UI.renderList();
     bindEvents();
-    startLiveRefresh();
+    startLiveClock();
     registerSW();
   }
 
@@ -40,36 +40,52 @@
     document.getElementById('sheet-close-btn').addEventListener('click', () => UI.closeSheet());
     document.getElementById('sheet-overlay').addEventListener('click', () => UI.closeSheet());
 
-    // 分段控件
-    document.getElementById('seg-now').addEventListener('click', () => UI._setBaseTimeMode(true));
-    document.getElementById('seg-manual').addEventListener('click', () => UI._setBaseTimeMode(false));
-
-    // 重置为当前时间
-    document.getElementById('reset-now-btn').addEventListener('click', () => {
-      UI._setBaseTimeMode(true);
+    // "此刻"按钮
+    document.getElementById('now-btn').addEventListener('click', () => {
       const now = new Date();
       document.getElementById('input-date').value = now.toISOString().slice(0, 10);
       document.getElementById('input-time').value = now.toTimeString().slice(0, 5);
+      // 清零所有时段数据
+      UI._segments.forEach(s => {
+        s.durationMinutes = 0;
+        s.isNegative = false;
+      });
+      UI._rebuildSegmentEditors();
+      UI.showToast('已同步为当前时间，数据已清零');
     });
 
-    // 编辑弹窗事件代理：时段操作 + 添加时段
+    // 编辑弹窗事件代理：时段操作 + 时间字段变化
     document.getElementById('segments-container').addEventListener('click', e => {
       const editor = e.target.closest('.seg-editor');
       if (!editor) return;
       const idx = parseInt(editor.dataset.segIdx);
 
-      // 删除时段
       if (e.target.closest('.js-seg-del')) {
         UI.removeSegment(idx);
         return;
       }
-      // 正负切换
       if (e.target.closest('.js-seg-sign')) {
         UI.toggleSegmentSign(idx);
         return;
       }
-      // 点击时段内任意位置 → 设为活跃时段
       UI._activeSegIdx = idx;
+    });
+
+    // 时长输入变化 → 双向联动（change 事件，离开输入框后才触发）
+    document.getElementById('segments-container').addEventListener('change', e => {
+      const editor = e.target.closest('.seg-editor');
+      if (!editor) return;
+      const idx = parseInt(editor.dataset.segIdx);
+
+      if (e.target.closest('.js-seg-hours') || e.target.closest('.js-seg-minutes')) {
+        UI._syncSegmentTimes(idx);
+      }
+      if (e.target.closest('.js-seg-end-date') || e.target.closest('.js-seg-end-time')) {
+        UI._syncFromEndTime(idx);
+      }
+      if (e.target.closest('.js-seg-start-date') || e.target.closest('.js-seg-start-time')) {
+        UI._syncFromStartTime(idx);
+      }
     });
 
     // 添加时段按钮
@@ -77,12 +93,14 @@
       UI.addSegment();
     });
 
-    // 快捷时长按钮 → 填入最后时段
-    document.querySelectorAll('.quick-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const mins = parseInt(btn.dataset.minutes);
-        UI.setQuickDuration(mins);
-      });
+    // 快捷时长（历史记录）按钮
+    document.getElementById('duration-history').addEventListener('click', e => {
+      const btn = e.target.closest('.history-btn');
+      if (!btn) return;
+      const mins = parseInt(btn.dataset.minutes);
+      UI.setQuickDuration(mins);
+      // 触发联动
+      UI._syncSegmentTimes(UI._activeSegIdx);
     });
 
     // 保存
@@ -93,6 +111,13 @@
         UI.showToast('请输入时长');
         return;
       }
+
+      // 记录时长历史
+      data.segments.forEach(s => {
+        if (s.durationMinutes !== 0) {
+          Storage.addDurationHistory(Math.abs(s.durationMinutes));
+        }
+      });
 
       let calc;
       if (UI._editingId) {
@@ -187,25 +212,20 @@
     });
   }
 
-  /* ========== 实时刷新 ========== */
+  /* ========== 实时时钟 ========== */
   let _clockTimer = null;
-  let _listTimer = null;
 
-  function startLiveRefresh() {
+  function startLiveClock() {
     UI.updateClock();
     _clockTimer = setInterval(() => UI.updateClock(), 1000);
-    _listTimer = setInterval(() => UI.refreshLiveCards(), 60000);
 
     document.addEventListener('visibilitychange', () => {
       if (document.hidden) {
         clearInterval(_clockTimer);
-        clearInterval(_listTimer);
         _clockTimer = null;
-        _listTimer = null;
       } else {
         UI.updateClock();
-        UI.refreshLiveCards();
-        startLiveRefresh();
+        startLiveClock();
       }
     });
   }
@@ -215,7 +235,6 @@
     if (!('serviceWorker' in navigator)) return;
 
     navigator.serviceWorker.register('sw.js').then(reg => {
-      // 检测到新 SW 版本 → 自动刷新
       reg.addEventListener('updatefound', () => {
         const newWorker = reg.installing;
         if (!newWorker) return;
@@ -226,14 +245,11 @@
         });
       });
 
-      // 监听 SW 发来的更新消息
       navigator.serviceWorker.addEventListener('message', event => {
         if (event.data === 'update') {
           window.location.reload();
         }
       });
-
-      // 如果已有 SW 在等待，立即通知
     }).catch(() => {});
   }
 
