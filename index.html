@@ -3,8 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
-  <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#ffffff">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>时间计算器</title>
@@ -13,6 +12,12 @@
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
+
+  <!-- ====== 更新横幅 ====== -->
+  <div id="update-banner" class="update-banner hidden">
+    <span>发现新版本</span>
+    <button id="update-btn" class="update-btn">更新</button>
+  </div>
 
   <!-- ====== 顶部栏 ====== -->
   <header id="top-bar">
@@ -93,7 +98,18 @@
   <!-- ====== 右键菜单（卡片上的 ⋮） ====== -->
   <div id="context-menu" class="context-menu hidden">
     <button id="ctx-rename">✏️ 重命名</button>
+    <button id="ctx-copy-detail">📋 复制计算详情</button>
     <button id="ctx-delete">🗑️ 删除</button>
+  </div>
+
+  <!-- ====== 确认弹窗 ====== -->
+  <div id="confirm-overlay" class="confirm-overlay hidden"></div>
+  <div id="confirm-dialog" class="confirm-dialog">
+    <p id="confirm-msg" class="confirm-msg"></p>
+    <div class="confirm-btns">
+      <button id="confirm-cancel-btn" class="confirm-btn confirm-btn--cancel">取消</button>
+      <button id="confirm-ok-btn" class="confirm-btn confirm-btn--danger">删除</button>
+    </div>
   </div>
 
   <!-- ====== Toast 提示 ====== -->

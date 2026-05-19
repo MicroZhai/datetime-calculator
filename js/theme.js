@@ -20,12 +20,17 @@ const Theme = {
 
   apply(state) {
     const html = document.documentElement;
+    let isDark;
     if (state === 'auto') {
-      const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
       html.setAttribute('data-theme', isDark ? 'dark' : 'light');
     } else {
+      isDark = state === 'dark';
       html.setAttribute('data-theme', state);
     }
+    // 同步 theme-color meta 标签
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.setAttribute('content', isDark ? '#000000' : '#ffffff');
     this._state = state;
   },
 

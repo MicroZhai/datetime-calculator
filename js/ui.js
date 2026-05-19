@@ -3,6 +3,8 @@ const UI = {
   _contextTargetId: null,
   _segments: [],        // [{name, durationMinutes, isNegative}]
   _activeSegIdx: 0,
+  _dirty: false,
+  _confirmCallback: null,
 
   /* ========== 列表渲染 ========== */
 
@@ -59,7 +61,19 @@ const UI = {
     const finalDate = Calculator.formatDate(last.time);
 
     const totalMin = calc.segments.reduce((s, c) => s + c.durationMinutes, 0);
-    const totalDur = Calculator.formatDurationMin(totalMin);
+    const isZero = totalMin === 0;
+    const totalDur = isZero ? '—' : Calculator.formatDurationMin(totalMin);
+    const finalTimeDisplay = isZero ? '无变化' : finalTime;
+
+    // 跨天标签
+    let crossDayTag = '';
+    const baseDay = new Date(baseDate.getFullYear(), baseDate.getMonth(), baseDate.getDate());
+    const lastDay = new Date(last.time.getFullYear(), last.time.getMonth(), last.time.getDate());
+    const dayDiff = Math.round((lastDay - baseDay) / 86400000);
+    if (!isZero && dayDiff !== 0) {
+      const label = dayDiff > 0 ? `+${dayDiff}天` : `${dayDiff}天`;
+      crossDayTag = `<span class="cross-day-tag">${label}</span>`;
+    }
 
     // 计算过程明细 + 段间间隔
     let calcDetailHTML = '';
@@ -110,8 +124,9 @@ const UI = {
 
           <div class="time-block time-block--result">
             <div class="time-label">结束时间</div>
-            <div class="time-value time-value--result js-result-time">${finalTime}</div>
+            <div class="time-value time-value--result js-result-time">${finalTimeDisplay}</div>
             <div class="time-date js-result-date">${finalDate}</div>
+            ${crossDayTag}
           </div>
         </div>
 
@@ -137,6 +152,7 @@ const UI = {
   openSheet(calcId) {
     const calc = calcId ? Storage.getAll().find(c => c.id === calcId) : null;
     this._editingId = calcId || null;
+    this._dirty = false;
 
     document.getElementById('sheet-title').textContent = calc ? '编辑计算器' : '新建计算器';
     document.getElementById('delete-btn').classList.toggle('hidden', !calc);
@@ -166,7 +182,17 @@ const UI = {
     document.body.style.overflow = 'hidden';
   },
 
-  closeSheet() {
+  closeSheet(force) {
+    if (!force && this._dirty) {
+      this.showConfirm('有未保存的修改，确定放弃吗？', '放弃', 'confirm-btn--danger', () => {
+        this._closeSheetInternal();
+      });
+      return;
+    }
+    this._closeSheetInternal();
+  },
+
+  _closeSheetInternal() {
     document.getElementById('edit-sheet').classList.remove('open');
     document.getElementById('sheet-overlay').classList.add('hidden');
     document.body.style.overflow = '';
@@ -174,6 +200,7 @@ const UI = {
     setTimeout(() => {
       this._editingId = null;
       this._segments = [];
+      this._dirty = false;
     }, 350);
   },
 
@@ -293,6 +320,22 @@ const UI = {
     return new Date(`${dateStr}T${timeStr}:00`).toISOString();
   },
 
+  _clampDuration(h, m, editor) {
+    const total = h * 60 + m;
+    if (total <= 9999) return { h, m, capped: false };
+    this.showToast('单段时长上限为9999分钟（约7天）');
+    // 截断并更新 DOM
+    if (editor) {
+      const hoursEl = editor.querySelector('.js-seg-hours');
+      const minEl = editor.querySelector('.js-seg-minutes');
+      const newH = Math.min(h, 166); // 166h * 60 = 9960
+      const newM = Math.min(m, 39);  // 9960 + 39 = 9999
+      if (hoursEl) hoursEl.value = newH;
+      if (minEl) minEl.value = newM;
+    }
+    return { h: Math.min(h, 166), m: Math.min(h * 60 + m, 9999) % 60, capped: true };
+  },
+
   /** 时长变化 → 重算当前段结束时间，不影响其他段 */
   _syncSegmentTimes(idx) {
     if (idx < 0 || idx >= this._segments.length) return;
@@ -312,8 +355,10 @@ const UI = {
     // 从 DOM 读取时长
     const hoursEl = editor.querySelector('.js-seg-hours');
     const minEl = editor.querySelector('.js-seg-minutes');
-    const h = parseInt(hoursEl && hoursEl.value) || 0;
-    const m = parseInt(minEl && minEl.value) || 0;
+    let h = parseInt(hoursEl && hoursEl.value) || 0;
+    let m = parseInt(minEl && minEl.value) || 0;
+    const clamped = this._clampDuration(h, m, editor);
+    if (clamped.capped) { h = clamped.h; m = clamped.m; }
     const actualDuration = h * 60 + m;
     const endTime = new Date(startTime.getTime() + actualDuration * 60 * 1000);
 
@@ -341,8 +386,10 @@ const UI = {
     // 从 DOM 读取时长（确保是最新值）
     const hoursEl = editor.querySelector('.js-seg-hours');
     const minEl = editor.querySelector('.js-seg-minutes');
-    const h = parseInt(hoursEl && hoursEl.value) || 0;
-    const m = parseInt(minEl && minEl.value) || 0;
+    let h = parseInt(hoursEl && hoursEl.value) || 0;
+    let m = parseInt(minEl && minEl.value) || 0;
+    const clamped = this._clampDuration(h, m, editor);
+    if (clamped.capped) { h = clamped.h; m = clamped.m; }
     const actualDuration = h * 60 + m;
 
     // 反算开始时间
@@ -377,8 +424,10 @@ const UI = {
     // 从 DOM 读取时长（确保是最新值）
     const hoursEl = editor.querySelector('.js-seg-hours');
     const minEl = editor.querySelector('.js-seg-minutes');
-    const h = parseInt(hoursEl && hoursEl.value) || 0;
-    const m = parseInt(minEl && minEl.value) || 0;
+    let h = parseInt(hoursEl && hoursEl.value) || 0;
+    let m = parseInt(minEl && minEl.value) || 0;
+    const clamped = this._clampDuration(h, m, editor);
+    if (clamped.capped) { h = clamped.h; m = clamped.m; }
     const actualDuration = h * 60 + m;
 
     // 重算结束时间
@@ -473,6 +522,27 @@ const UI = {
     }).join('');
   },
 
+  getCalcDetailText(calc) {
+    const chain = Calculator.calcSegmentChain(
+      calc.isBaseTimeNow ? 'now' : calc.baseTime,
+      calc.segments
+    );
+    const last = chain[chain.length - 1];
+    const baseDate = calc.isBaseTimeNow ? new Date() : new Date(calc.baseTime);
+
+    let text = `【${calc.name}】\n`;
+    text += `开始时间：${Calculator.formatDate(baseDate)} ${Calculator.formatTime(baseDate)}\n`;
+
+    chain.forEach((s, i) => {
+      const seg = calc.segments[i];
+      const label = seg.name || `时段${i + 1}`;
+      text += `${label} ${Calculator.formatDurationMin(s.duration)} → ${Calculator.formatTime(s.time)}\n`;
+    });
+
+    text += `最终结果：${Calculator.formatDate(last.time)} ${Calculator.formatTime(last.time)}`;
+    return text;
+  },
+
   /* ========== 右键菜单 ========== */
 
   showContextMenu(x, y, calcId) {
@@ -499,6 +569,30 @@ const UI = {
     el.classList.add('visible');
     clearTimeout(this._toastTimer);
     this._toastTimer = setTimeout(() => el.classList.remove('visible'), 2000);
+  },
+
+  showConfirm(msg, okLabel, okClass, callback) {
+    this._confirmCallback = callback;
+    document.getElementById('confirm-msg').textContent = msg;
+    const okBtn = document.getElementById('confirm-ok-btn');
+    okBtn.textContent = okLabel || '确定';
+    okBtn.className = 'confirm-btn ' + (okClass || 'confirm-btn--danger');
+    document.getElementById('confirm-overlay').classList.remove('hidden');
+    document.getElementById('confirm-dialog').classList.add('open');
+  },
+
+  hideConfirm() {
+    document.getElementById('confirm-dialog').classList.remove('open');
+    document.getElementById('confirm-overlay').classList.add('hidden');
+    this._confirmCallback = null;
+  },
+
+  _executeConfirm() {
+    if (this._confirmCallback) {
+      const cb = this._confirmCallback;
+      this.hideConfirm();
+      cb();
+    }
   },
 
   /* ========== 工具 ========== */

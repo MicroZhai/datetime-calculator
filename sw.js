@@ -28,9 +28,9 @@ self.addEventListener('activate', event => {
     caches.keys().then(keys =>
       Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))
     ).then(() => {
-      // 通知所有打开的页面刷新
+      // 通知页面有新版本可用（由用户决定是否更新）
       self.clients.matchAll({ type: 'window' }).then(clients => {
-        clients.forEach(client => client.postMessage('update'));
+        clients.forEach(client => client.postMessage('update-available'));
       });
     })
   );

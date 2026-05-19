@@ -40,18 +40,25 @@
     document.getElementById('sheet-close-btn').addEventListener('click', () => UI.closeSheet());
     document.getElementById('sheet-overlay').addEventListener('click', () => UI.closeSheet());
 
+    // 确认弹窗按钮
+    document.getElementById('confirm-cancel-btn').addEventListener('click', () => UI.hideConfirm());
+    document.getElementById('confirm-ok-btn').addEventListener('click', () => UI._executeConfirm());
+    document.getElementById('confirm-overlay').addEventListener('click', () => UI.hideConfirm());
+
     // "此刻"按钮
     document.getElementById('now-btn').addEventListener('click', () => {
-      const now = new Date();
-      document.getElementById('input-date').value = Calculator.toLocalDateStr(now);
-      document.getElementById('input-time').value = Calculator.toLocalTimeStr(now);
-      // 清零所有时段数据
-      UI._segments.forEach(s => {
-        s.durationMinutes = 0;
-        s.isNegative = false;
+      UI.showConfirm('将清空所有时段数据，确定吗？', '清空', 'confirm-btn--danger', () => {
+        const now = new Date();
+        document.getElementById('input-date').value = Calculator.toLocalDateStr(now);
+        document.getElementById('input-time').value = Calculator.toLocalTimeStr(now);
+        UI._segments.forEach(s => {
+          s.durationMinutes = 0;
+          s.isNegative = false;
+        });
+        UI._dirty = true;
+        UI._rebuildSegmentEditors();
+        UI.showToast('已同步为当前时间，数据已清零');
       });
-      UI._rebuildSegmentEditors();
-      UI.showToast('已同步为当前时间，数据已清零');
     });
 
     // 编辑弹窗事件代理：时段操作 + 时间字段变化
@@ -77,6 +84,7 @@
       if (!editor) return;
       const idx = parseInt(editor.dataset.segIdx);
 
+      UI._dirty = true;
       if (e.target.closest('.js-seg-hours') || e.target.closest('.js-seg-minutes')) {
         UI._syncSegmentTimes(idx);
       }
@@ -87,6 +95,11 @@
         UI._syncFromStartTime(idx);
       }
     });
+
+    // 名称和基准时间变化也标记 dirty
+    document.getElementById('input-name').addEventListener('input', () => { UI._dirty = true; });
+    document.getElementById('input-date').addEventListener('change', () => { UI._dirty = true; });
+    document.getElementById('input-time').addEventListener('change', () => { UI._dirty = true; });
 
     // 添加时段按钮
     document.getElementById('add-segment-btn').addEventListener('click', () => {
@@ -128,17 +141,21 @@
       }
 
       Storage.save(calc);
-      UI.closeSheet();
+      UI.closeSheet(true);
       UI.renderList();
+      UI.showToast('已保存');
     });
 
-    // 删除
+    // 删除（弹窗内）
     document.getElementById('delete-btn').addEventListener('click', () => {
       if (!UI._editingId) return;
-      Storage.remove(UI._editingId);
-      UI.closeSheet();
-      UI.renderList();
-      UI.showToast('已删除');
+      const name = document.getElementById('input-name').value.trim() || '未命名计算器';
+      UI.showConfirm(`确定删除「${name}」吗？此操作不可撤销。`, '删除', 'confirm-btn--danger', () => {
+        Storage.remove(UI._editingId);
+        UI.closeSheet(true);
+        UI.renderList();
+        UI.showToast('已删除');
+      });
     });
 
     // 列表点击事件代理
@@ -184,13 +201,29 @@
       UI.hideContextMenu();
       if (id) UI.openSheet(id);
     });
+    document.getElementById('ctx-copy-detail').addEventListener('click', () => {
+      const id = UI._contextTargetId;
+      UI.hideContextMenu();
+      if (id) {
+        const calc = Storage.getAll().find(c => c.id === id);
+        if (calc) {
+          const text = UI.getCalcDetailText(calc);
+          navigator.clipboard.writeText(text).then(() => UI.showToast('已复制计算详情'))
+            .catch(() => UI.showToast('复制失败'));
+        }
+      }
+    });
     document.getElementById('ctx-delete').addEventListener('click', () => {
       const id = UI._contextTargetId;
       UI.hideContextMenu();
       if (id) {
-        Storage.remove(id);
-        UI.renderList();
-        UI.showToast('已删除');
+        const calc = Storage.getAll().find(c => c.id === id);
+        const name = calc ? calc.name : '未命名计算器';
+        UI.showConfirm(`确定删除「${name}」吗？此操作不可撤销。`, '删除', 'confirm-btn--danger', () => {
+          Storage.remove(id);
+          UI.renderList();
+          UI.showToast('已删除');
+        });
       }
     });
 
@@ -205,6 +238,7 @@
     document.addEventListener('keydown', e => {
       if (e.key === 'Escape') {
         UI.hideContextMenu();
+        UI.hideConfirm();
         if (document.getElementById('edit-sheet').classList.contains('open')) {
           UI.closeSheet();
         }
@@ -235,22 +269,39 @@
     if (!('serviceWorker' in navigator)) return;
 
     navigator.serviceWorker.register('sw.js').then(reg => {
+      // 检测到新 SW 等待激活
       reg.addEventListener('updatefound', () => {
         const newWorker = reg.installing;
         if (!newWorker) return;
         newWorker.addEventListener('statechange', () => {
-          if (newWorker.state === 'activated' && navigator.serviceWorker.controller) {
-            window.location.reload();
+          if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+            showUpdateBanner();
           }
         });
       });
 
+      // 监听 SW 消息
       navigator.serviceWorker.addEventListener('message', event => {
-        if (event.data === 'update') {
-          window.location.reload();
+        if (event.data === 'update-available') {
+          showUpdateBanner();
         }
       });
+
+      // 如果已有等待中的 SW
+      if (reg.waiting && navigator.serviceWorker.controller) {
+        showUpdateBanner();
+      }
     }).catch(() => {});
+  }
+
+  function showUpdateBanner() {
+    const banner = document.getElementById('update-banner');
+    if (!banner) return;
+    banner.classList.remove('hidden');
+    banner.classList.add('visible');
+    document.getElementById('update-btn').addEventListener('click', () => {
+      window.location.reload();
+    });
   }
 
   if (document.readyState === 'loading') {
