@@ -196,20 +196,28 @@ const UI = {
     const segNum = i + 1;
     const label = this._segments.length > 1 ? `第${segNum}段` : '时段';
 
-    // 计算开始时间：首段=基准时间，非首段取 DOM 已有值（独立于前段）
+    // 计算开始时间：首段=基准时间，非首段独立于前段
     let startTime;
     const baseIso = this._getCurrentBaseISO();
+    const baseMs = new Date(baseIso).getTime();
     if (i === 0) {
       startTime = new Date(baseIso);
     } else {
-      // 优先从 DOM 读取用户已设置的值
+      // 优先级1：DOM 中已有值（本次编辑会话中用户手动设的）
       const existingEl = document.querySelector(`.seg-editor[data-seg-idx="${i}"]`);
       const sd = existingEl && existingEl.querySelector('.js-seg-start-date');
       const st = existingEl && existingEl.querySelector('.js-seg-start-time');
       if (sd && st && sd.value && st.value) {
-        startTime = new Date(`${sd.value}T${st.value}:00`);
+        const domTime = new Date(`${sd.value}T${st.value}:00`);
+        if (!isNaN(domTime.getTime())) {
+          startTime = domTime;
+        }
       }
-      // 兜底：新建时段时从链上推导
+      // 优先级2：存储的 startMinutes（上次保存的独立开始时间）
+      if ((!startTime || isNaN(startTime.getTime())) && seg.startMinutes !== undefined) {
+        startTime = new Date(baseMs + seg.startMinutes * 60 * 1000);
+      }
+      // 优先级3：兜底链式推导（全新无数据时段）
       if (!startTime || isNaN(startTime.getTime())) {
         let current = new Date(baseIso);
         for (let j = 0; j < i; j++) {
@@ -408,11 +416,29 @@ const UI = {
 
     const name = document.getElementById('input-name').value.trim() || '未命名计算器';
     const baseTime = this._getCurrentBaseISO();
+    const baseMs = new Date(baseTime).getTime();
 
-    const segments = this._segments.map(s => ({
-      name: s.name,
-      durationMinutes: s.isNegative ? -s.durationMinutes : s.durationMinutes
-    }));
+    const segments = this._segments.map((s, i) => {
+      // 从 DOM 读取该段的开始时间，计算 startMinutes
+      let startMinutes = 0;
+      if (i > 0) {
+        const editor = document.querySelector(`.seg-editor[data-seg-idx="${i}"]`);
+        if (editor) {
+          const sd = editor.querySelector('.js-seg-start-date');
+          const st = editor.querySelector('.js-seg-start-time');
+          if (sd && st && sd.value && st.value) {
+            const startMs = new Date(`${sd.value}T${st.value}:00`).getTime();
+            startMinutes = Math.round((startMs - baseMs) / 60000);
+          }
+        }
+      }
+
+      return {
+        name: s.name,
+        durationMinutes: s.isNegative ? -s.durationMinutes : s.durationMinutes,
+        startMinutes: startMinutes
+      };
+    });
 
     return { name, isBaseTimeNow: false, baseTime, segments };
   },
