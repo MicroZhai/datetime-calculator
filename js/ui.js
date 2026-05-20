@@ -141,7 +141,7 @@ const UI = {
           <span class="card-expand-arrow">▲</span> 收起过程
         </button>
 
-        <div class="card-process-detail" style="display:block">
+        <div class="card-process-detail expanded">
           ${detailHTML}
         </div>
       </div>`;
@@ -584,10 +584,14 @@ const UI = {
           else if (dayDiff > 1) midTag = ` (+${dayDiff}天)`;
           else if (dayDiff < 0) midTag = ` (${dayDiff}天)`;
 
+          const startMs = baseMs + (accumMin - s.durationMinutes) * 60 * 1000;
+          const startTimeStr = Calculator.formatTime(new Date(startMs));
           const label = s.name || `时段${i + 1}`;
+          const prefix = i === 0 ? '<span class="history-card-label">过程：</span>' : '<span class="history-card-label"></span>';
           processHTML += `
             <div class="history-process-row">
-              <span class="history-process-label">${this._escape(label)}</span>
+              ${prefix}<span class="history-process-label">${this._escape(label)}</span>
+              <span>${startTimeStr}</span>
               <span class="history-process-dur">${Calculator.formatDurationMin(s.durationMinutes)}</span>
               <span>→</span>
               <span>${Calculator.formatTime(midTime)}${midTag}</span>
@@ -608,7 +612,6 @@ const UI = {
               <span class="history-card-label">结束：</span>${endDisplay}
             </div>
             <div class="history-card-process">
-              <span class="history-card-label">过程：</span>
               ${processHTML}
             </div>
             <div class="history-card-time">保存于 ${this._escape(r.savedAt)}</div>

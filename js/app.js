@@ -253,15 +253,9 @@
           const detail = card.querySelector('.card-process-detail');
           const btn = actionBtn;
           const arrow = btn.querySelector('.card-expand-arrow');
-          if (detail.style.display === 'none') {
-            detail.style.display = 'block';
-            arrow.textContent = '▲';
-            btn.childNodes[btn.childNodes.length - 1].textContent = ' 收起过程';
-          } else {
-            detail.style.display = 'none';
-            arrow.textContent = '▼';
-            btn.childNodes[btn.childNodes.length - 1].textContent = ' 展开过程';
-          }
+          const isExpanded = detail.classList.toggle('expanded');
+          arrow.textContent = isExpanded ? '▲' : '▼';
+          btn.childNodes[btn.childNodes.length - 1].textContent = isExpanded ? ' 收起过程' : ' 展开过程';
           e.stopPropagation();
           return;
         }

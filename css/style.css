@@ -150,12 +150,6 @@ body {
 .icon-btn:active {
   transform: scale(0.94);
 }
-#new-btn {
-  font-size: 1.4rem;
-  font-weight: 300;
-  line-height: 1;
-}
-
 /* ====== 开始时间 ====== */
 #current-time-bar {
   text-align: center;
@@ -268,8 +262,15 @@ body {
 /* ====== 过程详情（竖线时间轴） ====== */
 .card-process-detail {
   border-left: 1.5px solid var(--border);
-  margin: 4px 0 6px 4px;
+  margin: 0 0 0 4px;
   padding-left: 10px;
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.35s ease, margin 0.35s ease;
+}
+.card-process-detail.expanded {
+  max-height: 600px;
+  margin: 4px 0 6px 4px;
 }
 
 .card-timeline-row {
@@ -848,6 +849,9 @@ input[type="time"]:focus {
   color: var(--text-secondary);
   font-weight: 500;
   font-size: 0.75rem;
+  flex-shrink: 0;
+  display: inline-block;
+  width: 36px;
 }
 
 .history-card-process {
@@ -856,8 +860,11 @@ input[type="time"]:focus {
 }
 
 .history-process-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
   font-size: 0.73rem;
-  padding: 1px 0 1px 8px;
+  padding: 1px 0;
   color: var(--text-secondary);
   font-variant-numeric: tabular-nums;
 }
@@ -945,8 +952,6 @@ input[type="time"]:focus {
   border-left: 3px solid var(--accent);
   padding-left: 17px;
 }
-
-/* 历史记录空状态（旧保留兼容） */
 
 /* 添加时段按钮 */
 .btn-add-segment {
@@ -1151,7 +1156,8 @@ input[type="time"]:focus {
 
 /* ====== 无障碍 ====== */
 @media (prefers-reduced-motion: reduce) {
-  .edit-sheet {
+  .edit-sheet,
+  .card-process-detail {
     transition: none;
   }
 }

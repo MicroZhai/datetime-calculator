@@ -12,6 +12,14 @@ const History = {
   },
 
   add(record) {
+    if (!record || !record.baseTime || isNaN(new Date(record.baseTime).getTime())) {
+      console.warn('[History] 记录缺少有效 baseTime，已跳过');
+      return;
+    }
+    if (!Array.isArray(record.segments) || record.segments.length === 0) {
+      console.warn('[History] 记录缺少有效 segments，已跳过');
+      return;
+    }
     const list = this.getAll();
     list.unshift(record);
     if (list.length > HISTORY_MAX) {
