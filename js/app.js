@@ -254,7 +254,7 @@
           const btn = actionBtn;
           const arrow = btn.querySelector('.card-expand-arrow');
           const isExpanded = detail.classList.toggle('expanded');
-          arrow.textContent = isExpanded ? '▲' : '▼';
+          arrow.classList.toggle('collapsed', !isExpanded);
           btn.childNodes[btn.childNodes.length - 1].textContent = isExpanded ? ' 收起过程' : ' 展开过程';
           e.stopPropagation();
           return;
@@ -266,6 +266,19 @@
     });
 
     // 右键菜单项
+    document.getElementById('ctx-pin').addEventListener('click', () => {
+      const id = UI._contextTargetId;
+      UI.hideContextMenu();
+      if (id) {
+        const calc = Storage.getAll().find(c => c.id === id);
+        if (calc) {
+          calc.pinned = !calc.pinned;
+          Storage.save(calc);
+          UI.renderList();
+          UI.showToast(calc.pinned ? '已置顶' : '已取消置顶');
+        }
+      }
+    });
     document.getElementById('ctx-rename').addEventListener('click', () => {
       const id = UI._contextTargetId;
       UI.hideContextMenu();
@@ -364,7 +377,11 @@
     }).catch(() => {});
   }
 
+  let _updateBannerShown = false;
+
   function showUpdateBanner() {
+    if (_updateBannerShown) return;
+    _updateBannerShown = true;
     const banner = document.getElementById('update-banner');
     if (!banner) return;
     banner.classList.remove('hidden');

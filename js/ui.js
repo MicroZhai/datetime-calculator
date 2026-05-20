@@ -12,7 +12,8 @@ const UI = {
     const calculators = Storage.getAll();
 
     calculators.sort((a, b) => {
-      return Calculator.getFinalResult(a) - Calculator.getFinalResult(b);
+      if (a.pinned !== b.pinned) return a.pinned ? -1 : 1;
+      return b.createdAt - a.createdAt;
     });
 
     const listEl = document.getElementById('calc-list');
@@ -333,17 +334,16 @@ const UI = {
   _clampDuration(h, m, editor) {
     const total = h * 60 + m;
     if (total <= 9999) return { h, m, capped: false };
+    const newH = 166;                    // 9999 / 60 = 166
+    const newM = 39;                     // 9999 % 60 = 39
     this.showToast('单段时长上限为9999分钟（约7天）');
-    // 截断并更新 DOM
     if (editor) {
       const hoursEl = editor.querySelector('.js-seg-hours');
       const minEl = editor.querySelector('.js-seg-minutes');
-      const newH = Math.min(h, 166); // 166h * 60 = 9960
-      const newM = Math.min(m, 39);  // 9960 + 39 = 9999
       if (hoursEl) hoursEl.value = newH;
       if (minEl) minEl.value = newM;
     }
-    return { h: Math.min(h, 166), m: Math.min(h * 60 + m, 9999) % 60, capped: true };
+    return { h: newH, m: newM, capped: true };
   },
 
   /** 时长变化 → 重算当前段结束时间，不影响其他段 */
@@ -681,6 +681,11 @@ const UI = {
 
   showContextMenu(x, y, calcId) {
     this._contextTargetId = calcId;
+    const calc = Storage.getAll().find(c => c.id === calcId);
+    const pinBtn = document.getElementById('ctx-pin');
+    if (pinBtn && calc) {
+      pinBtn.textContent = calc.pinned ? '📌 取消置顶' : '📌 置顶';
+    }
     const menu = document.getElementById('context-menu');
     const maxX = window.innerWidth - 160;
     const maxY = window.innerHeight - 100;
