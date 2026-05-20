@@ -1,9 +1,9 @@
 /* ====== CSS 变量：浅色 / 深色主题 ====== */
 :root {
-  --bg: #f2f2f7;
-  --bg-card: #ffffff;
-  --bg-sheet: #ffffff;
-  --bg-input: #f5f5f7;
+  --bg: #f5f3ee;
+  --bg-card: #fafaf7;
+  --bg-sheet: #fafaf7;
+  --bg-input: #f0efec;
   --text-primary: #1c1c1e;
   --text-secondary: #8e8e93;
   --text-seg-active: #ffffff;
@@ -62,13 +62,18 @@ html {
 }
 
 body {
-  background: var(--bg);
+  background-color: var(--bg);
+  background-image: radial-gradient(circle at center, var(--bg-dot) 1px, transparent 0);
+  background-size: 20px 20px;
   color: var(--text-primary);
   min-height: 100dvh;
   padding-bottom: env(safe-area-inset-bottom, 0);
-  transition: background 0.3s, color 0.3s;
+  transition: background-color 0.3s, color 0.3s;
   overflow-x: hidden;
 }
+
+:root { --bg-dot: rgba(0,0,0,0.20); }
+[data-theme="dark"] { --bg-dot: rgba(255,255,255,0.10); }
 
 .hidden {
   display: none !important;
@@ -122,8 +127,10 @@ body {
   position: sticky;
   top: 0;
   z-index: 10;
-  background: var(--bg);
-  transition: background 0.3s;
+  background-color: var(--bg);
+  background-image: radial-gradient(circle at center, var(--bg-dot) 1px, transparent 0);
+  background-size: 20px 20px;
+  transition: background-color 0.3s;
 }
 
 .app-title {
@@ -171,6 +178,18 @@ body {
   letter-spacing: 0.03em;
   font-variant-numeric: tabular-nums;
   line-height: 1.1;
+  animation: clockGlow 3s ease-in-out infinite;
+}
+@keyframes clockGlow {
+  0%, 100% { text-shadow: 0 0 8px rgba(0,0,0,0.04), 0 0 20px rgba(0,0,0,0.03); }
+  50%      { text-shadow: 0 0 16px rgba(0,0,0,0.08), 0 0 40px rgba(0,0,0,0.05); }
+}
+[data-theme="dark"] .current-time-text {
+  animation: clockGlowDark 3s ease-in-out infinite;
+}
+@keyframes clockGlowDark {
+  0%, 100% { text-shadow: 0 0 8px rgba(255,255,255,0.06), 0 0 20px rgba(255,255,255,0.04); }
+  50%      { text-shadow: 0 0 16px rgba(255,255,255,0.12), 0 0 40px rgba(255,255,255,0.07); }
 }
 
 .current-date-text {
@@ -603,12 +622,16 @@ body {
   position: fixed;
   inset: 0;
   background: var(--overlay);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
   z-index: 100;
-  transition: opacity 0.3s ease;
+  transition: opacity 0.35s ease, backdrop-filter 0.35s ease;
 }
 .sheet-overlay.hidden {
   opacity: 0;
   pointer-events: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 }
 
 /* ====== 底部弹窗 ====== */
@@ -625,7 +648,7 @@ body {
   flex-direction: column;
   transform: translateY(100%);
   opacity: 0;
-  transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1), opacity 0.25s ease;
+  transition: transform 0.4s cubic-bezier(0.22, 0.61, 0.36, 1), opacity 0.35s ease;
   box-shadow: var(--shadow-sheet);
   padding-bottom: env(safe-area-inset-bottom, 12px);
 }
@@ -1146,7 +1169,7 @@ input[type="time"]:focus {
   position: fixed;
   top: 50%;
   left: 50%;
-  transform: translate(-50%, -50%) scale(0.95);
+  transform: translate(-50%, -50%) scale(0.85);
   background: var(--bg-sheet);
   border-radius: var(--radius-lg);
   padding: 24px 20px 16px;
@@ -1156,7 +1179,7 @@ input[type="time"]:focus {
   box-shadow: 0 12px 40px rgba(0,0,0,0.2);
   opacity: 0;
   pointer-events: none;
-  transition: opacity 0.25s ease, transform 0.25s cubic-bezier(0.22, 0.61, 0.36, 1);
+  transition: opacity 0.3s ease, transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 .confirm-dialog.open {
   opacity: 1;
@@ -1271,7 +1294,8 @@ button {
   .confirm-btn,
   .context-menu,
   .context-menu button,
-  .card-expand-arrow {
+  .card-expand-arrow,
+  .current-time-text {
     transition: none !important;
     animation: none !important;
   }
