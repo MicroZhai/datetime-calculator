@@ -16,7 +16,7 @@ const History = {
       console.warn('[History] 记录缺少有效 baseTime，已跳过');
       return;
     }
-    if (!Array.isArray(record.segments) || record.segments.length === 0) {
+    if (!Array.isArray(record.segments)) {
       console.warn('[History] 记录缺少有效 segments，已跳过');
       return;
     }
@@ -40,6 +40,10 @@ const History = {
   _write(list) {
     try {
       localStorage.setItem(HISTORY_KEY, JSON.stringify(list));
-    } catch { /* ignore */ }
+    } catch (e) {
+      if (e.name === 'QuotaExceededError') {
+        alert('存储空间不足，请清理部分历史记录。');
+      }
+    }
   }
 };

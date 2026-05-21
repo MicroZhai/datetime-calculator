@@ -67,9 +67,8 @@
       <!-- 计算 — 开始时间 -->
       <div class="form-group">
         <label>开始时间</label>
-        <div class="time-row">
-          <input type="date" id="input-date" class="time-input">
-          <input type="time" id="input-time" class="time-input">
+        <div class="time-row time-row--readonly">
+          <span id="base-time-display">--</span>
           <button id="now-btn" class="btn-now-inline">此刻</button>
         </div>
       </div>
@@ -140,6 +139,9 @@
   <script src="js/calculator.js"></script>
   <script src="js/theme.js"></script>
   <script src="js/ui.js"></script>
+  <script src="js/ui-render.js"></script>
+  <script src="js/ui-sheet.js"></script>
+  <script src="js/ui-history.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html>

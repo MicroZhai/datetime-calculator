@@ -84,6 +84,9 @@ const Calculator = {
       calc.isBaseTimeNow ? 'now' : calc.baseTime,
       calc.segments
     );
+    if (chain.length === 0) {
+      return calc.isBaseTimeNow ? new Date() : new Date(calc.baseTime);
+    }
     return chain[chain.length - 1].time;
   }
 };

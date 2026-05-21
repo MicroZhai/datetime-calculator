@@ -9,16 +9,23 @@ const Storage = {
       if (!raw) return [];
       const list = JSON.parse(raw);
       let migrated = false;
+      const valid = [];
       for (const c of list) {
+        // 校验 baseTime 合法性
+        if (!c.baseTime || isNaN(new Date(c.baseTime).getTime())) {
+          console.warn('[Storage] 跳过无效计算器（baseTime 非法）：', c.id || c.name);
+          continue;
+        }
         if (!c.segments) {
           c.segments = [{ name: '', durationMinutes: c.durationMinutes || 0 }];
           delete c.durationMinutes;
           migrated = true;
         }
         if (c.pinned === undefined) { c.pinned = false; migrated = true; }
+        valid.push(c);
       }
-      if (migrated) this._write(list);
-      return list;
+      if (migrated) this._write(valid);
+      return valid;
     } catch {
       return [];
     }
@@ -44,8 +51,10 @@ const Storage = {
   _write(list) {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
-    } catch {
-      // localStorage 满了或隐私模式下不可用
+    } catch (e) {
+      if (e.name === 'QuotaExceededError') {
+        alert('存储空间不足，请清理部分历史记录或旧计算器。');
+      }
     }
   },
 

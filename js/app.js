@@ -12,12 +12,14 @@
         segments: [
           { name: '', durationMinutes: 256 }
         ],
-        createdAt: Date.now()
+        createdAt: Date.now(),
+        pinned: false
       });
     }
 
     Theme.init();
     document.getElementById('theme-btn').textContent = Theme.getIcon();
+    UI.renderListDebounced = debounce(() => UI.renderList(), 100);
     UI.renderList();
     bindEvents();
     startLiveClock();
@@ -48,12 +50,14 @@
 
   /* ========== 事件绑定 ========== */
   function bindEvents() {
-    // 主题切换
-    document.getElementById('theme-btn').addEventListener('click', () => {
+    /* ====== 顶部栏 ====== */
+    // 主题切换（200ms 节流）
+    document.getElementById('theme-btn').addEventListener('click', throttle(() => {
       Theme.toggle();
       document.getElementById('theme-btn').textContent = Theme.getIcon();
-    });
+    }, 200));
 
+    /* ====== 新建 & 历史入口 ====== */
     // 新建计算器
     const openNewSheet = () => UI.openSheet(null);
     document.getElementById('new-btn-bottom').addEventListener('click', openNewSheet);
@@ -80,6 +84,7 @@
       }
     });
 
+    /* ====== 编辑弹窗 ====== */
     // 关闭弹窗
     document.getElementById('sheet-close-btn').addEventListener('click', () => UI.closeSheet());
     document.getElementById('sheet-overlay').addEventListener('click', () => UI.closeSheet());
@@ -92,15 +97,22 @@
     // "此刻"按钮
     document.getElementById('now-btn').addEventListener('click', () => {
       UI.showConfirm('将清空所有时段数据，确定吗？', '清空', 'confirm-btn--danger', () => {
-        const now = new Date();
-        document.getElementById('input-date').value = Calculator.toLocalDateStr(now);
-        document.getElementById('input-time').value = Calculator.toLocalTimeStr(now);
+        // 清空时段数据
         UI._segments.forEach(s => {
           s.durationMinutes = 0;
           s.isNegative = false;
         });
+        // 时段1开始时间设为当前时间
+        const now = new Date();
+        const editor = document.querySelector('.seg-editor[data-seg-idx="0"]');
+        if (editor) {
+          editor.querySelector('.js-seg-start-date').value = Calculator.toLocalDateStr(now);
+          editor.querySelector('.js-seg-start-time').value = Calculator.toLocalTimeStr(now);
+          editor.querySelector('.js-seg-end-date').value = Calculator.toLocalDateStr(now);
+          editor.querySelector('.js-seg-end-time').value = Calculator.toLocalTimeStr(now);
+        }
         UI._dirty = true;
-        UI._rebuildSegmentEditors();
+        UI._syncBaseTimeDisplay();
         UI.showToast('已同步为当前时间，数据已清零');
       });
     });
@@ -140,10 +152,8 @@
       }
     });
 
-    // 名称和基准时间变化也标记 dirty
+    // 名称变化也标记 dirty
     document.getElementById('input-name').addEventListener('input', () => { UI._dirty = true; });
-    document.getElementById('input-date').addEventListener('change', () => { UI._dirty = true; });
-    document.getElementById('input-time').addEventListener('change', () => { UI._dirty = true; });
 
     // 添加时段按钮
     document.getElementById('add-segment-btn').addEventListener('click', () => {
@@ -160,14 +170,10 @@
       UI._syncSegmentTimes(UI._activeSegIdx);
     });
 
+    /* ====== 保存 & 删除 & 历史按钮 ====== */
     // 保存
     document.getElementById('save-btn').addEventListener('click', () => {
       const data = UI.readSheet();
-      const totalMin = data.segments.reduce((sum, s) => sum + s.durationMinutes, 0);
-      if (totalMin === 0 && data.segments.length === 1) {
-        UI.showToast('请输入时长');
-        return;
-      }
 
       // 记录时长历史
       data.segments.forEach(s => {
@@ -186,7 +192,7 @@
 
       Storage.save(calc);
       UI.closeSheet(true);
-      UI.renderList();
+      UI.renderListDebounced();
       UI.showToast('已保存');
 
       // 记录历史
@@ -220,15 +226,20 @@
     // 删除（弹窗内）
     document.getElementById('delete-btn').addEventListener('click', () => {
       if (!UI._editingId) return;
+      const id = UI._editingId;
       const name = document.getElementById('input-name').value.trim() || '未命名计算器';
       UI.showConfirm(`确定删除「${name}」吗？此操作不可撤销。`, '删除', 'confirm-btn--danger', () => {
-        Storage.remove(UI._editingId);
+        const deleted = Storage.getAll().find(c => c.id === id);
+        Storage.remove(id);
         UI.closeSheet(true);
         UI.renderList();
-        UI.showToast('已删除');
+        UI.showToast('已删除', '撤销', () => {
+          if (deleted) { Storage.save(deleted); UI.renderList(); }
+        });
       });
     });
 
+    /* ====== 列表卡片 ====== */
     // 列表点击事件代理
     document.getElementById('calc-list').addEventListener('click', e => {
       const card = e.target.closest('.calc-card');
@@ -265,6 +276,7 @@
       UI.openSheet(id);
     });
 
+    /* ====== 右键菜单 ====== */
     // 右键菜单项
     document.getElementById('ctx-pin').addEventListener('click', () => {
       const id = UI._contextTargetId;
@@ -303,13 +315,17 @@
         const calc = Storage.getAll().find(c => c.id === id);
         const name = calc ? calc.name : '未命名计算器';
         UI.showConfirm(`确定删除「${name}」吗？此操作不可撤销。`, '删除', 'confirm-btn--danger', () => {
+          const deleted = calc;
           Storage.remove(id);
           UI.renderList();
-          UI.showToast('已删除');
+          UI.showToast('已删除', '撤销', () => {
+            if (deleted) { Storage.save(deleted); UI.renderList(); }
+          });
         });
       }
     });
 
+    /* ====== 全局事件 ====== */
     // 点击空白关闭右键菜单
     document.addEventListener('click', e => {
       if (!e.target.closest('.context-menu') && !e.target.closest('[data-action="menu"]')) {
@@ -335,17 +351,19 @@
   function startLiveClock() {
     UI.updateClock();
     _clockTimer = setInterval(() => UI.updateClock(), 1000);
-
-    document.addEventListener('visibilitychange', () => {
-      if (document.hidden) {
-        clearInterval(_clockTimer);
-        _clockTimer = null;
-      } else {
-        UI.updateClock();
-        startLiveClock();
-      }
-    });
   }
+
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      clearInterval(_clockTimer);
+      _clockTimer = null;
+    } else {
+      UI.updateClock();
+      if (!_clockTimer) {
+        _clockTimer = setInterval(() => UI.updateClock(), 1000);
+      }
+    }
+  });
 
   /* ========== Service Worker ========== */
   function registerSW() {
