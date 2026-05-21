@@ -28,7 +28,6 @@ openSheet(calcId) {
     document.getElementById('sheet-overlay').classList.remove('hidden');
     document.getElementById('edit-sheet').classList.add('open');
     document.body.style.overflow = 'hidden';
-    document.getElementById('input-name').focus();
   },
 
   closeSheet(force) {
@@ -65,7 +64,7 @@ openSheet(calcId) {
       if (sd && st && sd.value && st.value) {
         const d = new Date(`${sd.value}T${st.value}:00`);
         if (!isNaN(d.getTime())) {
-          display.textContent = Calculator.formatDateTime(d);
+          display.textContent = Calculator.formatDate(d) + ' ' + Calculator.formatTime(d);
           return;
         }
       }
