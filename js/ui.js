@@ -17,6 +17,7 @@ const UI = {
   _toastTimer: null,
   _closeTimer: null,
   _pendingDelete: null,
+  _currentGroup: '',
 
   /* ========== Toast ========== */
   showToast(msg, actionText, onAction) {
@@ -97,5 +98,48 @@ const UI = {
     return circles[n - 1] || n + ' ';
   },
 
-  renderListDebounced: null  // 由 app.js 初始化
+  renderListDebounced: null,  // 由 app.js 初始化
+
+  /* ========== 分组管理 ========== */
+  renderGroupTabs() {
+    const groups = Groups.getAll();
+    const bar = document.getElementById('group-filter-bar');
+    let html = '<select class="group-select">';
+    html += `<option value=""${this._currentGroup === '' ? ' selected' : ''}>全部</option>`;
+    groups.forEach(g => {
+      html += `<option value="${g.id}"${this._currentGroup === g.id ? ' selected' : ''}>${this._escape(g.name)}</option>`;
+    });
+    html += '</select>';
+    bar.innerHTML = html;
+  },
+
+  renderGroupList() {
+    const groups = Groups.getAll();
+    const container = document.getElementById('group-list');
+    if (groups.length === 0) {
+      container.innerHTML = '<div style="font-size:0.82rem;color:var(--text-secondary)">暂无分组</div>';
+      return;
+    }
+    container.innerHTML = groups.map(g => `
+      <div class="group-item">
+        <span class="group-item-name">${this._escape(g.name)}</span>
+        <button class="group-item-del js-group-del" data-id="${g.id}" title="删除">✕</button>
+      </div>
+    `).join('');
+  },
+
+  openSettings() {
+    this.renderGroupList();
+    document.getElementById('settings-theme-label').textContent =
+      { auto: '自动', light: '浅色', dark: '深色' }[Theme._state] || '自动';
+    document.getElementById('settings-overlay').classList.remove('hidden');
+    document.getElementById('settings-sheet').classList.add('open');
+    document.body.style.overflow = 'hidden';
+  },
+
+  closeSettings() {
+    document.getElementById('settings-sheet').classList.remove('open');
+    document.getElementById('settings-overlay').classList.add('hidden');
+    document.body.style.overflow = '';
+  }
 };

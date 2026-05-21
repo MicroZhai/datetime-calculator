@@ -2,7 +2,10 @@ Object.assign(UI, {
 /* ========== 列表渲染 ========== */
 
   renderList() {
-    const calculators = Storage.getAll();
+    let calculators = Storage.getAll();
+    if (this._currentGroup) {
+      calculators = calculators.filter(c => c.groupId === this._currentGroup);
+    }
 
     calculators.sort((a, b) => {
       if (a.pinned !== b.pinned) return a.pinned ? -1 : 1;
@@ -20,6 +23,10 @@ Object.assign(UI, {
 
     emptyEl.classList.add('hidden');
     listEl.innerHTML = calculators.map(c => this._renderCard(c)).join('');
+    // 瀑布流入场
+    listEl.querySelectorAll('.calc-card').forEach((card, i) => {
+      card.style.animationDelay = (i * 0.04) + 's';
+    });
   },
 
   refreshLiveCards() {

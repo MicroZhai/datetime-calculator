@@ -1,4 +1,5 @@
 const STORAGE_KEY = 'dtc_calculators';
+const GROUPS_KEY = 'dtc_groups';
 const THEME_KEY = 'dtc_theme';
 const DURATION_HISTORY_KEY = 'dtc_duration_history';
 
@@ -22,6 +23,7 @@ const Storage = {
           migrated = true;
         }
         if (c.pinned === undefined) { c.pinned = false; migrated = true; }
+        if (c.groupId === undefined) { c.groupId = ''; migrated = true; }
         valid.push(c);
       }
       if (migrated) this._write(valid);
@@ -88,5 +90,27 @@ const Storage = {
 
   getDurationHistory() {
     return this.getDurationHistoryAll().slice(0, 10);
+  }
+};
+
+const Groups = {
+  getAll() {
+    try {
+      const raw = localStorage.getItem(GROUPS_KEY);
+      return raw ? JSON.parse(raw) : [];
+    } catch { return []; }
+  },
+  save(group) {
+    const list = this.getAll();
+    const idx = list.findIndex(g => g.id === group.id);
+    if (idx >= 0) list[idx] = group; else list.push(group);
+    this._write(list);
+    return group;
+  },
+  remove(id) {
+    this._write(this.getAll().filter(g => g.id !== id));
+  },
+  _write(list) {
+    try { localStorage.setItem(GROUPS_KEY, JSON.stringify(list)); } catch {}
   }
 };

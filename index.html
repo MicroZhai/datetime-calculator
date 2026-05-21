@@ -21,10 +21,15 @@
 
   <!-- ====== 顶部栏 ====== -->
   <header id="top-bar">
-    <button id="theme-btn" class="icon-btn" title="切换主题" aria-label="切换主题">🌓</button>
-    <h1 class="app-title">时间计算器</h1>
     <button id="history-btn" class="icon-btn" title="计算历史" aria-label="计算历史">🕘</button>
+    <h1 class="app-title">时间计算器</h1>
+    <button id="settings-btn" class="icon-btn" title="设置" aria-label="设置">⚙</button>
   </header>
+
+  <!-- ====== 分组选择栏 ====== -->
+  <div id="group-filter-bar">
+    <button class="group-tab active" data-group="">全部</button>
+  </div>
 
   <!-- ====== 开始时间 ====== -->
   <div id="current-time-bar">
@@ -97,11 +102,39 @@
     </div>
   </div>
 
+  <!-- ====== 设置弹窗 ====== -->
+  <div id="settings-overlay" class="sheet-overlay hidden"></div>
+  <div id="settings-sheet" class="edit-sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-header">
+      <h2>设置</h2>
+      <button id="settings-close-btn" class="icon-btn" aria-label="关闭">✕</button>
+    </div>
+    <div class="sheet-body">
+      <div class="form-group">
+        <label>主题模式</label>
+        <div class="settings-theme-row">
+          <span id="settings-theme-label">浅色</span>
+          <button id="settings-theme-btn" class="btn-now-inline">切换</button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>管理分组</label>
+        <div id="group-list"></div>
+        <div style="display:flex;gap:6px;margin-top:8px">
+          <input type="text" id="input-group-name" placeholder="新分组名称" maxlength="15" style="flex:1">
+          <button id="add-group-btn" class="btn-now-inline">添加</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- ====== 右键菜单（卡片上的 ⋮） ====== -->
   <div id="context-menu" class="context-menu hidden">
     <button id="ctx-pin">📌 置顶</button>
     <button id="ctx-rename">✏️ 重命名</button>
     <button id="ctx-copy-detail">📋 复制计算详情</button>
+    <button id="ctx-move-group">📁 移动到分组</button>
     <button id="ctx-delete">🗑️ 删除</button>
   </div>
 

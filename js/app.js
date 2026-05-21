@@ -18,9 +18,9 @@
     }
 
     Theme.init();
-    document.getElementById('theme-btn').textContent = Theme.getIcon();
     UI.renderListDebounced = debounce(() => UI.renderList(), 100);
     UI.renderList();
+    UI.renderGroupTabs();
     bindEvents();
     startLiveClock();
     registerSW();
@@ -51,11 +51,51 @@
   /* ========== 事件绑定 ========== */
   function bindEvents() {
     /* ====== 顶部栏 ====== */
-    // 主题切换（200ms 节流）
-    document.getElementById('theme-btn').addEventListener('click', throttle(() => {
+    // 设置按钮
+    document.getElementById('settings-btn').addEventListener('click', () => UI.openSettings());
+    document.getElementById('settings-close-btn').addEventListener('click', () => UI.closeSettings());
+    document.getElementById('settings-overlay').addEventListener('click', () => UI.closeSettings());
+
+    // 设置面板 - 主题切换
+    document.getElementById('settings-theme-btn').addEventListener('click', () => {
       Theme.toggle();
-      document.getElementById('theme-btn').textContent = Theme.getIcon();
-    }, 200));
+      document.getElementById('settings-theme-label').textContent =
+        { auto: '自动', light: '浅色', dark: '深色' }[Theme._state] || '自动';
+    });
+
+    // 设置面板 - 删除分组
+    document.getElementById('group-list').addEventListener('click', e => {
+      const btn = e.target.closest('.js-group-del');
+      if (!btn) return;
+      const id = btn.dataset.id;
+      Groups.remove(id);
+      // 将被删分组下的计算器移回全部
+      const calcs = Storage.getAll();
+      calcs.forEach(c => { if (c.groupId === id) { c.groupId = ''; Storage.save(c); } });
+      UI.renderGroupList();
+      UI.renderGroupTabs();
+      if (UI._currentGroup === id) UI._currentGroup = '';
+      UI.renderListDebounced();
+    });
+
+    // 设置面板 - 添加分组
+    document.getElementById('add-group-btn').addEventListener('click', () => {
+      const input = document.getElementById('input-group-name');
+      const name = input.value.trim();
+      if (!name) return;
+      Groups.save({ id: String(Date.now()), name: name, createdAt: Date.now() });
+      input.value = '';
+      UI.renderGroupList();
+      UI.renderGroupTabs();
+    });
+
+    // 分组选择
+    document.getElementById('group-filter-bar').addEventListener('change', e => {
+      if (e.target.classList.contains('group-select')) {
+        UI._currentGroup = e.target.value;
+        UI.renderList();
+      }
+    });
 
     /* ====== 新建 & 历史入口 ====== */
     // 新建计算器
@@ -187,7 +227,7 @@
         const existing = Storage.getAll().find(c => c.id === UI._editingId);
         calc = { ...existing, ...data };
       } else {
-        calc = { id: String(Date.now()), createdAt: Date.now(), pinned: false, ...data };
+        calc = { id: String(Date.now()), createdAt: Date.now(), pinned: false, groupId: UI._currentGroup, ...data };
       }
 
       Storage.save(calc);
@@ -217,7 +257,8 @@
         resultTimeFormatted: Calculator.formatDateTime(finalResult) + crossTag,
         segments: calc.segments.map(s => ({
           name: s.name || '',
-          durationMinutes: s.durationMinutes
+          durationMinutes: s.durationMinutes,
+          startMinutes: s.startMinutes
         })),
         savedAt: `${Calculator.toLocalDateStr(new Date())} ${Calculator.toLocalTimeStr(new Date())}`
       });
@@ -307,6 +348,33 @@
             .catch(() => UI.showToast('复制失败'));
         }
       }
+    });
+    document.getElementById('ctx-move-group').addEventListener('click', () => {
+      const id = UI._contextTargetId;
+      UI.hideContextMenu();
+      if (!id) return;
+      const calc = Storage.getAll().find(c => c.id === id);
+      if (!calc) return;
+      const groups = Groups.getAll();
+      const currentName = groups.find(g => g.id === calc.groupId);
+      const label = currentName ? `当前：「${currentName.name}」` : '当前：全部';
+      const groupNames = groups.map(g => g.name).join('、') || '暂无分组，请先在设置中创建';
+      const newGroup = prompt(`${label}\n\n可选分组：${groupNames}\n\n输入分组名称移动到该分组（留空移回全部）：`);
+      if (newGroup === null) return; // 取消
+      const trimmed = newGroup.trim();
+      if (trimmed === '') {
+        calc.groupId = '';
+      } else {
+        let group = groups.find(g => g.name === trimmed);
+        if (!group) {
+          group = Groups.save({ id: String(Date.now()), name: trimmed, createdAt: Date.now() });
+        }
+        calc.groupId = group.id;
+      }
+      Storage.save(calc);
+      UI.renderGroupTabs();
+      UI.renderListDebounced();
+      UI.showToast('已移动');
     });
     document.getElementById('ctx-delete').addEventListener('click', () => {
       const id = UI._contextTargetId;

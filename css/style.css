@@ -21,6 +21,10 @@
   --toast-bg: #1c1c1e;
   --toast-text: #ffffff;
   --handle: #c6c6c8;
+  --glass-alpha: 0.72;
+  --glass-blur: 14px;
+  --glass-border: rgba(255,255,255,0.25);
+  --glass-shadow: 0 4px 20px rgba(0,0,0,0.06);
   --transition-fast: 0.1s ease;
   --transition-normal: 0.2s ease;
   --transition-slow: 0.35s ease;
@@ -44,6 +48,10 @@
   --toast-bg: #2c2c2e;
   --toast-text: #f0f0f0;
   --handle: #545458;
+  --glass-alpha: 0.65;
+  --glass-blur: 16px;
+  --glass-border: rgba(255,255,255,0.1);
+  --glass-shadow: 0 4px 20px rgba(0,0,0,0.3);
   color-scheme: dark;
 }
 
@@ -66,17 +74,29 @@ html {
 
 body {
   background-color: var(--bg);
-  background-image: radial-gradient(circle at center, var(--bg-dot) 1px, transparent 0);
-  background-size: 20px 20px;
+  background-image:
+    radial-gradient(ellipse 60% 50% at 20% 30%, var(--bg-spot-1) 0%, transparent 70%),
+    radial-gradient(ellipse 50% 60% at 80% 70%, var(--bg-spot-2) 0%, transparent 70%),
+    radial-gradient(circle at center, var(--bg-dot) 1px, transparent 0);
+  background-size: 100% 100%, 100% 100%, 20px 20px;
+  background-attachment: fixed, fixed, scroll;
   color: var(--text-primary);
   min-height: 100dvh;
   padding-bottom: env(safe-area-inset-bottom, 0);
-  transition: background-color 0.3s, color 0.3s;
+  transition: background-color 0.5s ease, color 0.4s ease;
   overflow-x: hidden;
 }
 
-:root { --bg-dot: rgba(0,0,0,0.20); }
-[data-theme="dark"] { --bg-dot: rgba(255,255,255,0.10); }
+:root {
+  --bg-dot: rgba(0,0,0,0.20);
+  --bg-spot-1: rgba(255,200,150,0.12);
+  --bg-spot-2: rgba(200,220,255,0.10);
+}
+[data-theme="dark"] {
+  --bg-dot: rgba(255,255,255,0.10);
+  --bg-spot-1: rgba(100,130,200,0.08);
+  --bg-spot-2: rgba(80,100,180,0.06);
+}
 
 .hidden {
   display: none !important;
@@ -126,30 +146,32 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 16px;
+  padding: 10px 16px;
   position: sticky;
   top: 0;
   z-index: 10;
-  background-color: var(--bg);
+  background-color: color-mix(in srgb, var(--bg) calc(var(--glass-alpha) * 100%), transparent);
   background-image: radial-gradient(circle at center, var(--bg-dot) 1px, transparent 0);
   background-size: 20px 20px;
-  transition: background-color 0.3s;
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  transition: background-color 0.5s ease;
 }
 
 .app-title {
-  font-size: 1.15rem;
-  font-weight: 700;
-  letter-spacing: 0.03em;
+  font-size: 1.2rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
 }
 
 .icon-btn {
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
-  border: none;
-  background: var(--bg-card);
+  border: 1px solid var(--glass-border);
+  background: color-mix(in srgb, var(--bg-card) 80%, transparent);
   color: var(--text-primary);
-  font-size: 1.2rem;
+  font-size: 1rem;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -158,7 +180,6 @@ body {
   will-change: transform;
   transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1),
               background 0.2s;
-  box-shadow: var(--shadow-card);
 }
 @media (hover: hover) {
   .icon-btn:hover {
@@ -169,60 +190,114 @@ body {
   transform: scale(0.88);
   transition: transform var(--transition-fast);
 }
+/* ====== 分组选择 ====== */
+#group-filter-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 16px 8px;
+}
+
+.group-select {
+  padding: 5px 28px 5px 12px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: inherit;
+  text-align: center;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='5'%3E%3Cpath d='M0 0l4 5 4-5z' fill='%238e8e93'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  min-width: 100px;
+}
+.group-select:focus { outline: none; border-color: var(--accent); }
+
+/* ====== 设置面板 ====== */
+.settings-theme-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+#settings-theme-label {
+  font-size: 0.9rem;
+  color: var(--text-primary);
+}
+
+.group-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+}
+.group-item-name {
+  flex: 1;
+  font-size: 0.9rem;
+}
+.group-item-del {
+  width: 28px; height: 28px;
+  border: none; background: none;
+  color: var(--text-secondary);
+  font-size: 0.9rem; cursor: pointer;
+}
+.group-item-del:active { color: var(--danger); }
+
 /* ====== 开始时间 ====== */
 #current-time-bar {
   text-align: center;
-  padding: 18px 16px 6px;
+  padding: 8px 16px 2px;
 }
 
 .current-time-text {
-  font-size: 2.6rem;
+  font-size: 2.1rem;
   font-weight: 700;
-  letter-spacing: 0.03em;
+  letter-spacing: 0.04em;
   font-variant-numeric: tabular-nums;
-  line-height: 1.1;
-  animation: clockGlow 3s ease-in-out infinite;
-}
-@keyframes clockGlow {
-  0%, 100% { text-shadow: 0 0 8px rgba(0,0,0,0.04), 0 0 20px rgba(0,0,0,0.03); }
-  50%      { text-shadow: 0 0 16px rgba(0,0,0,0.08), 0 0 40px rgba(0,0,0,0.05); }
-}
-[data-theme="dark"] .current-time-text {
-  animation: clockGlowDark 3s ease-in-out infinite;
-}
-@keyframes clockGlowDark {
-  0%, 100% { text-shadow: 0 0 8px rgba(255,255,255,0.06), 0 0 20px rgba(255,255,255,0.04); }
-  50%      { text-shadow: 0 0 16px rgba(255,255,255,0.12), 0 0 40px rgba(255,255,255,0.07); }
+  line-height: 1;
 }
 
 .current-date-text {
-  font-size: 0.82rem;
+  font-size: 0.7rem;
   color: var(--text-secondary);
-  margin-top: 4px;
+  margin-top: 1px;
 }
 
 /* ====== 计算器列表 ====== */
 #calc-list {
-  padding: 10px 16px 120px;
+  padding: 8px 16px 120px;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 10px;
 }
 
 .calc-card {
-  background: var(--bg-card);
+  background: color-mix(in srgb, var(--bg-card) calc(var(--glass-alpha) * 100%), transparent);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--glass-border);
   border-radius: var(--radius-lg);
-  padding: 18px 20px;
-  box-shadow: var(--shadow-card);
+  padding: 14px 18px;
+  box-shadow: var(--glass-shadow);
   cursor: pointer;
   position: relative;
-  transition: transform 0.15s, box-shadow 0.2s, background 0.3s;
+  transition: transform 0.2s ease, box-shadow 0.3s ease, background-color 0.5s ease;
   user-select: none;
   animation: cardIn var(--transition-slow) both;
 }
+/* 兜底：不支持 color-mix 的浏览器 */
+@supports not (background: color-mix(in srgb, #fff 70%, transparent)) {
+  .calc-card { background: var(--bg-card); }
+}
 @keyframes cardIn {
-  from { opacity: 0; transform: translateY(8px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; transform: translateY(24px) scale(0.96); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
 }
 .calc-card:active {
   transform: scale(0.985);
@@ -465,8 +540,10 @@ body {
   width: 56px;
   height: 56px;
   border-radius: 50%;
-  border: none;
-  background: var(--accent);
+  border: 1px solid var(--glass-border);
+  background: color-mix(in srgb, var(--accent) 90%, transparent);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
   color: var(--text-seg-active);
   font-size: 1.6rem;
   font-weight: 300;
@@ -644,7 +721,10 @@ body {
   left: 0;
   right: 0;
   max-height: 85dvh;
-  background: var(--bg-sheet);
+  background: color-mix(in srgb, var(--bg-sheet) calc(var(--glass-alpha) * 100%), transparent);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--glass-border);
   border-radius: var(--radius-xl) var(--radius-xl) 0 0;
   z-index: 101;
   display: flex;
@@ -1122,7 +1202,10 @@ input[type="time"]:focus {
 /* ====== 右键菜单 ====== */
 .context-menu {
   position: fixed;
-  background: var(--bg-sheet);
+  background: color-mix(in srgb, var(--bg-sheet) calc(var(--glass-alpha) * 100%), transparent);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--glass-border);
   border-radius: var(--radius-md);
   box-shadow: 0 4px 24px rgba(0,0,0,0.2);
   z-index: 200;
@@ -1191,7 +1274,10 @@ input[type="time"]:focus {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%) scale(0.85);
-  background: var(--bg-sheet);
+  background: color-mix(in srgb, var(--bg-sheet) calc(var(--glass-alpha) * 100%), transparent);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--glass-border);
   border-radius: var(--radius-lg);
   padding: 24px 20px 16px;
   min-width: 280px;

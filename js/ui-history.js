@@ -71,7 +71,13 @@ getCalcDetailText(calc) {
           else if (dayDiff > 1) midTag = ` (+${dayDiff}天)`;
           else if (dayDiff < 0) midTag = ` (${dayDiff}天)`;
 
-          const startMs = baseMs + (accumMin - s.durationMinutes) * 60 * 1000;
+          // 优先用存储的独立开始时间，兜底链式推导（兼容旧历史记录）
+          let startMs;
+          if (s.startMinutes !== undefined) {
+            startMs = baseMs + s.startMinutes * 60 * 1000;
+          } else {
+            startMs = baseMs + (accumMin - s.durationMinutes) * 60 * 1000;
+          }
           const startTimeStr = Calculator.formatTime(new Date(startMs));
           const label = s.name || `时段${i + 1}`;
           const prefix = i === 0 ? '<span class="history-card-label">过程：</span>' : '<span class="history-card-label"></span>';
@@ -121,7 +127,8 @@ getCalcDetailText(calc) {
       this._segments = record.segments.map(s => ({
         name: s.name || '',
         durationMinutes: Math.abs(s.durationMinutes),
-        isNegative: s.durationMinutes < 0
+        isNegative: s.durationMinutes < 0,
+        startMinutes: s.startMinutes
       }));
     }
     if (record.calcName) {
