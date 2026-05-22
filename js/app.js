@@ -137,12 +137,10 @@
     // "此刻"按钮
     document.getElementById('now-btn').addEventListener('click', () => {
       UI.showConfirm('将清空所有时段数据，确定吗？', '清空', 'confirm-btn--danger', () => {
-        // 清空时段数据
         UI._segments.forEach(s => {
           s.durationMinutes = 0;
           s.isNegative = false;
         });
-        // 时段1开始时间设为当前时间
         const now = new Date();
         const editor = document.querySelector('.seg-editor[data-seg-idx="0"]');
         if (editor) {
