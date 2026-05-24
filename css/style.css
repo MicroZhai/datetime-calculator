@@ -668,7 +668,7 @@ body.bg-dynamic {
 }
 
 .time-label {
-  font-size: clamp(0.5rem, 2vw, 0.66rem);
+  font-size: 0.66rem;
   font-weight: 500;
   color: var(--text-secondary);
   text-transform: uppercase;
@@ -678,7 +678,7 @@ body.bg-dynamic {
 }
 
 .time-value {
-  font-size: clamp(1.2rem, 5vw, 1.9rem);
+  font-size: 1.9rem;
   font-weight: 700;
   letter-spacing: 0.02em;
   line-height: 1.15;
@@ -690,12 +690,12 @@ body.bg-dynamic {
 }
 
 .time-value--result {
-  font-size: clamp(1.2rem, 5vw, 1.9rem);
+  font-size: 1.9rem;
   font-weight: 700;
 }
 
 .time-date {
-  font-size: clamp(0.5rem, 2vw, 0.68rem);
+  font-size: 0.68rem;
   color: var(--text-secondary);
   margin-top: 1px;
   white-space: nowrap;
@@ -706,7 +706,7 @@ body.bg-dynamic {
 
 .cross-day-tag {
   display: inline-block;
-  font-size: clamp(0.5rem, 1.8vw, 0.62rem);
+  font-size: 0.62rem;
   font-weight: 600;
   color: var(--accent);
   background: var(--bg-input);
@@ -744,7 +744,7 @@ body.bg-dynamic {
 }
 
 .mid-single-dur {
-  font-size: clamp(0.65rem, 2.6vw, 0.85rem);
+  font-size: 0.85rem;
   font-weight: 700;
   color: var(--accent);
   font-variant-numeric: tabular-nums;
@@ -1271,6 +1271,9 @@ input[type="time"]:focus {
   font-size: 0.85rem;
   margin-bottom: 3px;
   font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .history-card-label {
@@ -1295,11 +1298,22 @@ input[type="time"]:focus {
   padding: 1px 0;
   color: var(--text-secondary);
   font-variant-numeric: tabular-nums;
+  flex-wrap: nowrap;
+  overflow: hidden;
+  width: 100%;
+}
+.history-process-row span {
+  white-space: nowrap;
+  flex-shrink: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .history-process-label {
   font-weight: 500;
   color: var(--text-secondary);
+  flex-shrink: 0;
 }
 
 .history-process-dur {
