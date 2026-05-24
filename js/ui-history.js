@@ -78,7 +78,7 @@ getCalcDetailText(calc) {
           } else {
             startMs = baseMs + (accumMin - s.durationMinutes) * 60 * 1000;
           }
-          const startTimeStr = Calculator.formatTime(new Date(startMs));
+          const startTimeStr = Calculator.formatSmart(new Date(startMs));
           const label = s.name || `时段${i + 1}`;
           const prefix = i === 0 ? '<span class="history-card-label">过程：</span>' : '<span class="history-card-label"></span>';
           processHTML += `
@@ -87,7 +87,7 @@ getCalcDetailText(calc) {
               <span>${startTimeStr}</span>
               <span class="history-process-dur">${Calculator.formatDurationMin(s.durationMinutes)}</span>
               <span>→</span>
-              <span>${Calculator.formatTime(midTime)}${midTag}</span>
+              <span>${Calculator.formatSmart(midTime)}${midTag}</span>
             </div>`;
         });
       } else {

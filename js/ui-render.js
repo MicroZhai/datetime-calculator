@@ -3,8 +3,9 @@ Object.assign(UI, {
 
   renderList() {
     let calculators = Storage.getAll();
-    if (this._currentGroup) {
-      calculators = calculators.filter(c => c.groupId === this._currentGroup);
+    const filterGroup = this._currentGroup && this._currentGroup !== 'all' ? this._currentGroup : null;
+    if (filterGroup) {
+      calculators = calculators.filter(c => (c.groupId || 'default') === filterGroup);
     }
 
     calculators.sort((a, b) => {
@@ -26,6 +27,10 @@ Object.assign(UI, {
     // 瀑布流入场
     listEl.querySelectorAll('.calc-card').forEach((card, i) => {
       card.style.animationDelay = (i * 0.04) + 's';
+      const detail = card.querySelector('.card-process-detail.expanded');
+      if (detail) {
+        requestAnimationFrame(() => { detail.style.maxHeight = detail.scrollHeight + 'px'; });
+      }
     });
   },
 
@@ -97,7 +102,7 @@ Object.assign(UI, {
         detailHTML += `
           <div class="card-timeline-row">
             <span class="card-tl-num">${label}</span>
-            <span class="card-tl-time">${Calculator.formatDateTime(s.startTime)}${sTag}</span>
+            <span class="card-tl-time">${Calculator.formatSmart(s.startTime)}${sTag}</span>
             <span class="card-tl-dur">${dur}</span>
             <span class="card-tl-arrow">→</span>
             <span class="card-tl-time">${Calculator.formatDateTime(s.time)}${eTag}</span>
@@ -109,9 +114,10 @@ Object.assign(UI, {
 
     const pinIcon = calc.pinned ? '<span class="card-pin-icon">📌</span>' : '';
     const pinnedClass = calc.pinned ? ' pinned' : '';
+    const expiredClass = last.time.getTime() < Date.now() ? ' is-expired' : '';
 
     return `
-      <div class="calc-card${pinnedClass}" data-id="${calc.id}">
+      <div class="calc-card${pinnedClass}${expiredClass}" data-id="${calc.id}">
         <div class="card-header">
           <span class="card-name">${pinIcon}${this._escape(calc.name)}</span>
           <button class="card-menu-btn" data-action="menu" data-id="${calc.id}" aria-label="更多">⋮</button>

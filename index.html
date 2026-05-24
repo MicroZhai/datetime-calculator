@@ -19,11 +19,60 @@
     <button id="update-btn" class="update-btn">更新</button>
   </div>
 
+  <!-- ====== 侧边栏遮罩 ====== -->
+  <div id="sidebar-overlay" class="sidebar-overlay hidden"></div>
+
+  <!-- ====== 侧边栏 ====== -->
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-header">
+      <span class="sidebar-logo">⏱️</span>
+      <span class="sidebar-title">时间计算器</span>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="sidebar-section-label">分组</div>
+      <button id="sidebar-groups-toggle" class="sidebar-item">
+        <span class="sidebar-icon">📁</span>
+        <span>分组管理</span>
+        <span class="sidebar-arrow">▼</span>
+      </button>
+      <div id="sidebar-group-list" class="sidebar-submenu hidden"></div>
+      <div class="sidebar-section-label">设置</div>
+      <div class="sidebar-sub-item">
+        <span class="sidebar-icon">🌓</span>
+        <span>主题模式</span>
+        <select id="sidebar-theme-select" class="sidebar-select">
+          <option value="auto">跟随系统</option>
+          <option value="light">浅色</option>
+          <option value="dark">深色</option>
+        </select>
+      </div>
+      <div class="sidebar-section-label">外观</div>
+      <div class="sidebar-sub-item">
+        <span class="sidebar-icon">🎨</span>
+        <span>背景样式</span>
+        <select id="sidebar-bg-select" class="sidebar-select">
+          <option value="none">纯色</option>
+          <option value="grid">网格</option>
+          <option value="gradient">渐变</option>
+          <option value="geometry">几何</option>
+          <option value="dynamic">动态</option>
+        </select>
+      </div>
+      <button id="sidebar-about" class="sidebar-item">
+        <span class="sidebar-icon">ℹ️</span>
+        <span>关于</span>
+      </button>
+    </nav>
+    <div class="sidebar-footer">
+      <span class="sidebar-version">版本 1.0.0</span>
+    </div>
+  </aside>
+
   <!-- ====== 顶部栏 ====== -->
   <header id="top-bar">
-    <button id="history-btn" class="icon-btn" title="计算历史" aria-label="计算历史">🕘</button>
+    <button id="menu-btn" class="icon-btn" title="菜单" aria-label="菜单">☰</button>
     <h1 class="app-title">时间计算器</h1>
-    <button id="settings-btn" class="icon-btn" title="设置" aria-label="设置">⚙</button>
+    <button id="history-btn" class="icon-btn" title="计算历史" aria-label="计算历史">🕘</button>
   </header>
 
   <!-- ====== 分组选择栏 ====== -->
@@ -78,6 +127,12 @@
         </div>
       </div>
 
+      <!-- 所属分组 -->
+      <div class="form-group">
+        <label>所属分组</label>
+        <select id="input-group" class="form-select"></select>
+      </div>
+
       <!-- 时段列表 -->
       <div class="form-group">
         <label>时段列表</label>
@@ -99,33 +154,6 @@
     <div class="sheet-footer">
       <button id="save-btn" class="btn-primary">保存</button>
       <button id="delete-btn" class="btn-danger hidden">删除此计算器</button>
-    </div>
-  </div>
-
-  <!-- ====== 设置弹窗 ====== -->
-  <div id="settings-overlay" class="sheet-overlay hidden"></div>
-  <div id="settings-sheet" class="edit-sheet">
-    <div class="sheet-handle"></div>
-    <div class="sheet-header">
-      <h2>设置</h2>
-      <button id="settings-close-btn" class="icon-btn" aria-label="关闭">✕</button>
-    </div>
-    <div class="sheet-body">
-      <div class="form-group">
-        <label>主题模式</label>
-        <div class="settings-theme-row">
-          <span id="settings-theme-label">浅色</span>
-          <button id="settings-theme-btn" class="btn-now-inline">切换</button>
-        </div>
-      </div>
-      <div class="form-group">
-        <label>管理分组</label>
-        <div id="group-list"></div>
-        <div style="display:flex;gap:6px;margin-top:8px">
-          <input type="text" id="input-group-name" placeholder="新分组名称" maxlength="15" style="flex:1">
-          <button id="add-group-btn" class="btn-now-inline">添加</button>
-        </div>
-      </div>
     </div>
   </div>
 
@@ -168,6 +196,7 @@
   <div id="toast" class="toast hidden"></div>
 
   <script src="js/storage.js"></script>
+  <script src="js/groups.js"></script>
   <script src="js/history.js"></script>
   <script src="js/calculator.js"></script>
   <script src="js/theme.js"></script>

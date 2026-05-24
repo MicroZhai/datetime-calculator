@@ -1,4 +1,6 @@
 const Calculator = {
+  _isNarrow() { return window.innerWidth < 360; },
+
   /** 格式化为 HH:MM */
   formatTime(date) {
     const h = String(date.getHours()).padStart(2, '0');
@@ -38,6 +40,17 @@ const Calculator = {
     const weekdays = ['日', '一', '二', '三', '四', '五', '六'];
     const w = weekdays[date.getDay()];
     return `${y}年${M}月${d}日 周${w}`;
+  },
+
+  /** 智能短格式：小屏 5/21 14:00，大屏 5月21日 14:00 */
+  formatSmart(date) {
+    if (this._isNarrow()) {
+      const M = date.getMonth() + 1; const d = date.getDate();
+      const h = String(date.getHours()).padStart(2, '0');
+      const m = String(date.getMinutes()).padStart(2, '0');
+      return `${M}/${d} ${h}:${m}`;
+    }
+    return this.formatDateTime(date);
   },
 
   /** 时长分钟 → 纯数字分钟格式（如 +80min） */

@@ -10,6 +10,18 @@ openSheet(calcId) {
 
     document.getElementById('input-name').value = calc ? calc.name : '';
 
+    // 渲染分组选项
+    const groupSelect = document.getElementById('input-group');
+    if (groupSelect && typeof Groups !== 'undefined') {
+      try {
+        const groups = Groups.getAll();
+        if (groups.length > 0) {
+          groupSelect.innerHTML = groups.map(g => `<option value="${g.id}">${UI._escape(g.name)}</option>`).join('');
+          groupSelect.value = calc ? (calc.groupId || 'default') : (UI._currentGroup || 'default');
+        }
+      } catch(e) { /* 静默降级，不影响编辑功能 */ }
+    }
+
     if (calc && calc.segments) {
       this._segments = calc.segments.map(s => ({
         name: s.name || '',
@@ -219,7 +231,6 @@ openSheet(calcId) {
     return { h: newH, m: newM, capped: true };
   },
 
-  /** 时长变化 → 重算当前段结束时间，不影响其他段 */
   /**
    * 时长变化 → 重算当前段结束时间，各段独立不传播。
    * @param {number} idx - 时段索引
@@ -252,7 +263,6 @@ openSheet(calcId) {
     // 不再向下传播——各段独立
   },
 
-  /** 结束时间变化 → 反算当前段开始时间（时长固定），不影响其他段 */
   /**
    * 结束时间变化 → 反算开始时间（时长固定不变），各段独立不传播。
    * @param {number} idx - 时段索引
@@ -287,7 +297,6 @@ openSheet(calcId) {
     // 不再向下传播
   },
 
-  /** 开始时间变化 → 重算当前段结束时间（时长固定），不影响其他段 */
   /**
    * 开始时间变化 → 重算结束时间（时长固定不变），各段独立不传播。
    * @param {number} idx - 时段索引
@@ -367,7 +376,9 @@ openSheet(calcId) {
       };
     });
 
-    return { name, isBaseTimeNow: false, baseTime, segments };
+    const groupEl = document.getElementById('input-group');
+    const groupId = groupEl ? groupEl.value : 'default';
+    return { name, isBaseTimeNow: false, baseTime, segments, groupId: groupId };
   },
 
   setQuickDuration(minutes) {
