@@ -55,7 +55,7 @@
       if (!sub.classList.contains('hidden')) { renderSidebarGroups(); }
     });
 
-    // 分组列表点击（切换 + 删除 + 添加）
+    // 分组列表点击（切换 + 删除 + 添加）— 事件委托，innerHTML 重写后仍有效
     document.getElementById('sidebar-group-list').addEventListener('click', e => {
       const delBtn = e.target.closest('.sidebar-group-del');
       if (delBtn) {
@@ -67,6 +67,18 @@
         UI.renderList();
         return;
       }
+      const addBtn = e.target.closest('#sidebar-group-add');
+      if (addBtn) {
+        const input = document.getElementById('sidebar-group-input');
+        const name = input.value.trim();
+        if (!name) return;
+        if (Groups.getAll().find(g => g.name === name)) { UI.showToast('分组名称已存在'); return; }
+        Groups.add(name);
+        input.value = '';
+        renderSidebarGroups();
+        UI.renderGroupTabs();
+        return;
+      }
       const row = e.target.closest('.sidebar-group-row');
       if (row) {
         UI._currentGroup = row.dataset.groupId;
@@ -74,18 +86,6 @@
         UI.renderGroupTabs();
         UI.renderList();
       }
-    });
-
-    // 添加分组
-    document.getElementById('sidebar-group-add').addEventListener('click', () => {
-      const input = document.getElementById('sidebar-group-input');
-      const name = input.value.trim();
-      if (!name) return;
-      if (Groups.getAll().find(g => g.name === name)) { UI.showToast('分组名称已存在'); return; }
-      Groups.add(name);
-      input.value = '';
-      renderSidebarGroups();
-      UI.renderGroupTabs();
     });
 
     document.getElementById('sidebar-about').addEventListener('click', () => {
