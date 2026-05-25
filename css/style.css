@@ -1270,10 +1270,6 @@ input[type="time"]:focus {
   margin-bottom: 0;
 }
 
-.history-card-times {
-  margin: 4px 0;
-}
-
 .history-group-tag {
   display: inline-block;
   margin-left: 8px;

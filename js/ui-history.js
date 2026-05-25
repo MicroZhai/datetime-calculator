@@ -64,23 +64,8 @@ getCalcDetailText(calc) {
         }
       }
 
-      // 三列布局数据
-      const baseDate = new Date(r.baseTime);
-      const baseTimeStr = Calculator.formatTime(baseDate);
-      const baseDateStr = Calculator.formatDate(baseDate);
-      const finalResult = new Date(r.resultTime);
-      const finalTimeStr = isZero ? '无变化' : Calculator.formatTime(finalResult);
-      const finalDateStr = isZero ? '' : Calculator.formatDate(finalResult);
-      const totalDur = isZero ? '—' : Calculator.formatDurationMin(totalMin);
-
-      // 跨天标签
-      const baseDay = new Date(baseDate.getFullYear(), baseDate.getMonth(), baseDate.getDate());
-      const resultDay = new Date(finalResult.getFullYear(), finalResult.getMonth(), finalResult.getDate());
-      const dayDiff = Math.round((resultDay - baseDay) / 86400000);
-      let crossDayTag = '';
-      if (!isZero && dayDiff !== 0) {
-        crossDayTag = `<span class="cross-day-tag">${dayDiff > 0 ? '+' + dayDiff + '天' : dayDiff + '天'}</span>`;
-      }
+      // 跨天标签（从 resultTimeFormatted 中已有，直接使用）
+      const endText = isZero ? '与开始时间相同' : this._escape(r.resultTimeFormatted);
 
       let processHTML = '';
       if (!isZero) {
@@ -129,23 +114,11 @@ getCalcDetailText(calc) {
               <button class="history-card-del js-history-del" data-id="${r.id}" title="删除">✕</button>
             </div>
           </div>
-          <div class="card-times history-card-times">
-            <div class="time-block time-block--base">
-              <div class="time-label">开始时间</div>
-              <div class="time-value">${baseTimeStr}</div>
-              <div class="time-date">${baseDateStr}</div>
-            </div>
-            <div class="time-mid">
-              <div class="mid-single">
-                <span class="mid-single-dur">${totalDur}</span>
-              </div>
-            </div>
-            <div class="time-block time-block--result">
-              <div class="time-label">结束时间</div>
-              <div class="time-value time-value--result">${finalTimeStr}</div>
-              <div class="time-date">${finalDateStr}</div>
-              ${crossDayTag}
-            </div>
+          <div class="history-card-line">
+            <span class="history-card-label">开始：</span>${this._escape(r.baseTimeFormatted || '—')}
+          </div>
+          <div class="history-card-line">
+            <span class="history-card-label">结束：</span>${endText}
           </div>
           <div class="history-card-process">
             ${processHTML}
