@@ -82,7 +82,7 @@
       const name = input.value.trim();
       if (!name) return;
       if (Groups.getAll().find(g => g.name === name)) { UI.showToast('分组名称已存在'); return; }
-      Groups.save({ id: String(Date.now()), name: name, createdAt: Date.now() });
+      Groups.add(name);
       input.value = '';
       renderSidebarGroups();
       UI.renderGroupTabs();
