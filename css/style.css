@@ -1258,9 +1258,20 @@ input[type="time"]:focus {
   gap: 10px;
 }
 
-.history-card-main {
+.history-card-top {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.history-card-top .history-card-name {
   flex: 1;
   min-width: 0;
+  margin-bottom: 0;
+}
+
+.history-card-times {
+  margin: 4px 0;
 }
 
 .history-group-tag {
