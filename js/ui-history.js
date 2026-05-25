@@ -106,23 +106,25 @@ getCalcDetailText(calc) {
 
       return `
         <div class="history-card" data-id="${r.id}">
-          <div class="history-card-main">
-            <div class="history-card-name">${this._escape(r.calcName)}${groupTag}</div>
-            <div class="history-card-line">
-              <span class="history-card-label">开始：</span>${this._escape(r.baseTimeFormatted || '—')}
+          <div class="history-card-top">
+            <div class="history-card-main">
+              <div class="history-card-name">${this._escape(r.calcName)}${groupTag}</div>
+              <div class="history-card-line">
+                <span class="history-card-label">开始：</span>${this._escape(r.baseTimeFormatted || '—')}
+              </div>
+              <div class="history-card-line">
+                <span class="history-card-label">结束：</span>${endDisplay}
+              </div>
             </div>
-            <div class="history-card-line">
-              <span class="history-card-label">结束：</span>${endDisplay}
+            <div class="history-card-actions">
+              <button class="history-card-reuse js-history-reuse" data-id="${r.id}" title="再用一次">🔄 再用一次</button>
+              <button class="history-card-del js-history-del" data-id="${r.id}" title="删除">✕</button>
             </div>
-            <div class="history-card-process">
-              ${processHTML}
-            </div>
-            <div class="history-card-time">保存于 ${this._escape(r.savedAt)}</div>
           </div>
-          <div class="history-card-actions">
-            <button class="history-card-reuse js-history-reuse" data-id="${r.id}" title="再用一次">🔄 再用一次</button>
-            <button class="history-card-del js-history-del" data-id="${r.id}" title="删除">✕</button>
+          <div class="history-card-process">
+            ${processHTML}
           </div>
+          <div class="history-card-time">保存于 ${this._escape(r.savedAt)}</div>
         </div>`;
     }).join('');
   },

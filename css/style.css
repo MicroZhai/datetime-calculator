@@ -1248,6 +1248,12 @@ input[type="time"]:focus {
   margin-bottom: 10px;
   box-shadow: var(--shadow-card);
   display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.history-card-top {
+  display: flex;
   align-items: flex-start;
   gap: 10px;
 }
