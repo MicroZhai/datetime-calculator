@@ -314,6 +314,7 @@
       History.add({
         id: String(Date.now()),
         calcName: data.name,
+        groupId: data.groupId,
         baseTime: calc.baseTime,
         baseTimeFormatted: Calculator.formatDateTime(baseDate),
         resultTime: finalResult.toISOString(),

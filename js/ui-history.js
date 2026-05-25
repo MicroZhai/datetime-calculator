@@ -54,6 +54,16 @@ getCalcDetailText(calc) {
       const totalMin = segs.reduce((s, c) => s + c.durationMinutes, 0);
       const isZero = totalMin === 0;
 
+      // 分组名
+      let groupTag = '';
+      if (r.groupId) {
+        const groups = Groups.getAll();
+        const group = groups.find(g => g.id === r.groupId);
+        if (group && group.id !== 'default') {
+          groupTag = `<span class="history-group-tag">${this._escape(group.name)}</span>`;
+        }
+      }
+
       const endDisplay = isZero ? '与开始时间相同' : this._escape(r.resultTimeFormatted);
 
       let processHTML = '';
@@ -97,7 +107,7 @@ getCalcDetailText(calc) {
       return `
         <div class="history-card" data-id="${r.id}">
           <div class="history-card-main">
-            <div class="history-card-name">${this._escape(r.calcName)}</div>
+            <div class="history-card-name">${this._escape(r.calcName)}${groupTag}</div>
             <div class="history-card-line">
               <span class="history-card-label">开始：</span>${this._escape(r.baseTimeFormatted || '—')}
             </div>
