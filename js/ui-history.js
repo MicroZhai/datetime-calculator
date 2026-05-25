@@ -94,10 +94,10 @@ getCalcDetailText(calc) {
           processHTML += `
             <div class="history-process-row">
               ${prefix}<span class="history-process-label">${this._escape(label)}</span>
-              <span>${startTimeStr}</span>
               <span class="history-process-dur">${Calculator.formatDurationMin(s.durationMinutes)}</span>
-              <span>→</span>
-              <span>${Calculator.formatSmart(midTime)}${midTag}</span>
+              <span class="history-process-arrow">→</span>
+              <span class="history-process-time">${startTimeStr}</span>
+              <span class="history-process-time">${Calculator.formatSmart(midTime)}${midTag}</span>
             </div>`;
         });
       } else {

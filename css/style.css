@@ -1306,21 +1306,16 @@ input[type="time"]:focus {
 .history-process-row {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 4px 6px;
   font-size: 0.73rem;
-  padding: 1px 0;
+  padding: 2px 0;
   color: var(--text-secondary);
   font-variant-numeric: tabular-nums;
-  flex-wrap: nowrap;
-  overflow: hidden;
+  flex-wrap: wrap;
   width: 100%;
 }
 .history-process-row span {
   white-space: nowrap;
-  flex-shrink: 1;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 .history-process-label {
@@ -1332,6 +1327,16 @@ input[type="time"]:focus {
 .history-process-dur {
   color: var(--accent);
   font-weight: 600;
+}
+
+.history-process-arrow {
+  color: var(--text-secondary);
+  opacity: 0.5;
+  flex-shrink: 0;
+}
+
+.history-process-time {
+  color: var(--text-secondary);
 }
 
 .history-process-none {
