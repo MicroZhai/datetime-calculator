@@ -101,5 +101,109 @@ const Calculator = {
       return calc.isBaseTimeNow ? new Date() : new Date(calc.baseTime);
     }
     return chain[chain.length - 1].time;
+  },
+
+  /** 计算器开始时间（首个有正时长的时段起点） */
+  getStartTime(calc) {
+    const chain = this.calcSegmentChain(
+      calc.isBaseTimeNow ? 'now' : calc.baseTime,
+      calc.segments
+    );
+    for (let i = 0; i < chain.length; i++) {
+      if (chain[i].duration > 0) return chain[i].startTime;
+    }
+    return null;
+  },
+
+  /** 计算器结束时间（最后一个有正时长的时段终点） */
+  getEndTime(calc) {
+    const chain = this.calcSegmentChain(
+      calc.isBaseTimeNow ? 'now' : calc.baseTime,
+      calc.segments
+    );
+    let end = null;
+    for (let i = 0; i < chain.length; i++) {
+      if (chain[i].duration > 0) end = chain[i].time;
+    }
+    return end;
+  },
+
+  /**
+   * 卡片时间状态：'unset' | 'future' | 'active' | 'finished'
+   * 与 v2 CalculatorTimeRules.getState 保持一致
+   */
+  getState(calc) {
+    const now = Date.now();
+    let hasPositive = false;
+    let hasFuture = false;
+    const chain = this.calcSegmentChain(
+      calc.isBaseTimeNow ? 'now' : calc.baseTime,
+      calc.segments
+    );
+    for (let i = 0; i < chain.length; i++) {
+      const seg = chain[i];
+      if (seg.duration <= 0) continue;
+      hasPositive = true;
+      const start = seg.startTime.getTime();
+      const end = seg.time.getTime();
+      if (now >= start && now < end) return 'active';
+      if (start > now) hasFuture = true;
+    }
+    if (!hasPositive) return 'unset';
+    return hasFuture ? 'future' : 'finished';
+  },
+
+  /** 进度百分比：进行中为 0~100，未开始/无效为 -1，已结束为 100 */
+  getProgressPercent(calc) {
+    const s = this.getStartTime(calc);
+    const e = this.getEndTime(calc);
+    if (!s || !e) return -1;
+    const now = Date.now();
+    const sMs = s.getTime();
+    const eMs = e.getTime();
+    const total = eMs - sMs;
+    if (total <= 0) return -1;
+    const p = ((now - sMs) / total) * 100;
+    if (now <= sMs) return -1;   // 未开始
+    if (now >= eMs) return -1;   // 已结束
+    return p < 0 ? 0 : (p > 100 ? 100 : p);
+  },
+
+  /** 进度展示值：未开始/无效 0，进行中真实比例，已结束 100 */
+  getProgressDisplayPercent(calc) {
+    const p = this.getProgressPercent(calc);
+    if (p >= 0) return p;
+    return this.getState(calc) === 'finished' ? 100 : 0;
+  },
+
+  /** 总时长（分钟） */
+  getTotalMinutes(calc) {
+    return calc.segments.reduce((s, c) => s + c.durationMinutes, 0);
+  },
+
+  /** 时长格式化：X时Y分 / X天X时 / X分 */
+  formatDurationReadable(totalMinutes) {
+    const abs = Math.abs(totalMinutes);
+    const sign = totalMinutes < 0 ? '−' : '';
+    const days = Math.floor(abs / 1440);
+    const hours = Math.floor((abs % 1440) / 60);
+    const mins = abs % 60;
+    if (days > 0) return `${sign}${days}天${hours}时`;
+    if (hours > 0) return `${sign}${hours}时${mins}分`;
+    return `${sign}${mins}分`;
+  },
+
+  /** 剩余时间简短文案（进度环中央） */
+  getRemainingText(calc) {
+    const e = this.getEndTime(calc);
+    if (!e) return '';
+    const diff = e.getTime() - Date.now();
+    if (diff <= 0) return '已结束';
+    const days = Math.floor(diff / 86400000);
+    const hours = Math.floor((diff % 86400000) / 3600000);
+    const mins = Math.floor((diff % 3600000) / 60000);
+    if (days > 0) return `剩 ${days}天${hours}时`;
+    if (hours > 0) return `剩 ${hours}时${mins}分`;
+    return `剩 ${mins} 分`;
   }
 };

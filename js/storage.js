@@ -23,6 +23,11 @@ const Storage = {
         }
         if (c.pinned === undefined) { c.pinned = false; migrated = true; }
         if (c.groupId === undefined || c.groupId === '') { c.groupId = 'default'; migrated = true; }
+        // 提醒配置迁移：默认关闭、提前 0 分钟
+        if (!c.reminder || typeof c.reminder.enabled !== 'boolean') {
+          c.reminder = { enabled: false, leadMinutes: 0 };
+          migrated = true;
+        }
         valid.push(c);
       }
       if (migrated) this._write(valid);

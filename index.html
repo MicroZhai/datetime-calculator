@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <meta name="theme-color" content="#ffffff">
+  <meta name="theme-color" content="#F5F5F5">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>时间计算器</title>
@@ -19,87 +19,69 @@
     <button id="update-btn" class="update-btn">更新</button>
   </div>
 
-  <!-- ====== 侧边栏遮罩 ====== -->
-  <div id="sidebar-overlay" class="sidebar-overlay hidden"></div>
-
-  <!-- ====== 侧边栏 ====== -->
-  <aside id="sidebar" class="sidebar">
-    <div class="sidebar-header">
-      <span class="sidebar-logo">⏱️</span>
-      <span class="sidebar-title">时间计算器</span>
-    </div>
-    <nav class="sidebar-nav">
-      <div class="sidebar-section-label">分组</div>
-      <button id="sidebar-groups-toggle" class="sidebar-item">
-        <span class="sidebar-icon">📁</span>
-        <span>分组管理</span>
-        <span class="sidebar-arrow">▼</span>
-      </button>
-      <div id="sidebar-group-list" class="sidebar-submenu hidden"></div>
-      <div class="sidebar-section-label">设置</div>
-      <div class="sidebar-sub-item">
-        <span class="sidebar-icon">🌓</span>
-        <span>主题模式</span>
-        <select id="sidebar-theme-select" class="sidebar-select">
-          <option value="auto">跟随系统</option>
-          <option value="light">浅色</option>
-          <option value="dark">深色</option>
-        </select>
-      </div>
-      <div class="sidebar-section-label">外观</div>
-      <div class="sidebar-sub-item">
-        <span class="sidebar-icon">🎨</span>
-        <span>背景样式</span>
-        <select id="sidebar-bg-select" class="sidebar-select">
-          <option value="none">纯色</option>
-          <option value="grid">网格</option>
-          <option value="gradient">渐变</option>
-          <option value="geometry">几何</option>
-          <option value="dynamic">动态</option>
-        </select>
-      </div>
-      <button id="sidebar-about" class="sidebar-item">
-        <span class="sidebar-icon">ℹ️</span>
-        <span>关于</span>
-      </button>
-    </nav>
-    <div class="sidebar-footer">
-      <span class="sidebar-version">版本 1.0.0</span>
-    </div>
-  </aside>
-
-  <!-- ====== 顶部栏 ====== -->
-  <header id="top-bar">
-    <button id="menu-btn" class="icon-btn" title="菜单" aria-label="菜单">☰</button>
-    <h1 class="app-title">时间计算器</h1>
-    <button id="history-btn" class="icon-btn" title="计算历史" aria-label="计算历史">🕘</button>
+  <!-- ====== 时钟头部 ====== -->
+  <header id="clock-header">
+    <p class="clock-label">时间计算器</p>
+    <div id="current-time-display" class="clock-time">--:--:--</div>
+    <p id="current-date-display" class="clock-date"></p>
   </header>
 
-  <!-- ====== 分组选择栏 ====== -->
-  <div id="group-filter-bar">
-    <button class="group-tab active" data-group="">全部</button>
-  </div>
+  <!-- ====== 统计卡 ====== -->
+  <section id="stats-card" class="stats-card">
+    <div class="stat-item">
+      <div class="stat-num stat-num--active" id="stat-active">0</div>
+      <div class="stat-label">进行中</div>
+    </div>
+    <div class="stat-divider"></div>
+    <div class="stat-item">
+      <div class="stat-num" id="stat-future">0</div>
+      <div class="stat-label">将开始</div>
+    </div>
+    <div class="stat-divider"></div>
+    <div class="stat-item">
+      <div class="stat-num" id="stat-finished">0</div>
+      <div class="stat-label">已结束</div>
+    </div>
+  </section>
 
-  <!-- ====== 开始时间 ====== -->
-  <div id="current-time-bar">
-    <div id="current-time-display" class="current-time-text">--:--:--</div>
-    <div id="current-date-display" class="current-date-text"></div>
-  </div>
+  <!-- ====== 分组选择栏 ====== -->
+  <nav id="group-filter-bar" class="group-filter-bar">
+    <!-- JS 动态渲染分组 chips -->
+  </nav>
 
   <!-- ====== 计算器列表 ====== -->
-  <main id="calc-list">
+  <main id="calc-list" class="calc-list">
     <!-- JS 动态渲染卡片 -->
   </main>
 
-  <!-- ====== 底部新建按钮 ====== -->
-  <button id="new-btn-bottom" class="fab-btn" title="新建计算器" aria-label="新建计算器">＋</button>
-
   <!-- ====== 空状态提示 ====== -->
-  <div id="empty-state" class="hidden">
+  <div id="empty-state" class="empty-state hidden">
     <div class="empty-icon">⏱️</div>
     <p>还没有计算器</p>
     <button id="empty-new-btn" class="btn-primary">新建第一个</button>
   </div>
+
+  <!-- ====== 底部导航 + 新建按钮 ====== -->
+  <nav id="bottom-nav" class="bottom-nav">
+    <button id="nav-toggle" class="nav-item nav-item--active" data-nav="toggle">
+      <span class="nav-icon" id="nav-toggle-icon">☰</span>
+      <span class="nav-label" id="nav-toggle-label">简洁</span>
+    </button>
+    <button id="nav-group" class="nav-item" data-nav="group">
+      <span class="nav-icon">📁</span>
+      <span class="nav-label">分组</span>
+    </button>
+    <button id="nav-history" class="nav-item" data-nav="history">
+      <span class="nav-icon">🕘</span>
+      <span class="nav-label">历史</span>
+    </button>
+    <button id="nav-settings" class="nav-item" data-nav="settings">
+      <span class="nav-icon">⚙️</span>
+      <span class="nav-label">设置</span>
+    </button>
+  </nav>
+
+  <button id="new-btn-bottom" class="fab-btn" title="新建计算器" aria-label="新建计算器">＋</button>
 
   <!-- ====== 编辑弹窗（底部抽屉） ====== -->
   <div id="sheet-overlay" class="sheet-overlay hidden"></div>
@@ -157,13 +139,106 @@
     </div>
   </div>
 
-  <!-- ====== 右键菜单（卡片上的 ⋮） ====== -->
-  <div id="context-menu" class="context-menu hidden">
-    <button id="ctx-pin">📌 置顶</button>
-    <button id="ctx-rename">✏️ 重命名</button>
-    <button id="ctx-copy-detail">📋 复制计算详情</button>
-    <button id="ctx-move-group">📁 移动到分组</button>
-    <button id="ctx-delete">🗑️ 删除</button>
+  <!-- ====== 分组管理弹窗 ====== -->
+  <div id="group-overlay" class="sheet-overlay hidden"></div>
+  <div id="group-sheet" class="edit-sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-header">
+      <h2>分组管理</h2>
+      <button id="group-close-btn" class="icon-btn" aria-label="关闭">✕</button>
+    </div>
+    <div class="sheet-body">
+      <div class="form-group">
+        <label>新建分组</label>
+        <div class="group-add-row">
+          <input type="text" id="group-input" maxlength="10" placeholder="分组名称">
+          <button id="group-add-btn" class="btn-now-inline">添加</button>
+        </div>
+      </div>
+      <div id="group-list" class="group-list">
+        <!-- JS 动态渲染 -->
+      </div>
+    </div>
+  </div>
+
+  <!-- ====== 设置弹窗 ====== -->
+  <div id="settings-overlay" class="sheet-overlay hidden"></div>
+  <div id="settings-sheet" class="edit-sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-header">
+      <h2>设置</h2>
+      <button id="settings-close-btn" class="icon-btn" aria-label="关闭">✕</button>
+    </div>
+    <div class="sheet-body">
+      <!-- 深色模式 -->
+      <div class="settings-row">
+        <div class="settings-row-icon">🌓</div>
+        <div class="settings-row-main">
+          <div class="settings-row-title">深色模式</div>
+          <div class="settings-row-desc">跟随系统 / 浅色 / 深色</div>
+        </div>
+        <select id="settings-theme-select" class="settings-select">
+          <option value="auto">跟随系统</option>
+          <option value="light">浅色</option>
+          <option value="dark">深色</option>
+        </select>
+      </div>
+
+      <!-- 提醒设置 -->
+      <div class="settings-row">
+        <div class="settings-row-icon">🔔</div>
+        <div class="settings-row-main">
+          <div class="settings-row-title">到期提醒</div>
+          <div class="settings-row-desc" id="settings-reminder-desc">未开启</div>
+        </div>
+        <button id="settings-reminder-btn" class="btn-now-inline">设置</button>
+      </div>
+
+      <!-- 关于 -->
+      <div class="settings-row">
+        <div class="settings-row-icon">ℹ️</div>
+        <div class="settings-row-main">
+          <div class="settings-row-title">关于</div>
+          <div class="settings-row-desc">版本 1.0.0</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====== 提醒设置弹窗 ====== -->
+  <div id="reminder-overlay" class="sheet-overlay hidden"></div>
+  <div id="reminder-sheet" class="edit-sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-header">
+      <h2>到期提醒</h2>
+      <button id="reminder-close-btn" class="icon-btn" aria-label="关闭">✕</button>
+    </div>
+    <div class="sheet-body">
+      <div class="form-group">
+        <label>开启提醒</label>
+        <div class="settings-row">
+          <div class="settings-row-main">
+            <div class="settings-row-desc">在计算器结束前提醒您</div>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="reminder-enabled">
+            <span class="switch-slider"></span>
+          </label>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>提前提醒</label>
+        <select id="reminder-lead" class="form-select">
+          <option value="0">结束时</option>
+          <option value="5">提前 5 分钟</option>
+          <option value="10">提前 10 分钟</option>
+          <option value="15">提前 15 分钟</option>
+          <option value="30">提前 30 分钟</option>
+          <option value="60">提前 1 小时</option>
+        </select>
+      </div>
+      <p class="reminder-note">说明：当应用处于打开状态时，提醒会准时弹出。浏览器在后台或锁屏时可能无法弹窗，这是浏览器的安全限制。</p>
+    </div>
   </div>
 
   <!-- ====== 历史弹窗 ====== -->
@@ -180,6 +255,15 @@
     <div class="sheet-footer">
       <button id="clear-history-btn" class="btn-danger">清空全部历史</button>
     </div>
+  </div>
+
+  <!-- ====== 右键菜单（卡片上的 ⋮） ====== -->
+  <div id="context-menu" class="context-menu hidden">
+    <button id="ctx-pin">📌 置顶</button>
+    <button id="ctx-rename">✏️ 重命名</button>
+    <button id="ctx-copy-detail">📋 复制计算详情</button>
+    <button id="ctx-move-group">📁 移动到分组</button>
+    <button id="ctx-delete">🗑️ 删除</button>
   </div>
 
   <!-- ====== 确认弹窗 ====== -->
@@ -200,6 +284,7 @@
   <script src="js/history.js"></script>
   <script src="js/calculator.js"></script>
   <script src="js/theme.js"></script>
+  <script src="js/notification.js"></script>
   <script src="js/ui.js"></script>
   <script src="js/ui-render.js"></script>
   <script src="js/ui-sheet.js"></script>

@@ -100,16 +100,15 @@ const UI = {
 
   renderListDebounced: null,  // 由 app.js 初始化
 
-  /* ========== 分组管理 ========== */
+  /* ========== 分组管理（chips） ========== */
   renderGroupTabs() {
     const groups = Groups.getAll();
     const bar = document.getElementById('group-filter-bar');
-    let html = '<select class="group-select">';
-    html += `<option value="all"${this._currentGroup === 'all' ? ' selected' : ''}>全部</option>`;
+    let html = `<button class="group-chip${this._currentGroup === 'all' ? ' active' : ''}" data-group-id="all">全部</button>`;
     groups.forEach(g => {
-      html += `<option value="${g.id}"${this._currentGroup === g.id ? ' selected' : ''}>${this._escape(g.name)}</option>`;
+      const active = this._currentGroup === g.id ? ' active' : '';
+      html += `<button class="group-chip${active}" data-group-id="${g.id}">${this._escape(g.name)}</button>`;
     });
-    html += '</select>';
     bar.innerHTML = html;
   },
 

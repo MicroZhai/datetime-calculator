@@ -19,161 +19,103 @@
 
     Theme.init();
     UI.renderListDebounced = debounce(() => UI.renderList(), 100);
-    UI.renderList();
     UI.renderGroupTabs();
+    UI.renderList();
     bindEvents();
+
+    // 提醒初始化（尽量早点，先申请权限再开定时器）
+    if (typeof NotificationManager !== 'undefined') {
+      NotificationManager.init();
+    }
+
     startLiveClock();
     registerSW();
-    initSidebar();
 
     // 桌面快捷菜单 URL 参数检测
     handleShortcutAction();
   }
 
-  function initSidebar() {
-    const themeSelect = document.getElementById('sidebar-theme-select');
-    themeSelect.value = Theme._state;
-    themeSelect.addEventListener('change', () => {
-      Theme.apply(themeSelect.value);
-      Storage.saveTheme(themeSelect.value);
-    });
-
-    const bgSelect = document.getElementById('sidebar-bg-select');
-    const savedBg = localStorage.getItem('dtc_bg_style') || 'none';
-    bgSelect.value = savedBg;
-    applyBackground(savedBg);
-    bgSelect.addEventListener('change', () => {
-      applyBackground(bgSelect.value);
-    });
-
-    // 分组管理展开/收起
-    document.getElementById('sidebar-groups-toggle').addEventListener('click', () => {
-      const sub = document.getElementById('sidebar-group-list');
-      const arrow = document.querySelector('#sidebar-groups-toggle .sidebar-arrow');
-      sub.classList.toggle('hidden');
-      arrow.classList.toggle('open');
-      if (!sub.classList.contains('hidden')) { renderSidebarGroups(); }
-    });
-
-    // 分组列表点击（切换 + 删除 + 添加）— 事件委托，innerHTML 重写后仍有效
-    document.getElementById('sidebar-group-list').addEventListener('click', e => {
-      const delBtn = e.target.closest('.sidebar-group-del');
-      if (delBtn) {
-        const id = delBtn.dataset.id;
-        Groups.remove(id);
-        if (UI._currentGroup === id) UI._currentGroup = 'all';
-        renderSidebarGroups();
-        UI.renderGroupTabs();
-        UI.renderList();
-        return;
-      }
-      const addBtn = e.target.closest('#sidebar-group-add');
-      if (addBtn) {
-        const input = document.getElementById('sidebar-group-input');
-        const name = input.value.trim();
-        if (!name) return;
-        if (Groups.getAll().find(g => g.name === name)) { UI.showToast('分组名称已存在'); return; }
-        Groups.add(name);
-        input.value = '';
-        renderSidebarGroups();
-        UI.renderGroupTabs();
-        return;
-      }
-      const row = e.target.closest('.sidebar-group-row');
-      if (row) {
-        UI._currentGroup = row.dataset.groupId;
-        renderSidebarGroups();
-        UI.renderGroupTabs();
-        UI.renderList();
-      }
-    });
-
-    document.getElementById('sidebar-about').addEventListener('click', () => {
-      UI.showToast('时间计算器 v1.0.0 — 轻量级 PWA 时间计算工具');
-    });
-  }
-
-  function renderSidebarGroups() {
-    const groups = Groups.getAll();
-    const listEl = document.getElementById('sidebar-group-list');
-    let html = `<div class="sidebar-group-row${UI._currentGroup === 'all' ? ' active' : ''}" data-group-id="all"><span>全部</span></div>`;
-    groups.forEach(g => {
-      const active = UI._currentGroup === g.id || (UI._currentGroup === '' && g.id === 'default') ? ' active' : '';
-      const delBtn = g.id === 'default' ? '' : `<button class="sidebar-group-del" data-id="${g.id}">✕</button>`;
-      html += `<div class="sidebar-group-row${active}" data-group-id="${g.id}"><span>${UI._escape(g.name)}</span>${delBtn}</div>`;
-    });
-    // 添加新分组行
-    html += `<div style="display:flex;gap:4px;padding:6px 12px">
-      <input type="text" id="sidebar-group-input" placeholder="新分组..." maxlength="10" style="flex:1;padding:6px 8px;border:1px solid var(--border);border-radius:6px;background:var(--bg-input);color:var(--text-primary);font-size:0.75rem;font-family:inherit">
-      <button id="sidebar-group-add" style="padding:6px 10px;border:1px solid var(--border);border-radius:6px;background:var(--bg-input);color:var(--text-primary);font-size:0.75rem;cursor:pointer;font-family:inherit;white-space:nowrap">添加</button>
-    </div>`;
-    listEl.innerHTML = html;
-  }
-
-  function applyBackground(style) {
-    document.body.classList.remove('bg-grid','bg-gradient','bg-geometry','bg-dynamic');
-    if (style && style !== 'none') document.body.classList.add('bg-' + style);
-    localStorage.setItem('dtc_bg_style', style || 'none');
-  }
-
-  function openSidebar() {
-    renderSidebarGroups();
-    document.getElementById('sidebar').classList.add('open');
-    document.getElementById('sidebar-overlay').classList.remove('hidden');
+  /* ====== 底部弹窗通用开关（遮罩 + 面板） ====== */
+  function openSheet(overlayId, sheetId) {
+    document.getElementById(overlayId).classList.remove('hidden');
+    document.getElementById(sheetId).classList.add('open');
     document.body.style.overflow = 'hidden';
   }
-
-  function closeSidebar() {
-    document.getElementById('sidebar').classList.remove('open');
-    document.getElementById('sidebar-overlay').classList.add('hidden');
+  function closeSheet(overlayId, sheetId) {
+    document.getElementById(sheetId).classList.remove('open');
+    document.getElementById(overlayId).classList.add('hidden');
     document.body.style.overflow = '';
   }
 
-  function handleShortcutAction() {
-    const params = new URLSearchParams(window.location.search);
-    const action = params.get('action');
-    if (!action) return;
+  /* ====== 分组管理弹窗 ====== */
+  function renderGroupList() {
+    const listEl = document.getElementById('group-list');
+    const groups = Groups.getAll();
+    listEl.innerHTML = groups.map(g => {
+      const count = Storage.getAll().filter(c => (c.groupId || 'default') === g.id).length;
+      const delBtn = g.id === 'default' ? '' : `<button class="group-row-del" data-id="${g.id}">✕</button>`;
+      return `<div class="group-row">
+        <span class="group-row-name">${UI._escape(g.name)}</span>
+        <span class="group-row-count">${count} 个</span>
+        ${delBtn}
+      </div>`;
+    }).join('');
+  }
+  function openGroupSheet() { renderGroupList(); openSheet('group-overlay', 'group-sheet'); }
 
-    if (action === 'new') {
-      UI.openSheet(null);
-    } else if (action === 'history') {
-      UI.openHistory();
+  /* ====== 设置弹窗 ====== */
+  function openSettingsSheet() {
+    const themeSelect = document.getElementById('settings-theme-select');
+    themeSelect.value = Theme._state;
+    if (typeof NotificationManager !== 'undefined') {
+      NotificationManager.updateSettingsDesc();
     }
+    openSheet('settings-overlay', 'settings-sheet');
+  }
 
-    // 清理 URL 参数，防止刷新重复触发
-    if (window.history && window.history.replaceState) {
-      const url = new URL(window.location);
-      url.search = '';
-      window.history.replaceState({}, '', url);
-    }
+  /* ====== 提醒设置弹窗 ====== */
+  function openReminderSheet() {
+    if (typeof NotificationManager === 'undefined') return;
+    const cfg = NotificationManager.getConfig();
+    document.getElementById('reminder-enabled').checked = !!cfg.enabled;
+    document.getElementById('reminder-lead').value = String(cfg.leadMinutes || 0);
+    openSheet('reminder-overlay', 'reminder-sheet');
   }
 
   /* ========== 事件绑定 ========== */
   function bindEvents() {
-    // 侧边栏开关
-    document.getElementById("menu-btn").addEventListener("click", () => openSidebar());
-    document.getElementById("sidebar-overlay").addEventListener("click", () => closeSidebar());
+    /* ====== 底部导航 ====== */
+    const navItems = document.querySelectorAll('.nav-item');
+    navItems.forEach(item => {
+      item.addEventListener('click', () => {
+        const nav = item.dataset.nav;
+        if (nav === 'toggle') {
+          UI.toggleViewMode();
+          return;
+        }
+        if (nav === 'group') { openGroupSheet(); return; }
+        if (nav === 'history') { UI.openHistory(); return; }
+        if (nav === 'settings') { openSettingsSheet(); return; }
+      });
+    });
 
-    // 分组选择
-    document.getElementById('group-filter-bar').addEventListener('change', e => {
-      if (e.target.classList.contains('group-select')) {
-        UI._currentGroup = e.target.value;
-        UI.renderList();
-      }
+    /* ====== 分组选择栏（chips） ====== */
+    document.getElementById('group-filter-bar').addEventListener('click', e => {
+      const chip = e.target.closest('.group-chip');
+      if (!chip) return;
+      UI._currentGroup = chip.dataset.groupId;
+      UI.renderGroupTabs();
+      UI.renderList();
     });
 
     /* ====== 新建 & 历史入口 ====== */
-    // 新建计算器
     const openNewSheet = () => UI.openSheet(null);
     document.getElementById('new-btn-bottom').addEventListener('click', openNewSheet);
     document.getElementById('empty-new-btn').addEventListener('click', openNewSheet);
 
     // 历史记录
-    document.getElementById('history-btn').addEventListener('click', () => UI.openHistory());
     document.getElementById('history-close-btn').addEventListener('click', () => UI.closeHistory());
     document.getElementById('history-overlay').addEventListener('click', () => UI.closeHistory());
-
-    // 清空历史
     document.getElementById('clear-history-btn').addEventListener('click', () => UI.clearHistory());
 
     // 历史列表内删除 + 复用
@@ -189,8 +131,51 @@
       }
     });
 
+    /* ====== 分组管理弹窗 ====== */
+    document.getElementById('group-close-btn').addEventListener('click', () => closeSheet('group-overlay', 'group-sheet'));
+    document.getElementById('group-overlay').addEventListener('click', () => closeSheet('group-overlay', 'group-sheet'));
+    document.getElementById('group-add-btn').addEventListener('click', () => {
+      const input = document.getElementById('group-input');
+      const name = input.value.trim();
+      if (!name) return;
+      if (Groups.getAll().find(g => g.name === name)) { UI.showToast('分组名称已存在'); return; }
+      Groups.add(name);
+      input.value = '';
+      renderGroupList();
+      UI.renderGroupTabs();
+    });
+    document.getElementById('group-list').addEventListener('click', e => {
+      const delBtn = e.target.closest('.group-row-del');
+      if (!delBtn) return;
+      Groups.remove(delBtn.dataset.id);
+      if (UI._currentGroup === delBtn.dataset.id) UI._currentGroup = 'all';
+      renderGroupList();
+      UI.renderGroupTabs();
+      UI.renderList();
+    });
+
+    /* ====== 设置弹窗 ====== */
+    document.getElementById('settings-close-btn').addEventListener('click', () => closeSheet('settings-overlay', 'settings-sheet'));
+    document.getElementById('settings-overlay').addEventListener('click', () => closeSheet('settings-overlay', 'settings-sheet'));
+    document.getElementById('settings-theme-select').addEventListener('change', e => {
+      Theme.apply(e.target.value);
+      Storage.saveTheme(e.target.value);
+    });
+    document.getElementById('settings-reminder-btn').addEventListener('click', openReminderSheet);
+
+    /* ====== 提醒设置弹窗 ====== */
+    document.getElementById('reminder-close-btn').addEventListener('click', () => closeSheet('reminder-overlay', 'reminder-sheet'));
+    document.getElementById('reminder-overlay').addEventListener('click', () => closeSheet('reminder-overlay', 'reminder-sheet'));
+    document.getElementById('reminder-enabled').addEventListener('change', () => {
+      if (typeof NotificationManager === 'undefined') return;
+      NotificationManager.setConfig({ enabled: document.getElementById('reminder-enabled').checked });
+    });
+    document.getElementById('reminder-lead').addEventListener('change', () => {
+      if (typeof NotificationManager === 'undefined') return;
+      NotificationManager.setConfig({ leadMinutes: parseInt(document.getElementById('reminder-lead').value, 10) || 0 });
+    });
+
     /* ====== 编辑弹窗 ====== */
-    // 关闭弹窗
     document.getElementById('sheet-close-btn').addEventListener('click', () => UI.closeSheet());
     document.getElementById('sheet-overlay').addEventListener('click', () => UI.closeSheet());
 
@@ -237,7 +222,7 @@
       UI._activeSegIdx = idx;
     });
 
-    // 时长输入变化 → 双向联动（change 事件，离开输入框后才触发）
+    // 时长输入变化 → 双向联动
     document.getElementById('segments-container').addEventListener('change', e => {
       const editor = e.target.closest('.seg-editor');
       if (!editor) return;
@@ -269,12 +254,10 @@
       if (!btn) return;
       const mins = parseInt(btn.dataset.minutes);
       UI.setQuickDuration(mins);
-      // 触发联动
       UI._syncSegmentTimes(UI._activeSegIdx);
     });
 
-    /* ====== 保存 & 删除 & 历史按钮 ====== */
-    // 保存
+    /* ====== 保存 & 删除 ====== */
     document.getElementById('save-btn').addEventListener('click', () => {
       const data = UI.readSheet();
 
@@ -302,7 +285,6 @@
       const finalResult = Calculator.getFinalResult(calc);
       const baseDate = new Date(calc.baseTime);
 
-      // 跨天标识
       const baseDay = new Date(baseDate.getFullYear(), baseDate.getMonth(), baseDate.getDate());
       const resultDay = new Date(finalResult.getFullYear(), finalResult.getMonth(), finalResult.getDate());
       const dayDiff = Math.round((resultDay - baseDay) / 86400000);
@@ -345,7 +327,6 @@
     });
 
     /* ====== 列表卡片 ====== */
-    // 列表点击事件代理
     document.getElementById('calc-list').addEventListener('click', e => {
       const card = e.target.closest('.calc-card');
       if (!card) return;
@@ -365,29 +346,6 @@
           e.stopPropagation();
           return;
         }
-        if (action === 'expand') {
-          const detail = card.querySelector('.card-process-detail');
-          const btn = actionBtn;
-          const arrow = btn.querySelector('.card-expand-arrow');
-          if (detail.classList.contains('expanded')) {
-            // 收起
-            detail.style.maxHeight = detail.scrollHeight + 'px';
-            detail.classList.remove('expanded');
-            requestAnimationFrame(() => {
-              requestAnimationFrame(() => { detail.style.maxHeight = '0px'; });
-            });
-            arrow.classList.add('collapsed');
-            btn.childNodes[btn.childNodes.length - 1].textContent = ' 展开过程';
-          } else {
-            // 展开
-            detail.classList.add('expanded');
-            detail.style.maxHeight = detail.scrollHeight + 'px';
-            arrow.classList.remove('collapsed');
-            btn.childNodes[btn.childNodes.length - 1].textContent = ' 收起过程';
-          }
-          e.stopPropagation();
-          return;
-        }
         return;
       }
 
@@ -395,7 +353,6 @@
     });
 
     /* ====== 右键菜单 ====== */
-    // 右键菜单项
     document.getElementById('ctx-pin').addEventListener('click', () => {
       const id = UI._contextTargetId;
       UI.hideContextMenu();
@@ -435,12 +392,12 @@
       const groups = Groups.getAll();
       const currentName = groups.find(g => g.id === calc.groupId);
       const label = currentName ? `当前：「${currentName.name}」` : '当前：全部';
-      const groupNames = groups.map(g => g.name).join('、') || '暂无分组，请先在设置中创建';
+      const groupNames = groups.map(g => g.name).join('、') || '暂无分组，请先创建分组';
       const newGroup = prompt(`${label}\n\n可选分组：${groupNames}\n\n输入分组名称移动到该分组（留空移回全部）：`);
-      if (newGroup === null) return; // 取消
+      if (newGroup === null) return;
       const trimmed = newGroup.trim();
       if (trimmed === '') {
-        calc.groupId = '';
+        calc.groupId = 'default';
       } else {
         let group = groups.find(g => g.name === trimmed);
         if (!group) {
@@ -471,21 +428,30 @@
     });
 
     /* ====== 全局事件 ====== */
-    // 点击空白关闭右键菜单
     document.addEventListener('click', e => {
       if (!e.target.closest('.context-menu') && !e.target.closest('[data-action="menu"]')) {
         UI.hideContextMenu();
       }
     });
 
-    // ESC 关闭弹窗/侧边栏
     document.addEventListener('keydown', e => {
       if (e.key === 'Escape') {
         UI.hideContextMenu();
         UI.hideConfirm();
-        closeSidebar();
         if (document.getElementById('edit-sheet').classList.contains('open')) {
           UI.closeSheet();
+        }
+        if (document.getElementById('group-sheet').classList.contains('open')) {
+          closeSheet('group-overlay', 'group-sheet');
+        }
+        if (document.getElementById('settings-sheet').classList.contains('open')) {
+          closeSheet('settings-overlay', 'settings-sheet');
+        }
+        if (document.getElementById('reminder-sheet').classList.contains('open')) {
+          closeSheet('reminder-overlay', 'reminder-sheet');
+        }
+        if (document.getElementById('history-sheet').classList.contains('open')) {
+          UI.closeHistory();
         }
       }
     });
@@ -508,6 +474,11 @@
       if (!_clockTimer) {
         _clockTimer = setInterval(() => UI.updateClock(), 1000);
       }
+      // 回到前台立即刷新提醒与卡片
+      UI.renderList();
+      if (typeof NotificationManager !== 'undefined') {
+        NotificationManager.check();
+      }
     }
   });
 
@@ -516,7 +487,6 @@
     if (!('serviceWorker' in navigator)) return;
 
     navigator.serviceWorker.register('sw.js').then(reg => {
-      // 检测到新 SW 等待激活
       reg.addEventListener('updatefound', () => {
         const newWorker = reg.installing;
         if (!newWorker) return;
@@ -527,14 +497,12 @@
         });
       });
 
-      // 监听 SW 消息
       navigator.serviceWorker.addEventListener('message', event => {
         if (event.data === 'update-available') {
           showUpdateBanner();
         }
       });
 
-      // 如果已有等待中的 SW
       if (reg.waiting && navigator.serviceWorker.controller) {
         showUpdateBanner();
       }
@@ -553,6 +521,24 @@
     document.getElementById('update-btn').addEventListener('click', () => {
       window.location.reload();
     });
+  }
+
+  function handleShortcutAction() {
+    const params = new URLSearchParams(window.location.search);
+    const action = params.get('action');
+    if (!action) return;
+
+    if (action === 'new') {
+      UI.openSheet(null);
+    } else if (action === 'history') {
+      UI.openHistory();
+    }
+
+    if (window.history && window.history.replaceState) {
+      const url = new URL(window.location);
+      url.search = '';
+      window.history.replaceState({}, '', url);
+    }
   }
 
   if (document.readyState === 'loading') {

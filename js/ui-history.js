@@ -34,7 +34,8 @@ getCalcDetailText(calc) {
     document.getElementById('history-sheet').classList.remove('open');
     document.getElementById('history-overlay').classList.add('hidden');
     document.body.style.overflow = '';
-    document.getElementById('history-btn').focus();
+    const navHistory = document.getElementById('nav-history');
+    if (navHistory) navHistory.focus();
   },
 
   renderHistory() {
