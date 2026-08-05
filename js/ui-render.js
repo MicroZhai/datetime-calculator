@@ -94,7 +94,8 @@ Object.assign(UI, {
           </div>
           <div class="card-time-row">
             <span class="card-time-label">结束</span>
-            <span class="card-time-value">${endStr}${crossTag}</span>
+            <span class="card-time-value">${endStr}</span>
+            ${crossTag}
           </div>
         </div>`;
     } else {

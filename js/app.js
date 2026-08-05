@@ -134,27 +134,6 @@
     document.getElementById('confirm-ok-btn').addEventListener('click', () => UI._executeConfirm());
     document.getElementById('confirm-overlay').addEventListener('click', () => UI.hideConfirm());
 
-    // "此刻"按钮
-    document.getElementById('now-btn').addEventListener('click', () => {
-      UI.showConfirm('将清空所有时段数据，确定吗？', '清空', 'confirm-btn--danger', () => {
-        UI._segments.forEach(s => {
-          s.durationMinutes = 0;
-          s.isNegative = false;
-        });
-        const now = new Date();
-        const editor = document.querySelector('.seg-editor[data-seg-idx="0"]');
-        if (editor) {
-          editor.querySelector('.js-seg-start-date').value = Calculator.toLocalDateStr(now);
-          editor.querySelector('.js-seg-start-time').value = Calculator.toLocalTimeStr(now);
-          editor.querySelector('.js-seg-end-date').value = Calculator.toLocalDateStr(now);
-          editor.querySelector('.js-seg-end-time').value = Calculator.toLocalTimeStr(now);
-        }
-        UI._dirty = true;
-        UI._syncBaseTimeDisplay();
-        UI.showToast('已同步为当前时间，数据已清零');
-      });
-    });
-
     // 编辑弹窗事件代理：时段操作 + 时间字段变化
     document.getElementById('segments-container').addEventListener('click', e => {
       const editor = e.target.closest('.seg-editor');
@@ -167,6 +146,10 @@
       }
       if (e.target.closest('.js-seg-clear')) {
         UI.clearSegmentDuration(idx);
+        return;
+      }
+      if (e.target.closest('.js-seg-pin')) {
+        UI.applySegmentPin(idx);
         return;
       }
       UI._activeSegIdx = idx;

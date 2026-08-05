@@ -1,4 +1,4 @@
-const CACHE_NAME = 'dtc-v4';
+const CACHE_NAME = 'dtc-v5';
 
 const FILES_TO_CACHE = [
   '.',

@@ -12,17 +12,15 @@ openSheet(calcId) {
 
     if (calc && calc.segments) {
       this._segments = calc.segments.map(s => ({
-        name: s.name || '',
         durationMinutes: Math.abs(s.durationMinutes),
         isNegative: s.durationMinutes < 0
       }));
     } else {
-      this._segments = [{ name: '', durationMinutes: 0, isNegative: false }];
+      this._segments = [{ durationMinutes: 0, isNegative: false }];
     }
     this._activeSegIdx = this._segments.length - 1;
 
     this._rebuildSegmentEditors();
-    this._syncBaseTimeDisplay();
     this._renderDurationHistory();
 
     document.getElementById('sheet-overlay').classList.remove('hidden');
@@ -54,32 +52,12 @@ openSheet(calcId) {
     }, 350);
   },
 
-  _syncBaseTimeDisplay() {
-    const display = document.getElementById('base-time-display');
-    if (!display) return;
-    const el = document.querySelector('.seg-editor[data-seg-idx="0"]');
-    if (el) {
-      const sd = el.querySelector('.js-seg-start-date');
-      const st = el.querySelector('.js-seg-start-time');
-      if (sd && st && sd.value && st.value) {
-        const d = new Date(`${sd.value}T${st.value}:00`);
-        if (!isNaN(d.getTime())) {
-          display.textContent = Calculator.formatDate(d) + ' ' + Calculator.formatTime(d);
-          return;
-        }
-      }
-    }
-    display.textContent = '--';
-  },
-
   _syncAllFromDOM() {
     const editors = document.querySelectorAll('.seg-editor');
     editors.forEach(el => {
       const i = parseInt(el.dataset.segIdx);
-      const nameEl = el.querySelector('.js-seg-name');
       const hoursEl = el.querySelector('.js-seg-hours');
       const minEl = el.querySelector('.js-seg-minutes');
-      if (nameEl) this._segments[i].name = nameEl.value.trim();
       if (hoursEl && minEl) {
         const h = parseInt(hoursEl.value) || 0;
         const m = parseInt(minEl.value) || 0;
@@ -136,8 +114,6 @@ openSheet(calcId) {
       <div class="seg-editor" data-seg-idx="${i}">
         <div class="seg-editor-top">
           <span class="seg-editor-label">${label}</span>
-          <input type="text" class="seg-editor-name js-seg-name"
-                 placeholder="名称（选填）" value="${this._escapeAttr(seg.name)}" maxlength="10">
           <button class="seg-editor-del js-seg-del" title="删除时段">✕</button>
         </div>
 
@@ -149,6 +125,8 @@ openSheet(calcId) {
                      value="${Calculator.toLocalDateStr(startTime)}">
               <input type="time" class="seg-time-input js-seg-start-time"
                      value="${Calculator.toLocalTimeStr(startTime)}">
+              <button class="seg-now-btn js-seg-pin" data-seg-idx="${i}"
+                      title="${i === 0 ? '设置为当前时间' : '沿用上一段结束时间'}">${i === 0 ? '此刻' : '续前段'}</button>
             </div>
           </div>
 
@@ -277,11 +255,6 @@ openSheet(calcId) {
     if (startDateEl) startDateEl.value = Calculator.toLocalDateStr(startTime);
     if (startTimeEl) startTimeEl.value = Calculator.toLocalTimeStr(startTime);
 
-    // 首段开始时间变化 → 同步顶部只读显示
-    if (idx === 0) {
-      this._syncBaseTimeDisplay();
-    }
-
     // 不再向下传播
   },
 
@@ -311,16 +284,11 @@ openSheet(calcId) {
     if (endDateEl) endDateEl.value = Calculator.toLocalDateStr(endTime);
     if (endTimeEl) endTimeEl.value = Calculator.toLocalTimeStr(endTime);
 
-    // 首段开始时间变化 → 同步顶部只读显示
-    if (idx === 0) {
-      this._syncBaseTimeDisplay();
-    }
-
     // 不再向下传播
   },
 
   addSegment() {
-    this._segments.push({ name: '', durationMinutes: 0, isNegative: false });
+    this._segments.push({ durationMinutes: 0, isNegative: false });
     this._activeSegIdx = this._segments.length - 1;
     this._rebuildSegmentEditors();
   },
@@ -333,6 +301,40 @@ openSheet(calcId) {
     this._segments.splice(idx, 1);
     this._activeSegIdx = Math.min(this._activeSegIdx, this._segments.length - 1);
     this._rebuildSegmentEditors();
+  },
+
+  /**
+   * 开始时间快捷按钮：第一段=此刻，其余段=续前段。
+   * @param {number} idx - 时段索引
+   */
+  applySegmentPin(idx) {
+    const editor = document.querySelector(`.seg-editor[data-seg-idx="${idx}"]`);
+    if (!editor) return;
+    const sd = editor.querySelector('.js-seg-start-date');
+    const st = editor.querySelector('.js-seg-start-time');
+    if (!sd || !st) return;
+
+    if (idx === 0) {
+      // 此刻：开始时间更新为当前时间
+      const now = new Date();
+      sd.value = Calculator.toLocalDateStr(now);
+      st.value = Calculator.toLocalTimeStr(now);
+    } else {
+      // 续前段：开始时间更新为上一段的结束时间
+      const prevEditor = document.querySelector(`.seg-editor[data-seg-idx="${idx - 1}"]`);
+      if (!prevEditor) return;
+      const pe = prevEditor.querySelector('.js-seg-end-date');
+      const pt = prevEditor.querySelector('.js-seg-end-time');
+      if (!pe || !pt || !pe.value || !pt.value) {
+        this.showToast('请先设置上一段的结束时间');
+        return;
+      }
+      sd.value = pe.value;
+      st.value = pt.value;
+    }
+
+    this._dirty = true;
+    this._syncFromStartTime(idx); // 重算当前段结束时间
   },
 
   readSheet() {
@@ -358,7 +360,6 @@ openSheet(calcId) {
       }
 
       return {
-        name: s.name,
         durationMinutes: s.isNegative ? -s.durationMinutes : s.durationMinutes,
         startMinutes: startMinutes
       };

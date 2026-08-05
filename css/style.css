@@ -178,6 +178,8 @@ button { touch-action: manipulation; font-family: inherit; }
 .card-compact {
   display: flex; align-items: center;
   padding: 14px 16px;
+  /* 右侧预留：菜单按钮(10px 边距 + 30px 宽) + 间距(6px) + 跨天标签方块(约 34px) */
+  padding-right: 80px;
   min-height: 64px;
 }
 
@@ -201,24 +203,30 @@ button { touch-action: manipulation; font-family: inherit; }
 }
 .card-meta-dur { font-weight: 600; color: var(--text-secondary); }
 
-/* 右侧时间区 */
+/* 右侧时间区（竖排：开始在上、结束在下，右对齐） */
 .card-time-area {
   display: flex; flex-direction: column; align-items: flex-end; gap: 3px;
   flex-shrink: 0; margin-left: 8px;
 }
 .card-time-row {
-  display: flex; align-items: center; gap: 5px;
+  position: relative;
+  display: flex; align-items: center; gap: 4px;
   font-size: 0.72rem; color: var(--text-tertiary);
-  font-variant-numeric: tabular-nums;
+  font-variant-numeric: tabular-nums; white-space: nowrap;
 }
 .card-time-label { flex-shrink: 0; }
 .card-time-value { font-weight: 600; color: var(--text-primary); white-space: nowrap; }
 .card-time-value--dim { color: var(--text-tertiary); font-weight: 500; }
+/* 跨天标签：固定区域方块，绝对定位在结束时间后方，不挤压时间数字，保证开始/结束右对齐 */
 .card-cross-tag {
+  position: absolute; left: calc(100% + 6px); top: 50%; transform: translateY(-50%);
   flex-shrink: 0;
+  min-width: 30px; height: 18px;
+  display: flex; align-items: center; justify-content: center;
   font-size: 0.62rem; font-weight: 600; color: var(--brand);
   background: var(--brand-subtle);
-  padding: 1px 6px; border-radius: 6px;
+  padding: 0 5px; border-radius: 6px;
+  white-space: nowrap;
 }
 
 /* ---- 详细模式：过程详情 ---- */
@@ -246,6 +254,7 @@ button { touch-action: manipulation; font-family: inherit; }
   border: none; background: transparent;
   color: var(--text-tertiary); font-size: 1rem;
   cursor: pointer; display: flex; align-items: center; justify-content: center;
+  z-index: 2;
 }
 .card-menu-btn:active { background: var(--bg-subtle); }
 
@@ -351,16 +360,6 @@ input[type="date"]:focus, input[type="time"]:focus {
   box-shadow: 0 0 0 3px var(--brand-subtle);
 }
 
-.time-row { display: flex; gap: 8px; }
-.time-row--readonly { align-items: center; }
-#base-time-display {
-  flex: 1; padding: 10px 12px;
-  border: 1px solid var(--border-strong); border-radius: var(--radius-sm);
-  background: var(--bg-input); color: var(--text-primary);
-  font-size: 0.95rem; font-variant-numeric: tabular-nums; text-align: center;
-  user-select: none;
-}
-
 .form-select {
   width: 100%; padding: 10px 12px;
   border: 1px solid var(--border-strong); border-radius: var(--radius-sm);
@@ -373,14 +372,8 @@ input[type="date"]:focus, input[type="time"]:focus {
   border: 1px solid var(--border); border-radius: var(--radius-md);
   padding: 14px; margin-bottom: 10px; background: var(--bg-input);
 }
-.seg-editor-top { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.seg-editor-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
 .seg-editor-label { font-size: 0.75rem; font-weight: 600; color: var(--text-secondary); flex-shrink: 0; }
-.seg-editor-name {
-  flex: 1; padding: 6px 10px;
-  border: 1px solid var(--border); border-radius: var(--radius-sm);
-  background: var(--bg-card); color: var(--text-primary); font-size: 0.9rem;
-}
-.seg-editor-name:focus { outline: none; border-color: var(--brand); }
 .seg-editor-del {
   width: 30px; height: 30px; border-radius: 50%; border: none;
   background: transparent; color: var(--status-error); font-size: 1rem;
@@ -416,6 +409,15 @@ input[type="date"]:focus, input[type="time"]:focus {
   background: var(--bg-card); color: var(--text-primary); font-size: 0.9rem; min-width: 0;
 }
 .seg-time-input:focus { outline: none; border-color: var(--brand); }
+/* 开始时间快捷按钮：此刻 / 续前段 */
+.seg-now-btn {
+  flex-shrink: 0;
+  padding: 8px 10px;
+  border: 1px solid var(--border-strong); border-radius: var(--radius-sm);
+  background: var(--bg-card); color: var(--brand);
+  font-size: 0.8rem; font-weight: 600; white-space: nowrap; cursor: pointer;
+}
+.seg-now-btn:active { background: var(--brand-subtle); }
 
 .btn-add-segment {
   display: block; width: 100%; padding: 12px;
