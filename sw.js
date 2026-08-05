@@ -5,7 +5,6 @@ const FILES_TO_CACHE = [
   'index.html',
   'css/style.css',
   'js/storage.js',
-  'js/groups.js',
   'js/history.js',
   'js/calculator.js',
   'js/theme.js',

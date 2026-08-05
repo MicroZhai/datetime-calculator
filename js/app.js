@@ -19,7 +19,6 @@
 
     Theme.init();
     UI.renderListDebounced = debounce(() => UI.renderList(), 100);
-    UI.renderGroupTabs();
     UI.renderList();
     bindEvents();
 
@@ -46,22 +45,6 @@
     document.getElementById(overlayId).classList.add('hidden');
     document.body.style.overflow = '';
   }
-
-  /* ====== 分组管理弹窗 ====== */
-  function renderGroupList() {
-    const listEl = document.getElementById('group-list');
-    const groups = Groups.getAll();
-    listEl.innerHTML = groups.map(g => {
-      const count = Storage.getAll().filter(c => (c.groupId || 'default') === g.id).length;
-      const delBtn = g.id === 'default' ? '' : `<button class="group-row-del" data-id="${g.id}">✕</button>`;
-      return `<div class="group-row">
-        <span class="group-row-name">${UI._escape(g.name)}</span>
-        <span class="group-row-count">${count} 个</span>
-        ${delBtn}
-      </div>`;
-    }).join('');
-  }
-  function openGroupSheet() { renderGroupList(); openSheet('group-overlay', 'group-sheet'); }
 
   /* ====== 设置弹窗 ====== */
   function openSettingsSheet() {
@@ -93,19 +76,9 @@
           UI.toggleViewMode();
           return;
         }
-        if (nav === 'group') { openGroupSheet(); return; }
         if (nav === 'history') { UI.openHistory(); return; }
         if (nav === 'settings') { openSettingsSheet(); return; }
       });
-    });
-
-    /* ====== 分组选择栏（chips） ====== */
-    document.getElementById('group-filter-bar').addEventListener('click', e => {
-      const chip = e.target.closest('.group-chip');
-      if (!chip) return;
-      UI._currentGroup = chip.dataset.groupId;
-      UI.renderGroupTabs();
-      UI.renderList();
     });
 
     /* ====== 新建 & 历史入口 ====== */
@@ -129,29 +102,6 @@
       if (reuseBtn) {
         UI.reuseHistory(reuseBtn.dataset.id);
       }
-    });
-
-    /* ====== 分组管理弹窗 ====== */
-    document.getElementById('group-close-btn').addEventListener('click', () => closeSheet('group-overlay', 'group-sheet'));
-    document.getElementById('group-overlay').addEventListener('click', () => closeSheet('group-overlay', 'group-sheet'));
-    document.getElementById('group-add-btn').addEventListener('click', () => {
-      const input = document.getElementById('group-input');
-      const name = input.value.trim();
-      if (!name) return;
-      if (Groups.getAll().find(g => g.name === name)) { UI.showToast('分组名称已存在'); return; }
-      Groups.add(name);
-      input.value = '';
-      renderGroupList();
-      UI.renderGroupTabs();
-    });
-    document.getElementById('group-list').addEventListener('click', e => {
-      const delBtn = e.target.closest('.group-row-del');
-      if (!delBtn) return;
-      Groups.remove(delBtn.dataset.id);
-      if (UI._currentGroup === delBtn.dataset.id) UI._currentGroup = 'all';
-      renderGroupList();
-      UI.renderGroupTabs();
-      UI.renderList();
     });
 
     /* ====== 设置弹窗 ====== */
@@ -273,7 +223,7 @@
         const existing = Storage.getAll().find(c => c.id === UI._editingId);
         calc = { ...existing, ...data };
       } else {
-        calc = { id: String(Date.now()), createdAt: Date.now(), pinned: false, groupId: UI._currentGroup, ...data };
+        calc = { id: String(Date.now()), createdAt: Date.now(), pinned: false, ...data };
       }
 
       Storage.save(calc);
@@ -296,7 +246,6 @@
       History.add({
         id: String(Date.now()),
         calcName: data.name,
-        groupId: data.groupId,
         baseTime: calc.baseTime,
         baseTimeFormatted: Calculator.formatDateTime(baseDate),
         resultTime: finalResult.toISOString(),
@@ -383,33 +332,6 @@
         }
       }
     });
-    document.getElementById('ctx-move-group').addEventListener('click', () => {
-      const id = UI._contextTargetId;
-      UI.hideContextMenu();
-      if (!id) return;
-      const calc = Storage.getAll().find(c => c.id === id);
-      if (!calc) return;
-      const groups = Groups.getAll();
-      const currentName = groups.find(g => g.id === calc.groupId);
-      const label = currentName ? `当前：「${currentName.name}」` : '当前：全部';
-      const groupNames = groups.map(g => g.name).join('、') || '暂无分组，请先创建分组';
-      const newGroup = prompt(`${label}\n\n可选分组：${groupNames}\n\n输入分组名称移动到该分组（留空移回全部）：`);
-      if (newGroup === null) return;
-      const trimmed = newGroup.trim();
-      if (trimmed === '') {
-        calc.groupId = 'default';
-      } else {
-        let group = groups.find(g => g.name === trimmed);
-        if (!group) {
-          group = Groups.save({ id: String(Date.now()), name: trimmed, createdAt: Date.now() });
-        }
-        calc.groupId = group.id;
-      }
-      Storage.save(calc);
-      UI.renderGroupTabs();
-      UI.renderListDebounced();
-      UI.showToast('已移动');
-    });
     document.getElementById('ctx-delete').addEventListener('click', () => {
       const id = UI._contextTargetId;
       UI.hideContextMenu();
@@ -440,9 +362,6 @@
         UI.hideConfirm();
         if (document.getElementById('edit-sheet').classList.contains('open')) {
           UI.closeSheet();
-        }
-        if (document.getElementById('group-sheet').classList.contains('open')) {
-          closeSheet('group-overlay', 'group-sheet');
         }
         if (document.getElementById('settings-sheet').classList.contains('open')) {
           closeSheet('settings-overlay', 'settings-sheet');

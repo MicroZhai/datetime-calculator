@@ -55,16 +55,6 @@ getCalcDetailText(calc) {
       const totalMin = segs.reduce((s, c) => s + c.durationMinutes, 0);
       const isZero = totalMin === 0;
 
-      // 分组名
-      let groupTag = '';
-      if (r.groupId) {
-        const groups = Groups.getAll();
-        const group = groups.find(g => g.id === r.groupId);
-        if (group && group.id !== 'default') {
-          groupTag = `<span class="history-group-tag">${this._escape(group.name)}</span>`;
-        }
-      }
-
       // 跨天标签（从 resultTimeFormatted 中已有，直接使用）
       const endText = isZero ? '与开始时间相同' : this._escape(r.resultTimeFormatted);
 
@@ -109,7 +99,7 @@ getCalcDetailText(calc) {
       return `
         <div class="history-card" data-id="${r.id}">
           <div class="history-card-top">
-            <div class="history-card-name">${this._escape(r.calcName)}${groupTag}</div>
+            <div class="history-card-name">${this._escape(r.calcName)}</div>
             <div class="history-card-actions">
               <button class="history-card-reuse js-history-reuse" data-id="${r.id}" title="再用一次">🔄 再用一次</button>
               <button class="history-card-del js-history-del" data-id="${r.id}" title="删除">✕</button>

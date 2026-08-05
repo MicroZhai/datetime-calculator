@@ -6,10 +6,6 @@ Object.assign(UI, {
 
   renderList() {
     let calculators = Storage.getAll();
-    const filterGroup = this._currentGroup && this._currentGroup !== 'all' ? this._currentGroup : null;
-    if (filterGroup) {
-      calculators = calculators.filter(c => (c.groupId || 'default') === filterGroup);
-    }
 
     // 排序：置顶优先，再按状态（进行中→未开始→已结束→未设置），同状态按创建时间倒序
     calculators.sort((a, b) => {
@@ -27,7 +23,6 @@ Object.assign(UI, {
     if (calculators.length === 0) {
       listEl.innerHTML = '';
       emptyEl.classList.remove('hidden');
-      this.updateStats();
       return;
     }
 
@@ -36,25 +31,10 @@ Object.assign(UI, {
     listEl.querySelectorAll('.calc-card').forEach((card, i) => {
       card.style.animationDelay = (i * 0.04) + 's';
     });
-    this.updateStats();
   },
 
   refreshLiveCards() {
     this.renderList();
-  },
-
-  updateStats() {
-    let active = 0, future = 0, finished = 0;
-    Storage.getAll().forEach(c => {
-      const s = Calculator.getState(c);
-      if (s === 'active') active++;
-      else if (s === 'future') future++;
-      else if (s === 'finished') finished++;
-    });
-    const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
-    set('stat-active', active);
-    set('stat-future', future);
-    set('stat-finished', finished);
   },
 
   updateClock() {
@@ -70,26 +50,6 @@ Object.assign(UI, {
     if (dateEl) {
       dateEl.textContent = Calculator.formatDate(now);
     }
-  },
-
-  /** 进度环 SVG */
-  _progressRing(calc, size) {
-    const p = Calculator.getProgressDisplayPercent(calc);
-    const state = Calculator.getState(calc);
-    const r = 10;
-    const c = 2 * Math.PI * r;
-    const offset = c * (1 - p / 100);
-    const fgClass = state === 'active' ? 'ring-fg-a' : 'ring-fg-g';
-    const text = state === 'finished' ? '✓' : String(Math.round(p));
-    return `
-      <div class="card-progress-ring" style="width:${size}px;height:${size}px">
-        <svg viewBox="0 0 24 24">
-          <circle class="ring-bg" cx="12" cy="12" r="${r}" fill="none" stroke-width="2.5"/>
-          <circle class="${fgClass}" cx="12" cy="12" r="${r}" fill="none" stroke-width="2.5"
-            stroke-dasharray="${c.toFixed(2)}" stroke-dashoffset="${offset.toFixed(2)}" stroke-linecap="round"/>
-        </svg>
-        <span class="ring-text">${text}</span>
-      </div>`;
   },
 
   /** 简洁 / 详细切换 */
@@ -109,19 +69,6 @@ Object.assign(UI, {
     const totalMin = Calculator.getTotalMinutes(calc);
     const isZero = totalMin === 0;
     const segCount = calc.segments.length;
-
-    // 状态圆点类
-    const dotClass = state === 'active' ? 'card-status-dot--active'
-      : state === 'future' ? 'card-status-dot--future'
-      : 'card-status-dot--finished';
-
-    // 分组标签
-    let groupTag = '';
-    const groups = Groups.getAll();
-    const group = groups.find(g => g.id === (calc.groupId || 'default'));
-    if (group && group.id !== 'default') {
-      groupTag = `<span class="card-group-tag">${this._escape(group.name)}</span>`;
-    }
 
     // 元信息：N段 · 总时长
     const meta = `${segCount}段 · ${isZero ? '0分' : Calculator.formatDurationReadable(totalMin)}`;
@@ -149,7 +96,6 @@ Object.assign(UI, {
             <span class="card-time-label">结束</span>
             <span class="card-time-value">${endStr}${crossTag}</span>
           </div>
-          ${this._progressRing(calc, 24)}
         </div>`;
     } else {
       timeArea = `<div class="card-time-area"><span class="card-time-value card-time-value--dim">未设置时段</span></div>`;
@@ -186,17 +132,6 @@ Object.assign(UI, {
       }
     }
 
-    // 底部进度条（简洁模式显示）
-    let progressBar = '';
-    if (this._viewMode === 0 && !isZero && startT && endT) {
-      const p = Calculator.getProgressDisplayPercent(calc);
-      const fillClass = state === 'active' ? '' : ' fill--gray';
-      progressBar = `
-        <div class="card-progress-bar">
-          <div class="fill${fillClass}" style="width:${p}%"></div>
-        </div>`;
-    }
-
     const pinIcon = calc.pinned ? '<span class="card-pin-icon">📌</span>' : '';
     const pinnedClass = calc.pinned ? ' pinned' : '';
     const stateClass = ' is-' + state;
@@ -205,16 +140,14 @@ Object.assign(UI, {
       <div class="calc-card${pinnedClass}${stateClass}" data-id="${calc.id}" data-state="${state}">
         <button class="card-menu-btn" data-action="menu" data-id="${calc.id}" aria-label="更多">⋮</button>
         <div class="card-compact">
-          <div class="card-status-dot ${dotClass}"></div>
           <div class="card-info">
             <div class="card-info-top">
-              ${pinIcon}<span class="card-name">${this._escape(calc.name)}</span>${groupTag}
+              ${pinIcon}<span class="card-name">${this._escape(calc.name)}</span>
             </div>
             <div class="card-meta"><span>${meta}</span></div>
           </div>
           ${timeArea}
         </div>
-        ${progressBar}
         ${detailHTML}
       </div>`;
   },

@@ -10,18 +10,6 @@ openSheet(calcId) {
 
     document.getElementById('input-name').value = calc ? calc.name : '';
 
-    // 渲染分组选项
-    const groupSelect = document.getElementById('input-group');
-    if (groupSelect && typeof Groups !== 'undefined') {
-      try {
-        const groups = Groups.getAll();
-        if (groups.length > 0) {
-          groupSelect.innerHTML = groups.map(g => `<option value="${g.id}">${UI._escape(g.name)}</option>`).join('');
-          groupSelect.value = calc ? (calc.groupId || 'default') : (UI._currentGroup || 'default');
-        }
-      } catch(e) { /* 静默降级，不影响编辑功能 */ }
-    }
-
     if (calc && calc.segments) {
       this._segments = calc.segments.map(s => ({
         name: s.name || '',
@@ -376,9 +364,7 @@ openSheet(calcId) {
       };
     });
 
-    const groupEl = document.getElementById('input-group');
-    const groupId = groupEl ? groupEl.value : 'default';
-    return { name, isBaseTimeNow: false, baseTime, segments, groupId: groupId };
+    return { name, isBaseTimeNow: false, baseTime, segments };
   },
 
   setQuickDuration(minutes) {

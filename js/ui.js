@@ -17,7 +17,6 @@ const UI = {
   _toastTimer: null,
   _closeTimer: null,
   _pendingDelete: null,
-  _currentGroup: 'all',
 
   /* ========== Toast ========== */
   showToast(msg, actionText, onAction) {
@@ -99,17 +98,5 @@ const UI = {
   },
 
   renderListDebounced: null,  // 由 app.js 初始化
-
-  /* ========== 分组管理（chips） ========== */
-  renderGroupTabs() {
-    const groups = Groups.getAll();
-    const bar = document.getElementById('group-filter-bar');
-    let html = `<button class="group-chip${this._currentGroup === 'all' ? ' active' : ''}" data-group-id="all">全部</button>`;
-    groups.forEach(g => {
-      const active = this._currentGroup === g.id ? ' active' : '';
-      html += `<button class="group-chip${active}" data-group-id="${g.id}">${this._escape(g.name)}</button>`;
-    });
-    bar.innerHTML = html;
-  },
 
 };

@@ -26,29 +26,6 @@
     <p id="current-date-display" class="clock-date"></p>
   </header>
 
-  <!-- ====== 统计卡 ====== -->
-  <section id="stats-card" class="stats-card">
-    <div class="stat-item">
-      <div class="stat-num stat-num--active" id="stat-active">0</div>
-      <div class="stat-label">进行中</div>
-    </div>
-    <div class="stat-divider"></div>
-    <div class="stat-item">
-      <div class="stat-num" id="stat-future">0</div>
-      <div class="stat-label">将开始</div>
-    </div>
-    <div class="stat-divider"></div>
-    <div class="stat-item">
-      <div class="stat-num" id="stat-finished">0</div>
-      <div class="stat-label">已结束</div>
-    </div>
-  </section>
-
-  <!-- ====== 分组选择栏 ====== -->
-  <nav id="group-filter-bar" class="group-filter-bar">
-    <!-- JS 动态渲染分组 chips -->
-  </nav>
-
   <!-- ====== 计算器列表 ====== -->
   <main id="calc-list" class="calc-list">
     <!-- JS 动态渲染卡片 -->
@@ -66,10 +43,6 @@
     <button id="nav-toggle" class="nav-item nav-item--active" data-nav="toggle">
       <span class="nav-icon" id="nav-toggle-icon">☰</span>
       <span class="nav-label" id="nav-toggle-label">简洁</span>
-    </button>
-    <button id="nav-group" class="nav-item" data-nav="group">
-      <span class="nav-icon">📁</span>
-      <span class="nav-label">分组</span>
     </button>
     <button id="nav-history" class="nav-item" data-nav="history">
       <span class="nav-icon">🕘</span>
@@ -109,12 +82,6 @@
         </div>
       </div>
 
-      <!-- 所属分组 -->
-      <div class="form-group">
-        <label>所属分组</label>
-        <select id="input-group" class="form-select"></select>
-      </div>
-
       <!-- 时段列表 -->
       <div class="form-group">
         <label>时段列表</label>
@@ -136,28 +103,6 @@
     <div class="sheet-footer">
       <button id="save-btn" class="btn-primary">保存</button>
       <button id="delete-btn" class="btn-danger hidden">删除此计算器</button>
-    </div>
-  </div>
-
-  <!-- ====== 分组管理弹窗 ====== -->
-  <div id="group-overlay" class="sheet-overlay hidden"></div>
-  <div id="group-sheet" class="edit-sheet">
-    <div class="sheet-handle"></div>
-    <div class="sheet-header">
-      <h2>分组管理</h2>
-      <button id="group-close-btn" class="icon-btn" aria-label="关闭">✕</button>
-    </div>
-    <div class="sheet-body">
-      <div class="form-group">
-        <label>新建分组</label>
-        <div class="group-add-row">
-          <input type="text" id="group-input" maxlength="10" placeholder="分组名称">
-          <button id="group-add-btn" class="btn-now-inline">添加</button>
-        </div>
-      </div>
-      <div id="group-list" class="group-list">
-        <!-- JS 动态渲染 -->
-      </div>
     </div>
   </div>
 
@@ -262,7 +207,6 @@
     <button id="ctx-pin">📌 置顶</button>
     <button id="ctx-rename">✏️ 重命名</button>
     <button id="ctx-copy-detail">📋 复制计算详情</button>
-    <button id="ctx-move-group">📁 移动到分组</button>
     <button id="ctx-delete">🗑️ 删除</button>
   </div>
 
@@ -280,7 +224,6 @@
   <div id="toast" class="toast hidden"></div>
 
   <script src="js/storage.js"></script>
-  <script src="js/groups.js"></script>
   <script src="js/history.js"></script>
   <script src="js/calculator.js"></script>
   <script src="js/theme.js"></script>

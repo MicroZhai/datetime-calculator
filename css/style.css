@@ -146,47 +146,6 @@ button { touch-action: manipulation; font-family: inherit; }
   font-variant-numeric: tabular-nums;
 }
 
-/* ====== 统计卡 ====== */
-.stats-card {
-  display: flex; align-items: center; justify-content: space-around;
-  margin: 16px 16px 4px;
-  padding: 14px 8px;
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-card);
-}
-.stat-item { display: flex; flex-direction: column; align-items: center; gap: 2px; min-width: 64px; }
-.stat-num { font-size: 1.3rem; font-weight: 700; font-variant-numeric: tabular-nums; }
-.stat-num--active { color: var(--brand); }
-.stat-label { font-size: 0.7rem; color: var(--text-tertiary); }
-.stat-divider { width: 1px; height: 28px; background: var(--border); }
-
-/* ====== 分组选择栏 ====== */
-.group-filter-bar {
-  display: flex; align-items: center; gap: 8px;
-  padding: 12px 16px;
-  overflow-x: auto;
-  scrollbar-width: none;
-}
-.group-filter-bar::-webkit-scrollbar { display: none; }
-.group-chip {
-  flex-shrink: 0;
-  padding: 7px 16px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-full);
-  background: var(--bg-card);
-  color: var(--text-secondary);
-  font-size: 0.82rem; font-weight: 500;
-  cursor: pointer;
-  transition: background 0.15s, color 0.15s, border-color 0.15s;
-}
-.group-chip:active { transform: scale(0.96); }
-.group-chip.active {
-  background: var(--brand); border-color: var(--brand);
-  color: var(--text-onbrand);
-}
-
 /* ====== 计算器列表 ====== */
 .calc-list {
   padding: 8px 16px 24px;
@@ -222,15 +181,6 @@ button { touch-action: manipulation; font-family: inherit; }
   min-height: 64px;
 }
 
-/* 左侧状态圆点 */
-.card-status-dot {
-  width: 8px; height: 8px; border-radius: 50%;
-  flex-shrink: 0; margin-right: 12px;
-}
-.card-status-dot--active { background: var(--status-primary); }
-.card-status-dot--future { background: var(--status-warning); }
-.card-status-dot--finished { background: var(--text-disabled); }
-
 /* 左侧信息区 */
 .card-info { flex: 1; min-width: 0; margin-right: 8px; }
 .card-info-top {
@@ -242,13 +192,6 @@ button { touch-action: manipulation; font-family: inherit; }
   max-width: 65%; max-width: 200px;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
   flex-shrink: 1;
-}
-.card-group-tag {
-  flex-shrink: 0;
-  font-size: 0.68rem; font-weight: 500; color: var(--text-secondary);
-  background: var(--bg-subtle);
-  padding: 2px 6px; border-radius: var(--radius-sm);
-  max-width: 40%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 .card-meta {
   display: flex; align-items: center; gap: 3px;
@@ -277,32 +220,6 @@ button { touch-action: manipulation; font-family: inherit; }
   background: var(--brand-subtle);
   padding: 1px 6px; border-radius: 6px;
 }
-
-/* 右侧进度环 */
-.card-progress-ring { position: relative; width: 24px; height: 24px; flex-shrink: 0; margin-left: 6px; }
-.card-progress-ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
-.card-progress-ring .ring-bg { stroke: var(--border-strong); }
-.card-progress-ring .ring-fg-a { stroke: var(--brand); }
-.card-progress-ring .ring-fg-g { stroke: var(--text-tertiary); }
-.card-progress-ring .ring-text {
-  position: absolute; inset: 0;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 7px; font-weight: 700; color: var(--text-primary);
-}
-
-/* 简洁进度条（底部） */
-.card-progress-bar {
-  height: 4px; border-radius: var(--radius-full);
-  background: var(--border-strong);
-  margin: 0 16px 12px;
-  overflow: hidden;
-}
-.card-progress-bar .fill {
-  height: 100%; border-radius: var(--radius-full);
-  background: var(--brand);
-  transition: width 0.6s ease;
-}
-.card-progress-bar .fill--gray { background: var(--text-tertiary); }
 
 /* ---- 详细模式：过程详情 ---- */
 .card-detail {
@@ -346,7 +263,7 @@ button { touch-action: manipulation; font-family: inherit; }
   border: 1px solid var(--border);
   border-radius: 29px;
   box-shadow: 0 4px 16px rgba(0,0,0,0.08);
-  display: grid; grid-template-columns: repeat(4, 1fr);
+  display: grid; grid-template-columns: repeat(3, 1fr);
   z-index: 50;
 }
 .nav-item {
@@ -517,24 +434,6 @@ input[type="date"]:focus, input[type="time"]:focus {
 .quick-btn:active { background: var(--brand); color: var(--text-onbrand); border-color: var(--brand); }
 .history-empty { text-align: center; padding: 40px 20px; color: var(--text-tertiary); font-size: 0.9rem; }
 
-/* ====== 分组管理 ====== */
-.group-add-row { display: flex; gap: 8px; }
-.group-add-row input { flex: 1; }
-.group-list { display: flex; flex-direction: column; gap: 8px; }
-.group-row {
-  display: flex; align-items: center; gap: 10px;
-  padding: 12px 14px;
-  background: var(--bg-card); border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-}
-.group-row-name { flex: 1; font-size: 0.9rem; font-weight: 600; color: var(--text-primary); }
-.group-row-count { font-size: 0.72rem; color: var(--text-tertiary); font-variant-numeric: tabular-nums; }
-.group-row-del {
-  width: 28px; height: 28px; border-radius: 50%; border: none;
-  background: transparent; color: var(--text-tertiary); font-size: 0.9rem; cursor: pointer;
-}
-.group-row-del:active { color: var(--status-error); background: var(--bg-subtle); }
-
 /* ====== 设置 ====== */
 .settings-row {
   display: flex; align-items: center; gap: 12px;
@@ -588,12 +487,6 @@ input[type="date"]:focus, input[type="time"]:focus {
 }
 .history-card-top { display: flex; align-items: flex-start; gap: 10px; }
 .history-card-top .history-card-name { flex: 1; min-width: 0; margin-bottom: 0; }
-.history-group-tag {
-  display: inline-block; margin-left: 8px; padding: 2px 8px;
-  font-size: 0.68rem; font-weight: 500; color: var(--brand);
-  background: var(--brand-subtle); border-radius: var(--radius-full);
-  vertical-align: middle;
-}
 .history-card-name { font-size: 0.9rem; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .history-card-line { font-size: 0.85rem; margin-bottom: 3px; font-variant-numeric: tabular-nums; }
 .history-card-label { color: var(--text-tertiary); font-weight: 500; font-size: 0.75rem; flex-shrink: 0; display: inline-block; width: 36px; }
@@ -714,7 +607,7 @@ input[type="date"]:focus, input[type="time"]:focus {
 
 /* ====== 响应式 ====== */
 @media (min-width: 768px) {
-  .calc-list, .group-filter-bar, #clock-header, .stats-card, .empty-state { max-width: 560px; margin-left: auto; margin-right: auto; }
+  .calc-list, #clock-header, .empty-state { max-width: 560px; margin-left: auto; margin-right: auto; }
   .edit-sheet { max-width: 560px; left: 50%; transform: translate(-50%, 100%); }
   .edit-sheet.open { transform: translate(-50%, 0); }
   .bottom-nav { max-width: 480px; }
@@ -723,7 +616,7 @@ input[type="date"]:focus, input[type="time"]:focus {
 /* ====== 无障碍：减少动画 ====== */
 @media (prefers-reduced-motion: reduce) {
   .edit-sheet, .fab-btn, .btn-primary, .icon-btn, .context-menu, .confirm-btn,
-  .calc-card, .card-progress-bar .fill {
+  .calc-card {
     transition: none !important; animation: none !important;
   }
 }
