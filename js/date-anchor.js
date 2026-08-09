@@ -1,9 +1,11 @@
 (() => {
-  let anchorDate = null;
+  let anchorDateTime = null;
 
+  const dateKey = document.querySelector('[data-action="date-now"]');
   const resultGroup = document.querySelector('.result-group');
   const dateInput = document.createElement('input');
-  dateInput.type = 'date';
+  dateInput.type = 'datetime-local';
+  dateInput.step = '60';
   dateInput.className = 'anchor-date-input';
   dateInput.tabIndex = -1;
   dateInput.setAttribute('aria-hidden', 'true');
@@ -25,47 +27,71 @@
   const doneRowBtn = document.getElementById('doneRowBtn');
   rowActions.insertBefore(removeDateBtn, doneRowBtn);
 
-  function localTodayIso() {
+  function localNowValue() {
     const now = new Date();
-    return `${String(now.getFullYear()).padStart(4, '0')}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    return `${String(now.getFullYear()).padStart(4, '0')}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}T${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
   }
 
-  function formatAnchorLabel(iso) {
-    return iso ? iso.replaceAll('-', '/') : '';
+  function normalizeAnchorValue(value) {
+    if (typeof value !== 'string' || !value) return null;
+    if (/^\d{4,}-\d{2}-\d{2}$/.test(value)) return `${value}T00:00`;
+    const match = value.match(/^(\d{4,}-\d{2}-\d{2})T(\d{2}):(\d{2})/);
+    return match ? `${match[1]}T${match[2]}:${match[3]}` : null;
   }
 
-  function parseAnchorDate(iso) {
-    if (!/^\d{4,}-\d{2}-\d{2}$/.test(iso || '')) return null;
-    const [year, month, day] = iso.split('-').map(Number);
-    const baseMs = Date.UTC(year, month - 1, day);
-    const probe = new Date(baseMs);
+  function formatAnchorLabel(value) {
+    const normalized = normalizeAnchorValue(value);
+    if (!normalized) return '';
+    const [date, time] = normalized.split('T');
+    return `${date.replaceAll('-', '/')} ${time}`;
+  }
+
+  function parseAnchorDateTime(value) {
+    const normalized = normalizeAnchorValue(value);
+    if (!normalized) return null;
+    const [datePart, timePart] = normalized.split('T');
+    const [year, month, day] = datePart.split('-').map(Number);
+    const [hour, minute] = timePart.split(':').map(Number);
+    const probe = new Date(year, month - 1, day, hour, minute, 0, 0);
     if (Number.isNaN(probe.getTime())) return null;
-    if (probe.getUTCFullYear() !== year || probe.getUTCMonth() !== month - 1 || probe.getUTCDate() !== day) return null;
-    return baseMs;
+    if (probe.getFullYear() !== year || probe.getMonth() !== month - 1 || probe.getDate() !== day || probe.getHours() !== hour || probe.getMinutes() !== minute) return null;
+    return probe.getTime();
   }
 
-  function targetDateParts(iso, durationMs) {
-    const baseMs = parseAnchorDate(iso);
+  function targetDateParts(value, durationMs) {
+    const baseMs = parseAnchorDateTime(value);
     if (baseMs === null || !Number.isFinite(durationMs)) return null;
     const target = new Date(baseMs + durationMs);
     if (Number.isNaN(target.getTime())) return null;
 
-    const year = String(target.getUTCFullYear()).padStart(4, '0');
-    const month = String(target.getUTCMonth() + 1).padStart(2, '0');
-    const day = String(target.getUTCDate()).padStart(2, '0');
-    const hour = String(target.getUTCHours()).padStart(2, '0');
-    const minute = String(target.getUTCMinutes()).padStart(2, '0');
-    const second = String(target.getUTCSeconds()).padStart(2, '0');
-    const millisecond = target.getUTCMilliseconds();
+    const year = String(target.getFullYear()).padStart(4, '0');
+    const month = String(target.getMonth() + 1).padStart(2, '0');
+    const day = String(target.getDate()).padStart(2, '0');
+    const hour = String(target.getHours()).padStart(2, '0');
+    const minute = String(target.getMinutes()).padStart(2, '0');
+    const second = String(target.getSeconds()).padStart(2, '0');
+    const millisecond = target.getMilliseconds();
 
     let time = `${hour}:${minute}`;
-    if (target.getUTCSeconds() || millisecond) time += `:${second}`;
+    if (target.getSeconds() || millisecond) time += `:${second}`;
     if (millisecond) time += `.${String(millisecond).padStart(3, '0')}`;
 
     return { date: `${year}/${month}/${day}`, time };
   }
 
+  function currentRecordAnchor(record) {
+    if (!record) return null;
+    return normalizeAnchorValue(record.anchorDateTime || record.anchorDate || null);
+  }
+
   function renderDateAnchor() {
+    if (dateKey) {
+      dateKey.classList.toggle('active', Boolean(anchorDateTime));
+      dateKey.setAttribute('aria-pressed', String(Boolean(anchorDateTime)));
+      dateKey.title = anchorDateTime ? '重新设为当前时间' : '使用当前时间作为基准';
+    }
+
+    if (!anchorDateTime) return;
     const firstLine = expressionEl.querySelector('.expr-line');
     if (!firstLine) return;
     const lineValue = firstLine.querySelector('.line-value');
@@ -74,17 +100,18 @@
     lineValue.classList.add('has-date-anchor');
     const button = document.createElement('button');
     button.type = 'button';
-    button.className = `date-anchor${anchorDate ? ' has-date' : ' add-date'}`;
+    button.className = 'date-anchor has-date';
     button.dataset.anchorDate = 'true';
-    button.textContent = anchorDate ? formatAnchorLabel(anchorDate) : '+ 日期';
-    button.setAttribute('aria-label', anchorDate ? `基准日期 ${formatAnchorLabel(anchorDate)}，点击修改` : '添加基准日期，默认今天');
+    button.textContent = formatAnchorLabel(anchorDateTime);
+    button.title = '修改基准时间';
+    button.setAttribute('aria-label', `基准时间 ${formatAnchorLabel(anchorDateTime)}，点击修改`);
     lineValue.insertBefore(button, lineValue.firstChild);
   }
 
   function renderDateResult() {
-    if (!anchorDate) {
+    if (!anchorDateTime) {
       calendarResult.hidden = true;
-      calendarResult.replaceChildren();
+      calendarResult.textContent = '';
       resultMainRow.classList.remove('has-calendar-result');
       return;
     }
@@ -92,12 +119,12 @@
     const evaluated = evaluateRows(true);
     if (!evaluated.ok) {
       calendarResult.hidden = true;
-      calendarResult.replaceChildren();
+      calendarResult.textContent = '';
       resultMainRow.classList.remove('has-calendar-result');
       return;
     }
 
-    const target = targetDateParts(anchorDate, evaluated.value);
+    const target = targetDateParts(anchorDateTime, evaluated.value);
     calendarResult.hidden = false;
     resultMainRow.classList.add('has-calendar-result');
 
@@ -106,26 +133,30 @@
       return;
     }
 
-    const dateLine = document.createElement('span');
-    dateLine.textContent = target.date;
-    const timeLine = document.createElement('span');
-    timeLine.textContent = target.time;
-    calendarResult.replaceChildren(dateLine, timeLine);
-    calendarResult.setAttribute('aria-label', `落点时间 ${target.date} ${target.time}`);
+    calendarResult.textContent = `${target.date} ${target.time}`;
+    calendarResult.setAttribute('aria-label', `结束时间 ${target.date} ${target.time}`);
   }
 
   function syncDateRowAction() {
-    removeDateBtn.hidden = !(anchorDate && selectedRow === 0);
+    removeDateBtn.hidden = !(anchorDateTime && selectedRow === 0);
+  }
+
+  function syncDateHint() {
+    if (!anchorDateTime) return;
+    if (partEdit || selectedRow !== null || colonMode || numberBuffer || currentOp !== null) return;
+    badge.textContent = '基准时间 · 点击左侧时间可修改';
+    badge.className = 'badge';
+  }
+
+  function setAnchorToNow() {
+    anchorDateTime = localNowValue();
+    setError('');
+    render();
   }
 
   function openDatePicker() {
-    if (!anchorDate) {
-      anchorDate = localTodayIso();
-      justEvaluated = false;
-      render();
-    }
-
-    dateInput.value = anchorDate;
+    if (!anchorDateTime) return;
+    dateInput.value = anchorDateTime;
     requestAnimationFrame(() => {
       try {
         if (typeof dateInput.showPicker === 'function') dateInput.showPicker();
@@ -138,21 +169,20 @@
   }
 
   function removeAnchorDateWithUndo() {
-    if (!anchorDate) return;
-    const previous = anchorDate;
-    anchorDate = null;
-    justEvaluated = false;
+    if (!anchorDateTime) return;
+    const previous = anchorDateTime;
+    anchorDateTime = null;
     selectedRow = null;
     render();
-    showUndo('已移除基准日期', () => {
-      anchorDate = previous;
+    showUndo('已移除基准时间', () => {
+      anchorDateTime = previous;
       render();
     });
   }
 
   function expressionSignatureWithDate(snapshot) {
     return JSON.stringify({
-      anchorDate: anchorDate || null,
+      anchorDateTime: anchorDateTime || null,
       rows: JSON.parse(rowsSignature(snapshot))
     });
   }
@@ -163,6 +193,7 @@
     renderDateAnchor();
     renderDateResult();
     syncDateRowAction();
+    syncDateHint();
   };
 
   saveHistoryRecord = function(resultMs) {
@@ -177,7 +208,7 @@
       signature: sig,
       rows: snapshot,
       resultMs,
-      anchorDate: anchorDate || null
+      anchorDateTime: anchorDateTime || null
     });
     if (historyRecords.length > HISTORY_LIMIT) historyRecords.length = HISTORY_LIMIT;
     persistHistory();
@@ -186,7 +217,7 @@
   const restoreHistoryBase = restoreHistory;
   restoreHistory = function(index) {
     const record = historyRecords[index];
-    anchorDate = record && typeof record.anchorDate === 'string' ? record.anchorDate : null;
+    anchorDateTime = currentRecordAnchor(record);
     restoreHistoryBase(index);
   };
 
@@ -194,7 +225,8 @@
   renderHistory = function() {
     renderHistoryBase();
     historyRecords.forEach((record, index) => {
-      if (!record.anchorDate) return;
+      const recordAnchor = currentRecordAnchor(record);
+      if (!recordAnchor) return;
       const item = historyList.querySelector(`[data-history-index="${index}"]`);
       const firstRow = item?.querySelector('.history-row');
       if (!item || !firstRow) return;
@@ -202,41 +234,44 @@
       firstRow.classList.add('has-anchor');
       const anchor = document.createElement('span');
       anchor.className = 'history-anchor';
-      anchor.textContent = formatAnchorLabel(record.anchorDate);
+      anchor.textContent = formatAnchorLabel(recordAnchor);
+      anchor.title = formatAnchorLabel(recordAnchor);
       firstRow.insertBefore(anchor, firstRow.firstChild);
 
-      const target = targetDateParts(record.anchorDate, Number(record.resultMs));
+      const target = targetDateParts(recordAnchor, Number(record.resultMs));
       if (target) {
         const result = item.querySelector('.history-result');
-        if (result) result.title = `落点 ${target.date} ${target.time}`;
+        if (result) result.title = `结束时间 ${target.date} ${target.time}`;
       }
 
       const existingLabel = item.getAttribute('aria-label') || '历史记录';
-      item.setAttribute('aria-label', `基准日期 ${formatAnchorLabel(record.anchorDate)}，${existingLabel}`);
+      item.setAttribute('aria-label', `基准时间 ${formatAnchorLabel(recordAnchor)}，${existingLabel}`);
     });
   };
 
   const clearAllBase = clearAll;
   clearAll = function(show = true) {
-    anchorDate = null;
+    anchorDateTime = null;
     clearAllBase(show);
   };
 
   const snapshotCalculatorBase = snapshotCalculator;
   snapshotCalculator = function() {
-    return { ...snapshotCalculatorBase(), anchorDate };
+    return { ...snapshotCalculatorBase(), anchorDateTime };
   };
 
   const restoreCalculatorBase = restoreCalculator;
   restoreCalculator = function(snapshot) {
-    anchorDate = snapshot?.anchorDate || null;
+    anchorDateTime = normalizeAnchorValue(snapshot?.anchorDateTime || snapshot?.anchorDate || null);
     restoreCalculatorBase(snapshot);
   };
 
   const hasCalculatorContentBase = hasCalculatorContent;
   hasCalculatorContent = function() {
-    return Boolean(anchorDate) || hasCalculatorContentBase();
+    return Boolean(anchorDateTime) || hasCalculatorContentBase();
   };
+
+  if (dateKey) dateKey.addEventListener('click', setAnchorToNow);
 
   expressionEl.addEventListener('click', event => {
     const button = event.target.closest('[data-anchor-date]');
@@ -247,8 +282,7 @@
   }, true);
 
   dateInput.addEventListener('change', () => {
-    anchorDate = dateInput.value || null;
-    justEvaluated = false;
+    anchorDateTime = normalizeAnchorValue(dateInput.value);
     setError('');
     render();
   });
