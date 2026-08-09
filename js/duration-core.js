@@ -1,182 +1,3 @@
-(() => {
-  const FACTOR_MS = Object.freeze({
-    d: 86400000n,
-    h: 3600000n,
-    m: 60000n,
-    s: 1000n
-  });
-  const MAX_INPUT_DIGITS = 100;
-
-  function toBigIntMs(value) {
-    if (typeof value === 'bigint') return value;
-    if (typeof value === 'number') {
-      if (!Number.isFinite(value) || !Number.isInteger(value)) return null;
-      return BigInt(value);
-    }
-    if (typeof value === 'string' && /^-?\d+$/.test(value.trim())) {
-      try { return BigInt(value.trim()); } catch (_) { return null; }
-    }
-    return null;
-  }
-
-  function normalizeDecimalString(value) {
-    let raw = String(value ?? '').trim();
-    if (!raw) return null;
-    if (!/^-?\d+(?:\.\d+)?$/.test(raw)) return null;
-    let sign = '';
-    if (raw.startsWith('-')) { sign = '-'; raw = raw.slice(1); }
-    let [whole, fraction = ''] = raw.split('.');
-    whole = whole.replace(/^0+(?=\d)/, '') || '0';
-    fraction = fraction.replace(/0+$/, '');
-    if (whole === '0' && !fraction) sign = '';
-    return `${sign}${whole}${fraction ? `.${fraction}` : ''}`;
-  }
-
-  function digitCount(value) {
-    const normalized = normalizeDecimalString(value);
-    if (!normalized) return 0;
-    return normalized.replace('-', '').replace('.', '').length;
-  }
-
-  function parseDecimalToMs(value, unit) {
-    const factor = FACTOR_MS[unit];
-    if (!factor) return { ok: false, error: '未知时间单位' };
-    const normalized = normalizeDecimalString(value);
-    if (!normalized) return { ok: false, error: '数字格式不正确' };
-    const negative = normalized.startsWith('-');
-    const unsigned = negative ? normalized.slice(1) : normalized;
-    const [whole, fraction = ''] = unsigned.split('.');
-    const scale = 10n ** BigInt(fraction.length);
-    const digits = BigInt(`${whole}${fraction}` || '0');
-    const numerator = digits * factor;
-    if (numerator % scale !== 0n) {
-      return { ok: false, error: '当前数值无法精确到 1 毫秒' };
-    }
-    const result = numerator / scale;
-    return { ok: true, value: negative ? -result : result, normalized };
-  }
-
-  function formatMillisecondsAsSeconds(ms) {
-    const x = toBigIntMs(ms);
-    if (x === null) return '0';
-    const whole = x / 1000n;
-    const rem = x % 1000n;
-    if (rem === 0n) return whole.toString();
-    return `${whole}.${rem.toString().padStart(3, '0').replace(/0+$/, '')}`;
-  }
-
-  function durationText(totalMs) {
-    let value = toBigIntMs(totalMs);
-    if (value === null) return '—';
-    if (value === 0n) return '0分';
-    const sign = value < 0n ? '-' : '';
-    if (value < 0n) value = -value;
-
-    const d = value / FACTOR_MS.d; value %= FACTOR_MS.d;
-    const h = value / FACTOR_MS.h; value %= FACTOR_MS.h;
-    const m = value / FACTOR_MS.m; value %= FACTOR_MS.m;
-    const sMs = value;
-    const out = [];
-    if (d) out.push(`${d}天`);
-    if (h) out.push(`${h}小时`);
-    if (m) out.push(`${m}分`);
-    if (sMs || !out.length) out.push(`${formatMillisecondsAsSeconds(sMs)}秒`);
-    return sign + out.join('');
-  }
-
-  function hms(totalMs) {
-    let value = toBigIntMs(totalMs);
-    if (value === null) return '—';
-    const sign = value < 0n ? '-' : '';
-    if (value < 0n) value = -value;
-    const h = value / FACTOR_MS.h; value %= FACTOR_MS.h;
-    const m = value / FACTOR_MS.m; value %= FACTOR_MS.m;
-    const s = value / 1000n;
-    const ms = value % 1000n;
-    return `${sign}${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}${ms ? `.${ms.toString().padStart(3, '0')}` : ''}`;
-  }
-
-  function roundedRatioText(totalMs, divisor, decimals = 6) {
-    let value = toBigIntMs(totalMs);
-    const den = typeof divisor === 'bigint' ? divisor : BigInt(divisor);
-    if (value === null || den <= 0n) return '—';
-    const negative = value < 0n;
-    if (negative) value = -value;
-    const whole = value / den;
-    let remainder = value % den;
-    if (!remainder || decimals <= 0) return `${negative ? '-' : ''}${whole}`;
-
-    const scale = 10n ** BigInt(decimals);
-    let fraction = (remainder * scale * 10n) / den;
-    const roundDigit = fraction % 10n;
-    fraction /= 10n;
-    if (roundDigit >= 5n) fraction += 1n;
-
-    let adjustedWhole = whole;
-    if (fraction >= scale) {
-      adjustedWhole += 1n;
-      fraction -= scale;
-    }
-    const fracText = fraction.toString().padStart(decimals, '0').replace(/0+$/, '');
-    return `${negative ? '-' : ''}${adjustedWhole}${fracText ? `.${fracText}` : ''}`;
-  }
-
-  function millisecondsToParts(totalMs) {
-    let value = toBigIntMs(totalMs);
-    if (value === null) return [];
-    if (value === 0n) return [{ kind: 'unit', unit: 'm', value: '0' }];
-    const negative = value < 0n;
-    if (negative) value = -value;
-    const raw = [];
-    const d = value / FACTOR_MS.d; value %= FACTOR_MS.d;
-    const h = value / FACTOR_MS.h; value %= FACTOR_MS.h;
-    const m = value / FACTOR_MS.m; value %= FACTOR_MS.m;
-    if (d) raw.push({ kind: 'unit', unit: 'd', value: d.toString() });
-    if (h) raw.push({ kind: 'unit', unit: 'h', value: h.toString() });
-    if (m) raw.push({ kind: 'unit', unit: 'm', value: m.toString() });
-    if (value) raw.push({ kind: 'unit', unit: 's', value: formatMillisecondsAsSeconds(value) });
-    if (!raw.length) raw.push({ kind: 'unit', unit: 'm', value: '0' });
-    if (negative) raw[0].value = `-${raw[0].value}`;
-    return raw;
-  }
-
-  function normalizeStoredPart(part) {
-    if (!part || typeof part !== 'object') return null;
-    if (part.kind === 'unit' && FACTOR_MS[part.unit]) {
-      const normalized = normalizeDecimalString(part.value);
-      return normalized === null ? null : { kind: 'unit', unit: part.unit, value: normalized };
-    }
-    if (part.kind === 'colon') {
-      const hours = String(part.hours ?? '0').replace(/^0+(?=\d)/, '') || '0';
-      const minutes = String(part.minutes ?? '0').padStart(2, '0').slice(-2);
-      const seconds = part.seconds === null || part.seconds === undefined ? null : String(part.seconds).padStart(2, '0').slice(-2);
-      return { kind: 'colon', hours, minutes, seconds };
-    }
-    return null;
-  }
-
-  function normalizeStoredRows(rows) {
-    if (!Array.isArray(rows)) return [];
-    return rows.map((row, index) => ({
-      op: index === 0 ? null : (row?.op === '-' ? '-' : '+'),
-      parts: Array.isArray(row?.parts) ? row.parts.map(normalizeStoredPart).filter(Boolean) : []
-    })).filter(row => row.parts.length);
-  }
-
-  globalThis.DurationPrecision = Object.freeze({
-    FACTOR_MS,
-    MAX_INPUT_DIGITS,
-    toBigIntMs,
-    normalizeDecimalString,
-    digitCount,
-    parseDecimalToMs,
-    durationText,
-    hms,
-    roundedRatioText,
-    millisecondsToParts,
-    normalizeStoredRows
-  });
-})();
 const expressionEl=document.getElementById('expression');
 const exprScroll=document.getElementById('exprScroll');
 const badge=document.getElementById('badge');
@@ -334,13 +155,8 @@ function valuePrecisionError(value,unit){
 }
 
 function partMs(p){
-  if(p.kind==='unit')return valueToMs(p.value,p.unit);
-  try{
-    const h=BigInt(String(p.hours||'0'));
-    const m=BigInt(String(p.minutes||'0'));
-    const s=BigInt(p.seconds!==null&&p.seconds!==undefined?String(p.seconds):'0');
-    return h*factorMs.h+m*factorMs.m+s*factorMs.s;
-  }catch(_){return null}
+  const parsed=DurationPrecision.partToMs(p);
+  return parsed.ok?parsed.value:null;
 }
 function partText(p){
   if(p.kind==='unit')return `${trim(p.value)}${label[p.unit]}`;
@@ -349,13 +165,8 @@ function partText(p){
   return `${p.hours}:${mm}`;
 }
 function partsMs(parts){
-  let total=0n;
-  for(const p of parts){
-    const ms=partMs(p);
-    if(ms===null)return null;
-    total+=ms;
-  }
-  return total;
+  const parsed=DurationPrecision.partsToMs(parts);
+  return parsed.ok?parsed.value:null;
 }
 function partsText(parts){return parts.map(partText).join('')}
 function durationText(totalMs){return DurationPrecision.durationText(totalMs)}
@@ -380,16 +191,7 @@ function evaluateRows(includeCurrent=true){
     const cp=currentValueParts();
     if(cp.length)rs.push({op:rs.length?currentOp:null,parts:cp});
   }
-  if(!rs.length)return {ok:true,value:0n};
-  const first=partsMs(rs[0].parts);
-  if(first===null)return {ok:false,error:'当前时长无法精确到 1 毫秒'};
-  let total=first;
-  for(let i=1;i<rs.length;i++){
-    const v=partsMs(rs[i].parts);
-    if(v===null)return {ok:false,error:'当前时长无法精确到 1 毫秒'};
-    total=rs[i].op==='-'?total-v:total+v;
-  }
-  return {ok:true,value:total};
+  return DurationPrecision.evaluateRows(rs);
 }
 
 function colonComplete(){
