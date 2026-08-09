@@ -1,37 +1,40 @@
 {
   "name": "时间计算器",
   "short_name": "时间计算器",
-  "description": "轻量级日期时间加减计算工具",
-  "start_url": ".",
+  "description": "像普通计算器一样进行时长加减，支持天、时、分、秒、冒号快捷输入、多行表达式编辑与历史恢复。",
+  "id": "./",
+  "start_url": "./",
+  "scope": "./",
   "display": "standalone",
-  "background_color": "#000000",
-  "theme_color": "#000000",
   "orientation": "portrait",
+  "background_color": "#050505",
+  "theme_color": "#050505",
   "icons": [
-    { "src": "icons/icon-72.png",  "sizes": "72x72",   "type": "image/png" },
-    { "src": "icons/icon-96.png",  "sizes": "96x96",   "type": "image/png" },
-    { "src": "icons/icon-128.png", "sizes": "128x128", "type": "image/png" },
-    { "src": "icons/icon-144.png", "sizes": "144x144", "type": "image/png" },
-    { "src": "icons/icon-152.png", "sizes": "152x152", "type": "image/png" },
-    { "src": "icons/icon-180.png", "sizes": "180x180", "type": "image/png" },
-    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
-    { "src": "icons/icon-384.png", "sizes": "384x384", "type": "image/png" },
-    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
   ],
   "shortcuts": [
     {
-      "name": "新建计算器",
-      "short_name": "新建",
-      "description": "快速新建一个时间计算器",
-      "url": "/?action=new",
-      "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }]
-    },
-    {
-      "name": "查看历史",
+      "name": "计算历史",
       "short_name": "历史",
-      "description": "查看计算历史记录",
-      "url": "/?action=history",
-      "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }]
+      "url": "./?action=history",
+      "icons": [
+        {
+          "src": "icons/icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
     }
   ]
 }
