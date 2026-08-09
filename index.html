@@ -115,5 +115,65 @@
 <script src="js/duration-core.js"></script>
 <script src="js/duration-ui.js"></script>
 <script src="js/duration-app.js"></script>
+<script>
+(() => {
+  if (!('serviceWorker' in navigator)) return;
+
+  let registration = null;
+  let reloadingForUpdate = false;
+  let refreshPending = false;
+
+  function canApplyUpdateNow() {
+    try {
+      const inputActive = numberBuffer !== '' || colonMode || currentParts.length > 0 ||
+        currentOp !== null || selectedRow !== null || partEdit !== null;
+      const unfinishedExpression = rows.length > 0 && !justEvaluated;
+      return !inputActive && !unfinishedExpression;
+    } catch (_) {
+      return true;
+    }
+  }
+
+  function applyUpdateWhenSafe() {
+    if (reloadingForUpdate) return;
+    if (canApplyUpdateNow()) {
+      reloadingForUpdate = true;
+      location.reload();
+      return;
+    }
+
+    refreshPending = true;
+    if (typeof notify === 'function') {
+      notify('新版本已就绪，完成当前计算后自动刷新');
+    }
+  }
+
+  async function checkForUpdate() {
+    try {
+      registration = registration || await navigator.serviceWorker.register('./sw.js', {
+        updateViaCache: 'none'
+      });
+      await registration.update();
+    } catch (_) {}
+  }
+
+  navigator.serviceWorker.addEventListener('controllerchange', applyUpdateWhenSafe);
+
+  window.addEventListener('load', checkForUpdate);
+  window.addEventListener('pageshow', checkForUpdate);
+  window.addEventListener('online', checkForUpdate);
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) checkForUpdate();
+  });
+
+  window.setInterval(() => {
+    if (!document.hidden) checkForUpdate();
+  }, 60000);
+
+  window.setInterval(() => {
+    if (refreshPending && canApplyUpdateNow()) applyUpdateWhenSafe();
+  }, 1000);
+})();
+</script>
 </body>
 </html>
