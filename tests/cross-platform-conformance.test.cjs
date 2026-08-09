@@ -6,7 +6,7 @@ const path = require('node:path');
 const vectors = JSON.parse(fs.readFileSync(path.join(__dirname, 'cross-platform-conformance-vectors.json'), 'utf8'));
 process.env.TZ = vectors.dateTimezone || 'UTC';
 
-require('../js/duration-precision.js');
+const P = require('../js/duration-precision.js');
 const D = require('../js/date-mapper.js');
 const H = require('../js/history-store.js');
 const S = require('../js/calculator-state.js');
@@ -19,6 +19,27 @@ function assertSubset(actual, expected, message) {
   for (const [key, value] of Object.entries(expected)) {
     assert.deepEqual(actual?.[key], value, `${message}: ${key}`);
   }
+}
+
+for (const vector of vectors.format || []) {
+  const label = `format/${vector.id}`;
+  let actual;
+  if (vector.operation === 'durationText') {
+    actual = P.durationText(vector.milliseconds);
+  } else if (vector.operation === 'hms') {
+    actual = P.hms(vector.milliseconds);
+  } else if (vector.operation === 'roundedRatio') {
+    const divisor = vector.divisor === 'hour'
+      ? P.FACTOR_MS.h
+      : vector.divisor === 'minute'
+        ? P.FACTOR_MS.m
+        : null;
+    assert.notEqual(divisor, null, `${label}: known divisor`);
+    actual = P.roundedRatioText(vector.milliseconds, divisor, vector.decimals);
+  } else {
+    assert.fail(`${label}: unknown operation ${vector.operation}`);
+  }
+  assert.equal(actual, vector.expected, label);
 }
 
 for (const vector of vectors.date) {
@@ -71,4 +92,5 @@ for (const vector of vectors.state) {
   assert.deepEqual(roundTrip, S.normalizeSnapshot(actual), `${label}: JSON round-trip`);
 }
 
-console.log(`cross-platform-conformance: ${vectors.date.length + vectors.history.length + vectors.state.length} vectors passed`);
+const count = (vectors.format?.length || 0) + vectors.date.length + vectors.history.length + vectors.state.length;
+console.log(`cross-platform-conformance: ${count} vectors passed`);
