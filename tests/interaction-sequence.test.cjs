@@ -165,7 +165,7 @@ sequence('delete row then undo restores expression and result', ({ call, state, 
   call("inputDigit('1'); commitUnit('h'); inputOperator('+'); inputDigit('30'); commitUnit('m'); inputOperator('+'); inputDigit('15'); commitUnit('m'); equals();");
   assert.equal(result(), '6300000');
   call('selectedRow=1; deleteSelectedRowWithUndo();');
-  assert.equal(result(), '5400000');
+  assert.equal(result(), '4500000');
   call('runUndo();');
   assert.equal(result(), '6300000');
   assert.equal(state().rows.length, 3);
