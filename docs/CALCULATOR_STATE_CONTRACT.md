@@ -101,6 +101,8 @@ Web 参考实现：`js/calculator-state.js`。
 
 不得因为“当前还不能计算”就丢弃编辑中间态。
 
+注意：`currentParts` 中已经完成的 Part 属于 committed data，恢复时必须严格验证；尚未完成的冒号/数字草稿由独立 buffer 字段保存，继续允许中间态。
+
 ### 3.3 显示偏好
 
 包括：
@@ -197,11 +199,44 @@ Web runtime BigInt
 
 ---
 
-## 8. 状态规范化
+## 8. 状态规范化与完整性边界
 
-所有外部 Snapshot 在恢复前必须 normalize：
+所有外部 Snapshot 在恢复前必须 normalize，但要区分**committed data**与**editing draft**。
 
-- 非法运算符 -> `null`；
+### 8.1 committed rows / completed currentParts
+
+这些字段代表已经成立的数学表达式，必须走严格持久化规范：
+
+- 任意未知 Part -> 整组 committed rows 判坏；
+- 任意未知后续 Row 运算符 -> 整组 rows 判坏；
+- colon 分钟/秒超过两位 -> 拒绝，不能截尾；
+- 单位值超过输入位数限制 -> 拒绝；
+- 无法精确到 1ms -> 拒绝；
+- 不允许删除坏 Part 后保留剩余 Part。
+
+当前 State 降级语义：
+
+```text
+损坏 rows -> rows = []
+损坏 completed currentParts -> currentParts = []
+```
+
+这是“无法证明原表达式”时的安全降级，而不是把损坏数据改成另一道计算。
+
+### 8.2 editing draft
+
+以下仍允许中间态：
+
+- `numberBuffer = "123."`；
+- `colonMinutes = "5"`；
+- 秒字段尚未完成；
+- partEdit 的合法部分输入。
+
+这些字段不能套用 committed rows 的“必须立即可计算”要求。
+
+### 8.3 其他字段
+
+- 非法 `currentOp` -> `null`；
 - 非法格式索引 -> 默认格式；
 - 失效的 selectedRow -> `null`；
 - 指向不存在片段的 partEdit -> `null`；
@@ -209,7 +244,9 @@ Web runtime BigInt
 - 非法结果毫秒 -> `"0"`；
 - BigInt 输入 -> 十进制字符串。
 
-状态恢复不得因为一个无效的 UI 指针导致整个计算表达式丢失。
+状态恢复不得因为一个无效的 UI 指针导致整个合法计算表达式丢失；反过来，也不得因为一个合法 Part 存在就部分抢救包含损坏 Part 的 committed rows。
+
+完整持久化规则见：`docs/PERSISTENCE_INTEGRITY_CONTRACT.md`。
 
 ---
 
@@ -219,6 +256,7 @@ Web 自动测试：
 
 - `tests/calculator-state.test.cjs`
 - `tests/state-flow.test.cjs`
+- `tests/persistence-integrity.test.cjs`
 
 至少覆盖：
 
@@ -229,7 +267,12 @@ Web 自动测试：
 - 失效行索引安全降级；
 - 历史 -> State -> 继续运算；
 - 负结果恢复后继续 +1ms；
-- 显示偏好不被误判为计算内容。
+- 显示偏好不被误判为计算内容；
+- 损坏 committed rows 不得部分抢救；
+- 非法可选日期安全降级；
+- 编辑中间态不受严格持久化规则误伤。
+
+共享完整性向量：`tests/persistence-integrity-vectors.json`。
 
 仓库 GitHub Actions 会在 `master` 与 `agent/**` 分支自动执行 `npm test`。
 
@@ -246,10 +289,11 @@ Duration Core
 Date Adapter
 History Store
 Calculator State
+Persistence Integrity
 ```
 
-四个平台无关契约，然后把它们连接到 ArkUI 页面状态。
+并把它们连接到 ArkUI 页面状态。
 
 最终一致性判断不是“两个页面长得一样”，而是：
 
-> 给定同一计算状态和同一后续输入序列，Web 与 HarmonyOS 必须得到同一表达式状态和同一整数毫秒结果。
+> 给定同一计算状态和同一后续输入序列，Web 与 HarmonyOS 必须得到同一表达式状态和同一整数毫秒结果；给定同一份损坏/旧 Snapshot，也必须做出相同的迁移、拒绝或降级。
