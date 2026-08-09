@@ -47,8 +47,7 @@
   resultMainRow.append(calendarResult, resultEl);
 
   function currentRecordAnchor(record) {
-    if (!record) return null;
-    return DateMapper.normalizeAnchorValue(record.anchorDateTime || record.anchorDate || null);
+    return HistoryStore.recordAnchor(record);
   }
 
   function renderDateAnchor() {
@@ -144,12 +143,8 @@
     });
   }
 
-  function expressionSignatureWithDate(snapshot) {
-    return JSON.stringify({
-      anchorDateTime: anchorDateTime || null,
-      rows: JSON.parse(rowsSignature(snapshot))
-    });
-  }
+  // Date is history context, not a second history implementation.
+  historyContextProvider = () => ({ anchorDateTime: anchorDateTime || null });
 
   const renderBase = render;
   render = function() {
@@ -157,24 +152,6 @@
     renderDateAnchor();
     renderDateResult();
     syncDateHint();
-  };
-
-  saveHistoryRecord = function(resultMs) {
-    if (!rows.length) return;
-    const snapshot = clone(rows);
-    const sig = expressionSignatureWithDate(snapshot);
-
-    historyRecords = historyRecords.filter(record => record.signature !== sig);
-    historyRecords.unshift({
-      id: `h_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
-      createdAt: Date.now(),
-      signature: sig,
-      rows: snapshot,
-      resultMs: DurationPrecision.toBigIntMs(resultMs)?.toString() || '0',
-      anchorDateTime: anchorDateTime || null
-    });
-    if (historyRecords.length > HISTORY_LIMIT) historyRecords.length = HISTORY_LIMIT;
-    persistHistory();
   };
 
   const restoreHistoryBase = restoreHistory;
