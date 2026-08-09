@@ -18,13 +18,15 @@ Web 与页面运行时之间的桥接：`js/calculator-state-runtime.js`。
 - `docs/HISTORY_SERIALIZATION_CONTRACT.md`
 - `docs/CALCULATOR_STATE_CONTRACT.md`
 - `docs/PERSISTENCE_INTEGRITY_CONTRACT.md`
+- `docs/SCHEMA_MIGRATION_CONTRACT.md`
 - `docs/CROSS_PLATFORM_CONFORMANCE.md`
 
 ## 共享机器可读测试向量
 
 - `tests/duration-core-vectors.json` — 纯时长解析与算术
 - `tests/cross-platform-conformance-vectors.json` — Display Format / Date / History / State
-- `tests/persistence-integrity-vectors.json` — 旧数据迁移、损坏数据拒绝与降级策略
+- `tests/persistence-integrity-vectors.json` — 旧数据内容完整性、损坏数据拒绝与降级策略
+- `tests/schema-migration-vectors.json` — Schema 版本升级与未来版本拒绝策略
 
 显示格式向量已经锁定：
 
@@ -51,6 +53,13 @@ partsToMs(millisecondsToParts(x)) === x
 - 非法可选日期只降级日期，不反向丢掉可靠纯时长；
 - 编辑中间态仍允许不完整输入。
 
+版本升级还要求：
+
+- 无版本旧数据只沿已知 migration 链向前升级；
+- 当前 Schema 正常读取；
+- 高于当前实现的未来 Schema 必须拒绝，不能强行降级；
+- 非法版本号不能被当成当前版本处理。
+
 ## Web 验证入口
 
 ```bash
@@ -68,8 +77,8 @@ GitHub Actions：`.github/workflows/core-tests.yml`。
 ```text
 实现四层平台无关能力
 -> 读取同一批共享 fixtures
--> 算术、性质、显示、日期、历史、状态、持久化完整性全部通过
+-> 算术、性质、显示、日期、历史、状态、完整性、Schema migration 全部通过
 -> 再连接 ArkUI 页面
 ```
 
-只有 Web 与 HarmonyOS 对同一输入得到相同规范状态、整数毫秒字符串和规范显示文本，同时对损坏/旧数据做出相同的迁移、拒绝与降级，并满足相同核心不变量，才视为核心迁移完成。
+只有 Web 与 HarmonyOS 对同一输入得到相同规范状态、整数毫秒字符串和规范显示文本，同时对旧版本、未来版本和损坏数据做出相同的迁移、拒绝与降级，并满足相同核心不变量，才视为核心迁移完成。
