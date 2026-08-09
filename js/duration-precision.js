@@ -163,6 +163,8 @@
     return raw;
   }
 
+  // Lenient normalization is kept for trusted in-memory UI rows. It intentionally
+  // preserves the legacy behavior used while rendering/editing existing runtime data.
   function normalizeStoredPart(part) {
     if (!part || typeof part !== 'object') return null;
     if (part.kind === 'unit' && FACTOR_MS[part.unit]) {
@@ -184,6 +186,69 @@
       op: index === 0 ? null : (row?.op === '-' ? '-' : '+'),
       parts: Array.isArray(row?.parts) ? row.parts.map(normalizeStoredPart).filter(Boolean) : []
     })).filter(row => row.parts.length);
+  }
+
+  // Persistence is stricter than editing. Stored rows are committed mathematical
+  // truth, so malformed fields must never be repaired by truncation or part-dropping.
+  function normalizeStoredPartStrict(part) {
+    if (!part || typeof part !== 'object') return null;
+
+    if (part.kind === 'unit' && FACTOR_MS[part.unit]) {
+      const normalized = normalizeDecimalString(part.value);
+      if (normalized === null || digitCount(normalized) > MAX_INPUT_DIGITS) return null;
+      const parsed = parseDecimalToMs(normalized, part.unit);
+      if (!parsed.ok) return null;
+      return { kind: 'unit', unit: part.unit, value: normalized };
+    }
+
+    if (part.kind === 'colon') {
+      const rawHours = String(part.hours ?? '').trim();
+      const rawMinutes = String(part.minutes ?? '').trim();
+      const hasSeconds = part.seconds !== null && part.seconds !== undefined;
+      const rawSeconds = hasSeconds ? String(part.seconds).trim() : null;
+
+      if (!/^\d+$/.test(rawHours) || rawHours.length > MAX_INPUT_DIGITS) return null;
+      if (!/^\d{1,2}$/.test(rawMinutes) || Number(rawMinutes) > 59) return null;
+      if (hasSeconds && (!/^\d{1,2}$/.test(rawSeconds) || Number(rawSeconds) > 59)) return null;
+
+      const hours = rawHours.replace(/^0+(?=\d)/, '') || '0';
+      const minutes = rawMinutes.padStart(2, '0');
+      const seconds = hasSeconds ? rawSeconds.padStart(2, '0') : null;
+      const parsed = parseColonToMs(hours, minutes, seconds ?? 0);
+      if (!parsed.ok) return null;
+      return { kind: 'colon', hours, minutes, seconds };
+    }
+
+    return null;
+  }
+
+  function normalizeStoredRowsStrict(rows) {
+    if (!Array.isArray(rows)) return null;
+    const normalizedRows = [];
+
+    for (let index = 0; index < rows.length; index += 1) {
+      const row = rows[index];
+      if (!row || typeof row !== 'object' || !Array.isArray(row.parts) || row.parts.length === 0) return null;
+
+      let op = null;
+      if (index === 0) {
+        // A legacy leading + is semantically identical to no operator and is safe to migrate.
+        if (!(row.op === null || row.op === undefined || row.op === '+')) return null;
+      } else {
+        if (row.op !== '+' && row.op !== '-') return null;
+        op = row.op;
+      }
+
+      const parts = [];
+      for (const part of row.parts) {
+        const normalizedPart = normalizeStoredPartStrict(part);
+        if (!normalizedPart) return null;
+        parts.push(normalizedPart);
+      }
+      normalizedRows.push({ op, parts });
+    }
+
+    return normalizedRows;
   }
 
   function partToMs(part) {
@@ -231,6 +296,7 @@
     roundedRatioText,
     millisecondsToParts,
     normalizeStoredRows,
+    normalizeStoredRowsStrict,
     partToMs,
     partsToMs,
     evaluateRows
