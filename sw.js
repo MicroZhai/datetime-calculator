@@ -1,4 +1,4 @@
-const CACHE_NAME = 'dtc-duration-v12-8-20260809';
+const CACHE_NAME = 'dtc-duration-v12-9-20260809';
 const APP_SHELL = [
   './',
   './index.html',
@@ -7,6 +7,7 @@ const APP_SHELL = [
   './css/theme.css',
   './css/date-anchor.css',
   './css/responsive.css',
+  './css/keypad-surface.css',
   './js/duration-core.js',
   './js/duration-ui.js',
   './js/duration-app.js',
