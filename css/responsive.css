@@ -206,20 +206,27 @@ body .key{
   }
 }
 
-/* md portrait / large portrait: remain a single task column, but cap the working
-   height so a tall tablet does not stretch one calculator into a huge empty canvas. */
+/* md portrait / large portrait: remain a single task column, but use the extra
+   tablet width instead of presenting a narrow phone-sized calculator. */
 @media(min-width:600px){
   body .app{
-    inline-size:min(100%,600px);
+    inline-size:min(100%,720px);
     padding-inline:var(--space-xxl);
   }
 }
 
 @media(min-width:600px) and (max-width:839px) and (min-height:800px){
   body main{
-    flex:0 1 650px;
-    block-size:min(650px,calc(100dvh - 96px));
-    margin-block:auto;
+    flex:0 1 720px;
+    block-size:min(720px,calc(100dvh - 96px));
+    margin-block-start:clamp(20px,4vh,40px);
+    margin-block-end:auto;
+  }
+
+  body .display-region{
+    inline-size:min(100%,640px);
+    align-self:center;
+    justify-self:center;
   }
 }
 
@@ -231,15 +238,18 @@ body .key{
   }
 
   body .app{
-    inline-size:min(100%,960px);
-    padding-inline:var(--space-lg);
+    inline-size:min(100%,1320px);
+    padding-inline:var(--space-xxl);
   }
 
   body main{
     display:grid;
-    grid-template-columns:minmax(0,.92fr) minmax(0,1.08fr);
-    gap:var(--space-lg);
-    align-items:center;
+    grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+    gap:var(--space-xxxl);
+    align-items:stretch;
+    flex:0 1 auto;
+    margin-block-start:clamp(24px,5vh,56px);
+    margin-block-end:auto;
   }
 
   body .display-region,
@@ -256,11 +266,49 @@ body .key{
   }
 }
 
+/* Compact split: tablet landscape and narrow desktop windows keep the same
+   relationship, but avoid stretching the two regions to a desktop scale. */
+@media(min-width:840px) and (max-width:1199px){
+  body .app{
+    inline-size:min(100%,1040px);
+    padding-inline:var(--space-xl);
+  }
+
+  body main{
+    gap:var(--space-xl);
+  }
+}
+
 @media(min-width:840px) and (min-height:680px){
   body main{
-    flex:0 1 600px;
-    block-size:min(600px,calc(100dvh - 96px));
-    margin-block:auto;
+    min-block-size:600px;
+    block-size:auto;
+  }
+}
+
+/* Desktop action surface: give the keypad a true desktop rhythm instead of
+   leaving it at phone density inside a wide empty canvas. */
+@media(min-width:840px) and (min-height:680px){
+  body .keypad{
+    grid-template-rows:repeat(6,clamp(56px,7vh,68px));
+    gap:var(--space-md);
+  }
+
+  body .key{
+    font-size:22px;
+  }
+
+  body .key.util,
+  body .key.unit{
+    font-size:15px;
+  }
+
+  body .line-value{
+    font-size:22px;
+  }
+
+  body .result{
+    font-size:clamp(42px,5.5vh,48px);
   }
 }
 
@@ -278,3 +326,4 @@ body .key{
     font-size:12px;
   }
 }
+
