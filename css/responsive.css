@@ -104,18 +104,31 @@ body .key{
   border-radius:clamp(12px,1.8vh,16px);
 }
 
-/* Usage copy is the first thing to leave when height becomes scarce. */
-@media(max-height:760px){
+/* Compact windows: remove low-value copy and reclaim bottom padding first. */
+@media(max-height:819px){
+  body .app{
+    padding-block-end:calc(var(--space-xs) + env(safe-area-inset-bottom,0px));
+  }
+
   body .hint{
     display:none;
   }
 }
 
-/* Truly short windows: demote secondary output only after the elastic layout and
-   fluid keypad have already reclaimed space. */
-@media(max-height:539px){
+/* Short phones: once a real expression grows, cap it around two visible rows.
+   Additional rows scroll inside Expression instead of pushing Keypad out of view. */
+@media(max-width:599px) and (max-height:679px){
+  body .expr-scroll{
+    min-block-size:48px;
+    max-block-size:96px;
+  }
+}
+
+/* Extreme short phones: demote secondary output only after the elastic layout,
+   fluid keypad and internal expression scrolling have already reclaimed space. */
+@media(max-width:599px) and (max-height:579px){
   body .app{
-    padding-block-start:env(safe-area-inset-top,0px);
+    padding-block-start:var(--space-xs);
     padding-block-end:calc(var(--space-xs) + env(safe-area-inset-bottom,0px));
   }
 
