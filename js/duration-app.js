@@ -131,15 +131,14 @@ function deleteSelectedRowWithUndo(){
 }
 
 function deleteHistoryWithUndo(index){
-  const record=historyRecords[index];
-  if(!record)return;
-  const snapshot=clone(record);
-  historyRecords.splice(index,1);
+  const change=HistoryStore.removeAt(historyRecords,index,HISTORY_LIMIT);
+  if(!change.removed)return;
+  const snapshot=change.removed;
+  historyRecords=change.records;
   persistHistory();
   renderHistory();
   showUndo('已删除历史记录',()=>{
-    historyRecords.splice(Math.min(index,historyRecords.length),0,snapshot);
-    if(historyRecords.length>HISTORY_LIMIT)historyRecords.length=HISTORY_LIMIT;
+    historyRecords=HistoryStore.insertAt(historyRecords,index,snapshot,HISTORY_LIMIT);
     persistHistory();
     renderHistory();
   });
@@ -152,12 +151,12 @@ function deleteHistoryWithUndo(index){
 
 function clearHistoryWithUndo(){
   if(!historyRecords.length)return;
-  const snapshot=clone(historyRecords);
+  const snapshot=HistoryStore.normalizeList(historyRecords,HISTORY_LIMIT);
   historyRecords=[];
   persistHistory();
   renderHistory();
   showUndo('已清空历史记录',()=>{
-    historyRecords=clone(snapshot).slice(0,HISTORY_LIMIT);
+    historyRecords=HistoryStore.normalizeList(snapshot,HISTORY_LIMIT);
     persistHistory();
     renderHistory();
   });
