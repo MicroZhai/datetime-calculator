@@ -108,6 +108,12 @@ function clearCalculatorWithUndo(){
   showUndo('已清空计算内容',()=>restoreCalculator(snapshot));
 }
 
+function toggleSelectedOpQuiet(){
+  if(selectedRow===null||selectedRow===0)return;
+  rows[selectedRow].op=rows[selectedRow].op==='-'?'+':'-';
+  render();
+}
+
 function deleteSelectedRowWithUndo(){
   if(selectedRow===null)return;
   const snapshot=snapshotCalculator();
@@ -204,7 +210,7 @@ document.querySelector('[data-action="back"]').onclick=backspace;
 document.querySelector('[data-action="equals"]').onclick=equals;
 
 document.querySelectorAll('.format-option').forEach((button,index)=>button.onclick=()=>{formatIndex=index;render()});
-toggleOpBtn.onclick=toggleSelectedOp;
+toggleOpBtn.onclick=toggleSelectedOpQuiet;
 document.getElementById('deleteRowBtn').onclick=deleteSelectedRowWithUndo;
 document.getElementById('doneRowBtn').onclick=()=>{if(partEdit)commitPartEdit();selectedRow=null;render()};
 document.getElementById('historyBtn').onclick=openHistoryAccessible;
@@ -268,7 +274,7 @@ document.addEventListener('keydown',(e)=>{
   if(historyMask.classList.contains('show'))return;
   if(e.ctrlKey||e.metaKey||e.altKey)return;
   const target=e.target;
-  if(target instanceof HTMLElement&&(target.isContentEditable||/^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName)))return;
+  if(target instanceof HTMLElement&&(target.isContentEditable||/^(INPUT|TEXTAREA|SELECT|BUTTON)$/.test(target.tagName)))return;
 
   const key=e.key;
   let handled=true;
