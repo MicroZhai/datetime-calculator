@@ -29,10 +29,6 @@
     padding-block-end:0;
   }
 
-  body .display-region{
-    padding-block-end:var(--space-xs);
-  }
-
   body .keypad-region{
     background:var(--keypad-surface);
     border-block-start:1px solid var(--divider);
