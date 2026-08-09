@@ -1,18 +1,33 @@
 (() => {
   let anchorDateTime = null;
 
-  let dateKey = document.querySelector('[data-action="date-now"]');
+  let dateKey = document.querySelector('[data-action="date-toggle"], [data-action="date-now"]');
   const dayKey = document.querySelector('.k-day');
   if (!dateKey && dayKey) {
     dateKey = document.createElement('button');
     dateKey.type = 'button';
     dateKey.className = 'key date-key k-date';
-    dateKey.dataset.action = 'date-now';
+    dateKey.dataset.action = 'date-toggle';
     dateKey.textContent = '日期';
-    dateKey.setAttribute('aria-label', '使用当前时间作为基准');
+    dateKey.setAttribute('aria-label', '添加当前时间作为基准');
     dateKey.setAttribute('aria-pressed', 'false');
     dayKey.insertAdjacentElement('beforebegin', dateKey);
   }
+
+  const statusRow = document.querySelector('.status-row');
+  const anchorButton = document.createElement('button');
+  anchorButton.type = 'button';
+  anchorButton.className = 'date-anchor';
+  anchorButton.dataset.anchorDate = 'true';
+  anchorButton.hidden = true;
+  statusRow.insertBefore(anchorButton, badge);
+
+  const anchorLabel = document.createElement('span');
+  anchorLabel.className = 'date-anchor-label';
+  anchorLabel.textContent = '基准';
+  const anchorValue = document.createElement('span');
+  anchorValue.className = 'date-anchor-value';
+  anchorButton.append(anchorLabel, anchorValue);
 
   const resultGroup = document.querySelector('.result-group');
   const dateInput = document.createElement('input');
@@ -30,14 +45,6 @@
   calendarResult.hidden = true;
   resultGroup.insertBefore(resultMainRow, resultEl);
   resultMainRow.append(calendarResult, resultEl);
-
-  const removeDateBtn = document.createElement('button');
-  removeDateBtn.type = 'button';
-  removeDateBtn.className = 'small-btn danger date-remove-btn';
-  removeDateBtn.textContent = '移除日期';
-  removeDateBtn.hidden = true;
-  const doneRowBtn = document.getElementById('doneRowBtn');
-  rowActions.insertBefore(removeDateBtn, doneRowBtn);
 
   function localNowValue() {
     const now = new Date();
@@ -97,27 +104,25 @@
   }
 
   function renderDateAnchor() {
+    const active = Boolean(anchorDateTime);
     if (dateKey) {
-      dateKey.classList.toggle('active', Boolean(anchorDateTime));
-      dateKey.setAttribute('aria-pressed', String(Boolean(anchorDateTime)));
-      dateKey.title = anchorDateTime ? '重新设为当前时间' : '使用当前时间作为基准';
+      dateKey.classList.toggle('active', active);
+      dateKey.setAttribute('aria-pressed', String(active));
+      dateKey.title = active ? '取消基准时间' : '添加当前时间作为基准';
+      dateKey.setAttribute('aria-label', active ? '取消基准时间' : '添加当前时间作为基准');
     }
 
-    if (!anchorDateTime) return;
-    const firstLine = expressionEl.querySelector('.expr-line');
-    if (!firstLine) return;
-    const lineValue = firstLine.querySelector('.line-value');
-    if (!lineValue) return;
+    anchorButton.hidden = !active;
+    anchorButton.classList.toggle('has-date', active);
+    if (!active) {
+      anchorValue.textContent = '';
+      return;
+    }
 
-    lineValue.classList.add('has-date-anchor');
-    const button = document.createElement('button');
-    button.type = 'button';
-    button.className = 'date-anchor has-date';
-    button.dataset.anchorDate = 'true';
-    button.textContent = formatAnchorLabel(anchorDateTime);
-    button.title = '修改基准时间';
-    button.setAttribute('aria-label', `基准时间 ${formatAnchorLabel(anchorDateTime)}，点击修改`);
-    lineValue.insertBefore(button, lineValue.firstChild);
+    const labelText = formatAnchorLabel(anchorDateTime);
+    anchorValue.textContent = labelText;
+    anchorButton.title = '修改基准时间';
+    anchorButton.setAttribute('aria-label', `基准时间 ${labelText}，点击修改`);
   }
 
   function renderDateResult() {
@@ -149,14 +154,10 @@
     calendarResult.setAttribute('aria-label', `结束时间 ${target.date} ${target.time}`);
   }
 
-  function syncDateRowAction() {
-    removeDateBtn.hidden = !(anchorDateTime && selectedRow === 0);
-  }
-
   function syncDateHint() {
     if (!anchorDateTime) return;
-    if (partEdit || selectedRow !== null || colonMode || numberBuffer || currentOp !== null) return;
-    badge.textContent = '基准时间 · 点击左侧时间可修改';
+    if (partEdit || selectedRow !== null || colonMode || numberBuffer || currentParts.length || currentOp !== null) return;
+    badge.textContent = '点击左侧可修改';
     badge.className = 'badge';
   }
 
@@ -164,6 +165,16 @@
     anchorDateTime = localNowValue();
     setError('');
     render();
+  }
+
+  function toggleAnchorDate() {
+    if (anchorDateTime) {
+      anchorDateTime = null;
+      setError('');
+      render();
+      return;
+    }
+    setAnchorToNow();
   }
 
   function openDatePicker() {
@@ -180,18 +191,6 @@
     });
   }
 
-  function removeAnchorDateWithUndo() {
-    if (!anchorDateTime) return;
-    const previous = anchorDateTime;
-    anchorDateTime = null;
-    selectedRow = null;
-    render();
-    showUndo('已移除基准时间', () => {
-      anchorDateTime = previous;
-      render();
-    });
-  }
-
   function expressionSignatureWithDate(snapshot) {
     return JSON.stringify({
       anchorDateTime: anchorDateTime || null,
@@ -204,7 +203,6 @@
     renderBase();
     renderDateAnchor();
     renderDateResult();
-    syncDateRowAction();
     syncDateHint();
   };
 
@@ -283,23 +281,14 @@
     return Boolean(anchorDateTime) || hasCalculatorContentBase();
   };
 
-  if (dateKey) dateKey.addEventListener('click', setAnchorToNow);
-
-  expressionEl.addEventListener('click', event => {
-    const button = event.target.closest('[data-anchor-date]');
-    if (!button) return;
-    event.preventDefault();
-    event.stopPropagation();
-    openDatePicker();
-  }, true);
+  if (dateKey) dateKey.addEventListener('click', toggleAnchorDate);
+  anchorButton.addEventListener('click', openDatePicker);
 
   dateInput.addEventListener('change', () => {
     anchorDateTime = normalizeAnchorValue(dateInput.value);
     setError('');
     render();
   });
-
-  removeDateBtn.addEventListener('click', removeAnchorDateWithUndo);
 
   render();
 })();
