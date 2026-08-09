@@ -24,7 +24,7 @@ assert.equal(record.signature, H.recordSignature(hugeRows, '2026-08-09T00:00'));
 assert.equal(Object.hasOwn(record, 'resultMismatch'), false);
 
 const serialized = H.serialize([record]);
-assert.equal(serialized.includes('n'), false, 'serialized history must not contain BigInt literals');
+assert.equal(/\d+n/.test(serialized), false, 'serialized history must not contain BigInt literals');
 const parsed = H.parse(serialized);
 assert.equal(parsed.length, 1);
 assert.equal(parsed[0].resultMs, '25920000000000001');
