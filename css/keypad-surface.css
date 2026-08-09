@@ -43,6 +43,14 @@
   }
 }
 
+/* Short phone: preserve the same region boundary while reclaiming the few pixels
+   needed to keep a busy expression and the complete keypad inside the viewport. */
+@media(max-width:599px) and (max-height:679px){
+  body .keypad-region{
+    padding-block-start:var(--space-xs);
+  }
+}
+
 @media(max-width:319px){
   body .keypad-region{
     margin-inline:calc(-1 * var(--space-sm));
