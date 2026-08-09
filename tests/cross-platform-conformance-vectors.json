@@ -1,0 +1,201 @@
+{
+  "schemaVersion": 1,
+  "description": "Shared conformance fixtures for Web and future HarmonyOS/ArkTS implementations.",
+  "dateTimezone": "UTC",
+  "date": [
+    {
+      "id": "date-only-to-midnight",
+      "operation": "normalizeAnchor",
+      "input": "2026-08-09",
+      "expected": "2026-08-09T00:00"
+    },
+    {
+      "id": "leap-day-valid",
+      "operation": "parseValid",
+      "input": "2028-02-29T12:30",
+      "expected": true
+    },
+    {
+      "id": "non-leap-day-invalid",
+      "operation": "parseValid",
+      "input": "2026-02-29T00:00",
+      "expected": false
+    },
+    {
+      "id": "date-plus-one-millisecond",
+      "operation": "mapDuration",
+      "anchor": "2026-08-09T00:00",
+      "durationMs": "1",
+      "expected": {
+        "ok": true,
+        "date": "2026/08/09",
+        "time": "00:00:00.001"
+      }
+    },
+    {
+      "id": "date-plus-one-day",
+      "operation": "mapDuration",
+      "anchor": "2026-08-09T00:00",
+      "durationMs": "86400000",
+      "expected": {
+        "ok": true,
+        "date": "2026/08/10",
+        "time": "00:00"
+      }
+    },
+    {
+      "id": "huge-duration-does-not-break-duration-core",
+      "operation": "mapDuration",
+      "anchor": "2026-08-09T00:00",
+      "durationMs": "25920000000000000",
+      "expected": {
+        "ok": false,
+        "reason": "date-out-of-range"
+      }
+    }
+  ],
+  "history": [
+    {
+      "id": "legacy-number-result-rebuilt-from-rows",
+      "operation": "normalizeRecord",
+      "input": {
+        "createdAt": 42,
+        "rows": [
+          {
+            "op": null,
+            "parts": [
+              { "kind": "unit", "unit": "d", "value": "300000000" }
+            ]
+          },
+          {
+            "op": "+",
+            "parts": [
+              { "kind": "unit", "unit": "s", "value": "0.001" }
+            ]
+          }
+        ],
+        "resultMs": 7,
+        "anchorDate": "2026-08-09"
+      },
+      "expected": {
+        "resultMs": "25920000000000001",
+        "anchorDateTime": "2026-08-09T00:00",
+        "schemaVersion": 2
+      }
+    },
+    {
+      "id": "invalid-empty-history-is-dropped",
+      "operation": "normalizeRecord",
+      "input": {
+        "createdAt": 1,
+        "rows": [],
+        "resultMs": 0
+      },
+      "expected": null
+    }
+  ],
+  "state": [
+    {
+      "id": "bigint-date-hour-mode-json-safe",
+      "operation": "normalizeSnapshot",
+      "input": {
+        "rows": [
+          {
+            "op": null,
+            "parts": [
+              { "kind": "unit", "unit": "d", "value": "300000000" }
+            ]
+          }
+        ],
+        "formatIndex": 1,
+        "lastResultMs": "25920000000000000",
+        "justEvaluated": true,
+        "anchorDateTime": "2026-08-09",
+        "hourDisplayMode": "sexagesimal"
+      },
+      "expected": {
+        "lastResultMs": "25920000000000000",
+        "anchorDateTime": "2026-08-09T00:00",
+        "formatIndex": 1,
+        "hourDisplayMode": "sexagesimal",
+        "justEvaluated": true
+      }
+    },
+    {
+      "id": "unfinished-decimal-is-restorable",
+      "operation": "normalizeSnapshot",
+      "input": {
+        "numberBuffer": "123."
+      },
+      "expected": {
+        "numberBuffer": "123.",
+        "hasContent": true
+      }
+    },
+    {
+      "id": "unfinished-colon-is-restorable",
+      "operation": "normalizeSnapshot",
+      "input": {
+        "colonMode": true,
+        "colonHours": "12345678901234567890",
+        "colonMinutes": "5",
+        "colonSeconds": "",
+        "colonStage": "minute"
+      },
+      "expected": {
+        "colonMode": true,
+        "colonHours": "12345678901234567890",
+        "colonMinutes": "5",
+        "colonStage": "minute",
+        "hasContent": true
+      }
+    },
+    {
+      "id": "display-only-is-not-content",
+      "operation": "normalizeSnapshot",
+      "input": {
+        "formatIndex": 1,
+        "hourDisplayMode": "sexagesimal"
+      },
+      "expected": {
+        "formatIndex": 1,
+        "hourDisplayMode": "sexagesimal",
+        "hasContent": false
+      }
+    },
+    {
+      "id": "history-restore-preserves-display-and-clears-draft",
+      "operation": "fromHistoryRecord",
+      "record": {
+        "rows": [
+          {
+            "op": null,
+            "parts": [
+              { "kind": "unit", "unit": "s", "value": "1" }
+            ]
+          },
+          {
+            "op": "-",
+            "parts": [
+              { "kind": "unit", "unit": "s", "value": "2" }
+            ]
+          }
+        ],
+        "anchorDateTime": "2026-08-09T00:00"
+      },
+      "base": {
+        "formatIndex": 1,
+        "hourDisplayMode": "sexagesimal",
+        "numberBuffer": "999"
+      },
+      "expected": {
+        "lastResultMs": "-1000",
+        "anchorDateTime": "2026-08-09T00:00",
+        "formatIndex": 1,
+        "hourDisplayMode": "sexagesimal",
+        "numberBuffer": "",
+        "justEvaluated": false
+      }
+    }
+  ]
+}
