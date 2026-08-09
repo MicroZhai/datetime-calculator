@@ -6,7 +6,48 @@
   'use strict';
 
   const SCHEMA_VERSION = 2;
+  const LEGACY_UNVERSIONED = 0;
   const DEFAULT_LIMIT = 50;
+
+  function schemaVersionOf(record) {
+    if (!record || typeof record !== 'object') return null;
+    if (!Object.prototype.hasOwnProperty.call(record, 'schemaVersion')) return LEGACY_UNVERSIONED;
+    return Number.isInteger(record.schemaVersion) && record.schemaVersion >= 0
+      ? record.schemaVersion
+      : null;
+  }
+
+  function migrateV0ToV1(record) {
+    return { ...record, schemaVersion: 1 };
+  }
+
+  function migrateV1ToV2(record) {
+    const next = { ...record, schemaVersion: 2 };
+    if (!next.anchorDateTime && next.anchorDate) next.anchorDateTime = next.anchorDate;
+    return next;
+  }
+
+  const MIGRATORS = Object.freeze({
+    0: migrateV0ToV1,
+    1: migrateV1ToV2
+  });
+
+  function migrateRecord(record) {
+    if (!record || typeof record !== 'object' || Array.isArray(record)) return null;
+    let version = schemaVersionOf(record);
+    if (version === null || version > SCHEMA_VERSION) return null;
+
+    let current = { ...record };
+    while (version < SCHEMA_VERSION) {
+      const migrate = MIGRATORS[version];
+      if (typeof migrate !== 'function') return null;
+      current = migrate(current);
+      const nextVersion = schemaVersionOf(current);
+      if (nextVersion === null || nextVersion <= version || nextVersion > SCHEMA_VERSION) return null;
+      version = nextVersion;
+    }
+    return current;
+  }
 
   function normalizeRows(rows) {
     if (DurationPrecisionRef?.normalizeStoredRowsStrict) {
@@ -32,8 +73,6 @@
     }
 
     if (!normalized) return null;
-    // Syntax-only normalization is not enough for persistence. Invalid optional
-    // calendar metadata is dropped while the exact duration record remains usable.
     if (DateMapperRef?.parseLocalDateTimeMs && DateMapperRef.parseLocalDateTimeMs(normalized) === null) {
       return null;
     }
@@ -75,20 +114,20 @@
   }
 
   function normalizeRecord(record) {
-    if (!record || typeof record !== 'object') return null;
-    const rows = normalizeRows(record.rows);
+    const migrated = migrateRecord(record);
+    if (!migrated) return null;
+
+    const rows = normalizeRows(migrated.rows);
     if (!rows.length) return null;
 
-    // Rows are the durable source of truth. Recompute resultMs during migration/load
-    // instead of trusting a legacy JSON number that may already have lost precision.
     const evaluated = evaluateNormalizedRows(rows);
     if (evaluated === null) return null;
 
-    const anchorDateTime = normalizeAnchorValue(record.anchorDateTime || record.anchorDate || null);
+    const anchorDateTime = normalizeAnchorValue(migrated.anchorDateTime || migrated.anchorDate || null);
     const signature = recordSignature(rows, anchorDateTime);
-    const createdAt = normalizeCreatedAt(record.createdAt);
-    const id = typeof record.id === 'string' && record.id
-      ? record.id
+    const createdAt = normalizeCreatedAt(migrated.createdAt);
+    const id = typeof migrated.id === 'string' && migrated.id
+      ? migrated.id
       : `h_migrated_${createdAt}_${simpleHash(signature)}`;
 
     const normalized = {
@@ -104,10 +143,8 @@
   }
 
   function createRecord({ rows, resultMs = null, anchorDateTime = null, id = '', createdAt = Date.now() } = {}) {
-    // resultMs intentionally does not become the source of truth. It remains in the API
-    // as a caller-side consistency hint while canonical persistence is rebuilt from rows.
     void resultMs;
-    return normalizeRecord({ rows, anchorDateTime, id, createdAt });
+    return normalizeRecord({ schemaVersion: SCHEMA_VERSION, rows, anchorDateTime, id, createdAt });
   }
 
   function normalizeList(records, limit = DEFAULT_LIMIT) {
@@ -175,7 +212,10 @@
 
   return Object.freeze({
     SCHEMA_VERSION,
+    LEGACY_UNVERSIONED,
     DEFAULT_LIMIT,
+    schemaVersionOf,
+    migrateRecord,
     normalizeRows,
     normalizeAnchorValue,
     rowsSignature,
