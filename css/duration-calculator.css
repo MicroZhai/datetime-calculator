@@ -169,21 +169,16 @@ main{display:flex;flex-direction:column;gap:var(--space-md)}
   inline-size:100%;text-align:end;font-size:38px;font-weight:700;line-height:1.2;letter-spacing:-.02em;
   overflow-wrap:anywhere;font-variant-numeric:tabular-nums;
 }
+.result-trigger{
+  appearance:none;border:0;padding:0;background:transparent;color:inherit;font:inherit;
+  display:block;cursor:pointer;text-align:end;border-radius:var(--radius-md);
+  transition:color var(--motion),opacity var(--motion),box-shadow var(--motion);
+}
+.result-trigger:hover{background:transparent;color:var(--accent-text)}
+.result-trigger:active{background:transparent;opacity:.72}
+.result-trigger:focus-visible{outline:3px solid var(--state-focus);outline-offset:4px}
 .secondary{text-align:end;font-size:14px;line-height:1.4;color:var(--text-secondary);margin-block-start:var(--space-xs);font-variant-numeric:tabular-nums}
 .error-line{min-block-size:20px;text-align:end;font-size:12px;line-height:1.4;color:var(--warn);margin-block-start:var(--space-xs)}
-
-.format-row{display:flex;justify-content:center;align-items:center;margin:0;min-inline-size:0}
-.format-control{position:relative;display:inline-flex;align-items:center;justify-content:center}
-.format-trigger{
-  inline-size:40px;min-block-size:40px;padding:0;border:1px solid var(--divider);
-  border-radius:var(--radius-md);background:transparent;color:var(--text-secondary);
-  display:grid;place-items:center;
-  cursor:pointer;transition:background var(--motion),border-color var(--motion),color var(--motion),transform var(--motion);
-}
-.format-trigger:hover{background:var(--state-hover);border-color:var(--text-tertiary)}
-.format-trigger:active{background:var(--state-pressed);transform:scale(.97)}
-.format-trigger:focus-visible{outline:3px solid var(--state-focus);outline-offset:2px}
-.format-trigger-label{display:grid;place-items:center;color:var(--accent-text);font-size:14px;font-weight:500;line-height:1}
 
 .keypad-region{padding-block-start:var(--space-xs)}
 .keypad{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));grid-template-rows:repeat(6,56px);gap:var(--space-sm)}

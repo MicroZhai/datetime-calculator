@@ -3,24 +3,27 @@
 
   function setOverflowState(element, focusable = false) {
     if (!element) return;
+    const isResult = element === resultEl;
     const overflowing = element.scrollWidth > element.clientWidth + 1;
     element.classList.toggle('numeric-overflow', overflowing);
 
     if (overflowing) {
       element.scrollLeft = element.scrollWidth;
       const text = element.textContent?.trim() || '';
-      if (text) element.title = text;
+      if (text && !isResult) element.title = text;
       if (focusable) {
         element.tabIndex = 0;
-        element.setAttribute('aria-label', `${text}，可左右滚动查看完整数值`);
+        element.setAttribute('aria-label', isResult
+          ? `${text}，当前按${element.dataset?.formatLabel || '当前方式'}显示，点击切换；可左右滚动查看完整数值`
+          : `${text}，可左右滚动查看完整数值`);
       }
       return;
     }
 
-    element.removeAttribute('title');
+    if (!isResult) element.removeAttribute('title');
     if (focusable) {
       element.removeAttribute('tabindex');
-      element.removeAttribute('aria-label');
+      if (!isResult) element.removeAttribute('aria-label');
     }
   }
 

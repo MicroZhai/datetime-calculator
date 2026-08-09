@@ -29,7 +29,7 @@ body .icon-btn{
 }
 
 body .display-region{
-  flex:0 0 auto;
+  flex:1 1 auto;
   min-block-size:0;
   display:flex;
   flex-direction:column;
@@ -58,10 +58,10 @@ body .error-line{
   margin-block-start:2px;
 }
 
-/* The result follows the expression at a stable distance. Empty space belongs to the
-   page canvas, never to a visually empty display card. */
+/* Spare height belongs to the display workspace. The result settles at the lower
+   edge while the keypad keeps a stable, calculator-like density. */
 body .result-group{
-  margin-block-start:var(--space-md);
+  margin-block-start:auto;
   padding-block-start:0;
 }
 
@@ -71,10 +71,6 @@ body .result{
 
 body .secondary{
   margin-block-start:2px;
-}
-
-body .format-row{
-  margin-block-start:0;
 }
 
 body .keypad-region{
@@ -102,22 +98,6 @@ body .key{
 
   body .hint{
     display:none;
-  }
-}
-
-/* On normal and tall phones, preserve the keypad's four-column layout while it
-   absorbs the space released by the compact display card. */
-@media(max-width:599px) and (min-height:680px){
-  body .keypad-region{
-    flex:1 1 auto;
-    min-block-size:0;
-    display:flex;
-  }
-
-  body .keypad{
-    flex:1 1 auto;
-    min-block-size:0;
-    grid-template-rows:repeat(6,minmax(48px,1fr));
   }
 }
 
@@ -173,12 +153,12 @@ body .key{
   }
 
   body .keypad{
-    grid-template-rows:repeat(6,42px);
+    grid-template-rows:repeat(6,44px);
     gap:var(--space-xs);
   }
 
   body .key{
-    min-block-size:40px;
+    min-block-size:44px;
     border-radius:var(--radius-md);
   }
 
@@ -219,8 +199,9 @@ body .key{
 
 @media(min-width:600px) and (max-width:839px) and (min-height:800px){
   body main{
-    flex:0 1 720px;
-    block-size:min(720px,calc(100dvh - 96px));
+    flex:1 1 auto;
+    block-size:auto;
+    max-block-size:976px;
     margin-block-start:clamp(20px,4vh,40px);
     margin-block-end:auto;
   }
@@ -251,8 +232,9 @@ body .key{
     display:grid;
     grid-template-columns:minmax(0,1fr) minmax(0,1fr);
     gap:var(--space-xxxl);
-    align-items:start;
-    flex:0 1 auto;
+    align-items:stretch;
+    flex:1 1 auto;
+    max-block-size:560px;
     margin-block-start:clamp(24px,5vh,56px);
     margin-block-end:auto;
   }
@@ -269,7 +251,7 @@ body .key{
 }
 
 /* Compact split: tablet landscape and narrow desktop windows keep the same
-   relationship, but avoid stretching the two regions to a desktop scale. */
+   equal-height contract while using tighter horizontal chrome. */
 @media(min-width:840px) and (max-width:1199px){
   body .app{
     inline-size:min(100%,1040px);
@@ -283,7 +265,7 @@ body .key{
 
 @media(min-width:840px) and (min-height:680px){
   body main{
-    min-block-size:600px;
+    min-block-size:0;
     block-size:auto;
   }
 }

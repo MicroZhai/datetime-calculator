@@ -106,8 +106,8 @@ body .current-row .line-menu{display:none}
    first reduce to the readable floor, then allow horizontal inspection instead of clipping digits. */
 body .result-group{
   display:grid;
-  grid-template-columns:40px minmax(0,1fr) auto;
-  grid-template-areas:"format result result" "end end secondary";
+  grid-template-columns:minmax(0,1fr) auto;
+  grid-template-areas:"result result" "end secondary";
   align-items:end;
   column-gap:var(--space-md);
   row-gap:0;
@@ -122,20 +122,13 @@ body .result-group::after{
   pointer-events:none;
 }
 
-body .result-group > .format-row{
-  grid-area:format;
-  align-self:center;
-  justify-self:start;
-  margin:0;
-}
-
 body .result-main-row{
   display:contents;
 }
 
 body .result-main-row .result{
   grid-area:result;
-  grid-column:2 / -1;
+  grid-column:1 / -1;
   grid-row:1;
   min-inline-size:0;
   max-inline-size:100%;
@@ -179,7 +172,7 @@ body .calendar-result::before{
 
 body .secondary{
   grid-area:secondary;
-  grid-column:3;
+  grid-column:2;
   grid-row:2;
   margin-block-start:var(--space-sm);
   text-align:end;
@@ -198,7 +191,7 @@ body .key.date-key.active{
 @media(max-width:599px) and (max-height:679px){
   body .display-region{
     padding:var(--space-sm);
-    border-radius:var(--radius-lg);
+    border-radius:var(--radius-xl);
   }
 
   body .status-row{
@@ -222,7 +215,6 @@ body .key.date-key.active{
   body .date-anchor-value{font-size:14px}
   body .calendar-result{font-size:13px}
   body .calendar-result::before{font-size:12px}
-  body .format-trigger{inline-size:40px;min-block-size:40px}
 }
 
 @media(max-width:359px){
@@ -234,7 +226,7 @@ body .key.date-key.active{
 @media(max-width:599px) and (max-height:579px){
   body .display-region{
     padding:var(--space-xs) var(--space-sm);
-    border-radius:var(--radius-md);
+    border-radius:var(--radius-xl);
   }
 
   body .status-row{min-block-size:28px;flex-basis:28px}
@@ -244,7 +236,6 @@ body .key.date-key.active{
   body .date-anchor-value{font-size:13px}
   body .calendar-result{font-size:13px}
   body .calendar-result::before{font-size:12px}
-  body .format-trigger{inline-size:40px;min-block-size:40px}
 }
 
 @media(min-width:840px), (min-width:600px) and (max-height:679px){

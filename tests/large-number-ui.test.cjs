@@ -70,6 +70,6 @@ result.scrollWidth = 200;
 context.render();
 assert.equal(result.classList.contains('numeric-overflow'), false);
 assert.equal(result.tabIndex, -1);
-assert.equal(result.attrs.has('aria-label'), false);
+assert.equal(result.attrs.has('aria-label'), true);
 
 console.log('large-number-ui: overflow behavior passed');

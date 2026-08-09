@@ -6,24 +6,20 @@
     } catch { return 'decimal'; }
   })();
   let fitFrame = 0;
-  const formatTrigger = document.getElementById('formatTrigger');
-  const formatTriggerLabel = document.getElementById('formatTriggerLabel');
+  const resultTrigger = document.getElementById('result');
 
 
   function syncFormatControl() {
-    if (!formatTrigger) return;
+    if (!resultTrigger) return;
     const labels = ['天', '时', '分'];
     const label = labels[formatIndex] || labels[0];
-    if (formatTriggerLabel) {
-      formatTriggerLabel.textContent = label;
-      formatTriggerLabel.classList.add('active');
-    }
-    formatTrigger.dataset.format = String(formatIndex);
-    formatTrigger.title = `切换结果显示方式，当前${label}`;
-    formatTrigger.setAttribute('aria-label', `切换结果显示方式，当前${label}`);
+    resultTrigger.dataset.format = String(formatIndex);
+    resultTrigger.dataset.formatLabel = label;
+    resultTrigger.title = `点击切换显示方式，当前按${label}显示`;
+    resultTrigger.setAttribute('aria-label', `计算结果 ${resultTrigger.textContent || ''}，当前按${label}显示，点击切换`);
   }
 
-  formatTrigger?.addEventListener('click', () => {
+  resultTrigger?.addEventListener('click', () => {
     formatIndex = (formatIndex + 1) % 3;
     render();
   });
@@ -58,7 +54,6 @@
   function fitPrimaryResult() {
     cancelAnimationFrame(fitFrame);
     resultEl.style.fontSize = '';
-    resultEl.removeAttribute('title');
     resultEl.classList.remove('result-scrollable');
     fitFrame = requestAnimationFrame(() => {
       const width = resultEl.clientWidth;if (!width) return;

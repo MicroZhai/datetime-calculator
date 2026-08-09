@@ -21,9 +21,8 @@
   --keypad-surface:#202224;
 }
 
-/* Phone: make the action region read as a real lower surface rather than a group of
-   floating keys. It bleeds to the calculator canvas edges but keeps controls aligned
-   to the same content rail. */
+/* Phone: the display and action surfaces share one outer rail. Their internal
+   controls also align because both surfaces use the same content padding. */
 @media(max-width:599px){
   body .app{
     padding-block-end:0;
@@ -34,7 +33,7 @@
     border-block-start:1px solid var(--divider);
     border-radius:var(--radius-xl);
     overflow:hidden;
-    margin-inline:calc(-1 * var(--space-md));
+    margin-inline:0;
     padding-inline:var(--space-md);
     padding-block-start:var(--space-sm);
     padding-block-end:calc(clamp(8px,1.5vh,16px) + env(safe-area-inset-bottom,0px));
@@ -51,7 +50,7 @@
 
 @media(max-width:319px){
   body .keypad-region{
-    margin-inline:calc(-1 * var(--space-sm));
+    margin-inline:0;
     padding-inline:var(--space-sm);
   }
 }
