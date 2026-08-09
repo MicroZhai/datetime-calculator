@@ -1,7 +1,19 @@
 (() => {
   let anchorDateTime = null;
 
-  const dateKey = document.querySelector('[data-action="date-now"]');
+  let dateKey = document.querySelector('[data-action="date-now"]');
+  const dayKey = document.querySelector('.k-day');
+  if (!dateKey && dayKey) {
+    dateKey = document.createElement('button');
+    dateKey.type = 'button';
+    dateKey.className = 'key date-key k-date';
+    dateKey.dataset.action = 'date-now';
+    dateKey.textContent = '日期';
+    dateKey.setAttribute('aria-label', '使用当前时间作为基准');
+    dateKey.setAttribute('aria-pressed', 'false');
+    dayKey.insertAdjacentElement('beforebegin', dateKey);
+  }
+
   const resultGroup = document.querySelector('.result-group');
   const dateInput = document.createElement('input');
   dateInput.type = 'datetime-local';
