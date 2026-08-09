@@ -27,14 +27,14 @@
   }
 
   function rowsSignature(rows) {
-    const normalized = normalizeRows(rows);
-    return JSON.stringify(normalized);
+    return JSON.stringify(normalizeRows(rows));
   }
 
   function recordSignature(rows, anchorDateTime = null) {
-    const normalized = normalizeRows(rows);
-    const anchor = normalizeAnchorValue(anchorDateTime);
-    return JSON.stringify({ anchorDateTime: anchor, rows: normalized });
+    return JSON.stringify({
+      anchorDateTime: normalizeAnchorValue(anchorDateTime),
+      rows: normalizeRows(rows)
+    });
   }
 
   function simpleHash(text) {
@@ -86,16 +86,10 @@
   }
 
   function createRecord({ rows, resultMs = null, anchorDateTime = null, id = '', createdAt = Date.now() } = {}) {
-    const record = normalizeRecord({ rows, anchorDateTime, id, createdAt, resultMs });
-    if (!record) return null;
-
-    // resultMs is accepted only as a consistency hint; the canonical value is derived
-    // from rows so serialized history can never disagree with the restorable expression.
-    if (resultMs !== null && DurationPrecisionRef?.toBigIntMs) {
-      const hinted = DurationPrecisionRef.toBigIntMs(resultMs);
-      record.resultMismatch = hinted !== null && hinted.toString() !== record.resultMs;
-    }
-    return record;
+    // resultMs intentionally does not become the source of truth. It remains in the API
+    // as a caller-side consistency hint while canonical persistence is rebuilt from rows.
+    void resultMs;
+    return normalizeRecord({ rows, anchorDateTime, id, createdAt });
   }
 
   function normalizeList(records, limit = DEFAULT_LIMIT) {
