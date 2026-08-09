@@ -1,12 +1,14 @@
-const CACHE_NAME = 'dtc-duration-v12-1-20260809';
+const CACHE_NAME = 'dtc-duration-v12-4-20260809';
 const APP_SHELL = [
   './',
   './index.html',
   './manifest.json',
   './css/duration-calculator.css',
+  './css/theme.css',
   './js/duration-core.js',
   './js/duration-ui.js',
   './js/duration-app.js',
+  './js/theme.js',
   './icons/icon-192.png',
   './icons/icon-512.png'
 ];
@@ -14,7 +16,9 @@ const APP_SHELL = [
 self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME)
-      .then(cache => cache.addAll(APP_SHELL))
+      .then(cache => cache.addAll(
+        APP_SHELL.map(url => new Request(url, { cache: 'no-cache' }))
+      ))
       .then(() => self.skipWaiting())
   );
 });
@@ -29,38 +33,39 @@ self.addEventListener('activate', event => {
   );
 });
 
+async function fetchWithRevalidation(request) {
+  try {
+    // cache:no-cache 允许浏览器继续使用 HTTP 缓存，但会优先通过
+    // ETag / Last-Modified 与服务器协商，资源没变化时无需重新下载正文。
+    const response = await fetch(request, { cache: 'no-cache' });
+
+    if (response && response.ok) {
+      const cache = await caches.open(CACHE_NAME);
+      const cacheKey = request.mode === 'navigate' ? './index.html' : request;
+      await cache.put(cacheKey, response.clone());
+    }
+
+    return response;
+  } catch (error) {
+    const cached = await caches.match(request);
+    if (cached) return cached;
+
+    if (request.mode === 'navigate') {
+      const shell = await caches.match('./index.html');
+      if (shell) return shell;
+    }
+
+    throw error;
+  }
+}
+
 self.addEventListener('fetch', event => {
   if (event.request.method !== 'GET') return;
 
   const url = new URL(event.request.url);
   if (url.origin !== self.location.origin) return;
 
-  if (event.request.mode === 'navigate') {
-    event.respondWith(
-      fetch(event.request)
-        .then(response => {
-          const copy = response.clone();
-          caches.open(CACHE_NAME).then(cache => cache.put('./index.html', copy));
-          return response;
-        })
-        .catch(() => caches.match('./index.html'))
-    );
-    return;
-  }
-
-  event.respondWith(
-    caches.match(event.request).then(cached => {
-      const network = fetch(event.request)
-        .then(response => {
-          if (response && response.ok) {
-            const copy = response.clone();
-            caches.open(CACHE_NAME).then(cache => cache.put(event.request, copy));
-          }
-          return response;
-        })
-        .catch(() => cached);
-
-      return cached || network;
-    })
-  );
+  // 在线时网络优先 + 协商缓存；离线时回退 Cache Storage。
+  // 这样用户刷新页面即可立即获得新 CSS / JS，而不是先命中旧 PWA 缓存。
+  event.respondWith(fetchWithRevalidation(event.request));
 });

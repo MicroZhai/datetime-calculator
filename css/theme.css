@@ -1,0 +1,93 @@
+:root[data-theme="light"]{
+  color-scheme:light;
+  --bg:#F1F3F5;
+  --header-bg:#FFFFFF;
+  --card:#FFFFFF;
+  --card-alt:#D8D8D8;
+  --divider:#D9DBDD;
+  --text-primary:#1A1F2E;
+  --text-secondary:#5B6478;
+  --text-tertiary:#6B6B75;
+  --accent:#0A59F7;
+  --accent-text:#0A59F7;
+  --warn:#ED6F21;
+  --danger:#E84026;
+  --overlay:#00000044;
+  --shadow:#1A1F2E22;
+  --state-pressed:#00000019;
+  --state-hover:#0000000C;
+  --state-focus:#0A59F733;
+}
+
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#000000;
+  --header-bg:#1D1D1E;
+  --card:#1D1D1E;
+  --card-alt:#303032;
+  --divider:#3C3C3C;
+  --text-primary:#E8E8ED;
+  --text-secondary:#9AA3B5;
+  --text-tertiary:#7E8698;
+  --accent:#317AF7;
+  --accent-text:#317AF7;
+  --warn:#DB6B42;
+  --danger:#D94838;
+  --overlay:#00000066;
+  --shadow:#00000055;
+  --state-pressed:#FFFFFF19;
+  --state-hover:#FFFFFF0C;
+  --state-focus:#317AF733;
+}
+
+.topbar{
+  position:relative;
+  grid-template-columns:96px minmax(0,1fr) 96px;
+}
+.top-actions{gap:0}
+
+.theme-menu{
+  position:absolute;
+  inset-block-start:52px;
+  inset-inline-end:0;
+  inline-size:176px;
+  padding:var(--space-xs);
+  border:1px solid var(--divider);
+  border-radius:var(--radius-xl);
+  background:var(--card);
+  box-shadow:0 6px 16px var(--shadow);
+  z-index:35;
+}
+.theme-option{
+  inline-size:100%;
+  min-block-size:48px;
+  display:grid;
+  grid-template-columns:minmax(0,1fr) 24px;
+  align-items:center;
+  gap:var(--space-sm);
+  padding-inline:var(--space-md);
+  border:0;
+  border-radius:var(--radius-md);
+  background:transparent;
+  color:var(--text-primary);
+  font-size:14px;
+  font-weight:400;
+  text-align:start;
+  cursor:pointer;
+  transition:background var(--motion),transform var(--motion);
+}
+.theme-option:hover{background:var(--state-hover)}
+.theme-option:active{background:var(--state-pressed);transform:scale(.98)}
+.theme-option[aria-checked="true"]{font-weight:500}
+.theme-check{
+  color:var(--accent-text);
+  font-size:16px;
+  text-align:center;
+  opacity:0;
+}
+.theme-option[aria-checked="true"] .theme-check{opacity:1}
+
+@media(max-width:319px){
+  .topbar{grid-template-columns:80px minmax(0,1fr) 80px}
+  .theme-menu{inline-size:168px;inset-block-start:48px}
+}
