@@ -7,14 +7,14 @@
 ## 1. Platform / Window Profile
 
 - 产品形态：可安装、可离线使用的 Web PWA。
-- 主要设备：手机竖屏，触控优先。
+- 主要设备：手机竖屏，触控优先；同时支持平板、电脑、横屏与分屏窗口。
 - 次要输入：桌面 / 平板浏览器的键盘与鼠标。
 - 主题：提供 `跟随系统 / 浅色 / 深色` 三种模式；默认跟随系统，手动选择持久化；Light / Dark 保持相同层级和交互职责。
 - Width 使用 Zhai min-width：xs `<320`、sm `≥320`、md `≥600`、lg `≥840`、xl `≥1440`。
-- Height 使用项目 Profile：Regular `≥820`、Compact `680–819`、Short `<680`。
-- xs：保持单列，缩减非必要横向 chrome 与间距，但触控区不低于 40px。
-- sm：默认手机单列。
-- md 及以上：高度充足时仍保持单任务居中列，不因窗口变宽自动增加侧栏；只有“宽且短”时允许将同一任务从 Stack 转为左右 Split。
+- Height 仍使用 Regular `≥820` / Compact `680–819` / Short `<680` 作为语义 Profile，但常见窗口尺寸通过 `clamp()` 流体变化，避免跨阈值突变。
+- xs / sm：默认手机 Stack；空间不足优先让 Expression 内部滚动，不把 Keypad 推出视区。
+- md `600–839`：正常 / 高窗口保持单任务居中 Stack，并设置舒适工作区高度上限；短窗口转 Split。
+- lg `≥840`：允许同一计算任务使用左右 Split；不新增 SideBar、Card 或第二业务工作区。
 - 响应式判断不按手机 / 平板 / PC 型号分支，而由实际窗口宽度、高度、方向和输入上下文决定。
 
 ## 2. Core Task
@@ -50,7 +50,7 @@
 
 `Expression → Result → Keypad`
 
-Short 且 md+ 时允许：
+md+ 短窗或 lg+ 允许：
 
 `Expression / Result | Keypad`
 
@@ -85,14 +85,14 @@ Short 且 md+ 时允许：
 ## 7. Typography / Alignment
 
 - Page Title：18px / Medium。
-- 核心结果：Regular 38px / Bold；Compact / Short 可在不破坏可读性的前提下轻微降级。
+- 核心结果：正常窗口最高 38px / Bold；短窗口可流体降级，但不牺牲识别。
 - 表达式：20px，数字使用 tabular numerals。
 - 基准时间 / 结束时间：Metadata 层级，使用 tabular numerals；默认单行显示，不主动拆成“日期一行 + 时间一行”。
 - 正常控件文字：14px；说明 / Metadata：12px。
 - 只使用 Regular 400 / Medium 500 / Bold 700，避免页面级临时 650 / 680 等近似字重。
 - 表达式、结果、规范化提示统一按逻辑 End 对齐。
 - 重复运算行共享运算符列、值列、操作列。
-- 第一排输入可使用独立的五等分语义组 `日期 / 天 / 时 / 分 / 秒`；其余计算键继续保持稳定四列，不用随机 offset 强行对齐。
+- 第一排输入使用五等分语义组 `日期 / 天 / 时 / 分 / 秒`；其余计算键保持稳定四列，不用随机 offset 强行对齐。
 
 ## 8. Tokens
 
@@ -172,13 +172,13 @@ Short 且 md+ 时允许：
 
 详细矩阵见 `RESPONSIVE_LAYOUT_PLAN.md`。长期规则：
 
-- 宽度决定 Composition，高度决定 Density。
-- Regular `≥820px`：完整信息与正常键盘密度。
-- Compact `680–819px`：隐藏底部说明；空的规范化 / 错误区不占位；表达式降低最大高度并内部滚动；键盘使用 48px 行高。
-- Short `<680px`：隐藏次级 `HH:MM:SS` 与说明；表达式成为主要局部滚动区；键盘使用 44px 行高，触控区仍 ≥40px。
-- md+ 且 Short：允许 `Stack → Split`，左侧 Expression / Result，右侧 Keypad；不新增 SideBar / Card / 第二业务工作区。
-- 长表达式增长到当前 Profile 的上限后只在 `Expression` 内部滚动，不能持续把 Keypad 推出主视区。
-- 空间不足优先级：结果 / 核心操作 / 当前表达式 > 基准与结束时间 > 格式切换 > 状态 > 辅助结果 > 说明 > 装饰。
+- 空余高度进入 Display Workspace，不允许在 Keypad 下方留下无职责大空洞。
+- 常见手机高度使用流体尺寸：Topbar、Result、Keypad row、Gap 与 Expression min-height 通过 `clamp()` 平滑变化。
+- Compact `<=819px`：隐藏底部说明并压缩底部 Padding；空的规范化 / 错误区不占位。
+- Short Phone `<680px`：Expression 最大约 96px，更多行只在 Expression 内滚动；不得把 Keypad 推出视区。
+- Extreme Short Phone `<580px`：次级 `HH:MM:SS` 可隐藏；Keypad row 约 42px，但实际触控区仍 ≥40px。
+- md 竖屏高窗口：工作区高度约 650px 上限，避免大平板内部出现巨大无意义空洞。
+- md+ 短窗与 lg+：允许 `Stack → Split`，左侧 Expression / Result，右侧 Keypad；不新增第二业务工作区。
 - 正常窗口目标是“不滚动整个页面即可完成核心计算”；字体放大、浏览器缩放和极端窗口允许必要 Reflow / 页面滚动。
 
 ## 14. Review Gate
@@ -194,7 +194,7 @@ Short 且 md+ 时允许：
 - State 是否在不改变几何的情况下清楚表达；
 - 可逆删除是否仍可撤销；
 - Light / Dark 是否语义等价；
-- 320×568、360×640、360×780、390×844、600×600、840×480、1024×768、1440×900 是否覆盖；
-- Compact / Short 是否先降级次级内容，而不是先牺牲触控尺寸；
-- 长表达式是否只滚动表达式区域；
+- 至少覆盖 320×568、347×610、360×640、360×780、390×844、600×600、768×1024、840×480、1024×768、1440×900；
+- Empty 与 Busy（至少 3 行表达式 + 基准时间）都必须检查文档是否溢出、Keypad 是否完整可见；
+- 长表达式是否只滚动 Expression；
 - 字体放大、浏览器缩放、键盘 Focus、Reduce Motion 下是否仍可完成核心任务。
