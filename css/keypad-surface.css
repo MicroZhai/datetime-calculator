@@ -1,0 +1,71 @@
+/* Keypad Action Surface
+   Region boundary for the calculator action area.
+   Uses the lightest sufficient grouping level: neutral background layer + divider.
+   No card radius, border box, shadow, or decorative elevation. */
+
+:root{
+  --keypad-surface:#E5E5EA;
+}
+
+@media(prefers-color-scheme:dark){
+  :root{
+    --keypad-surface:#202224;
+  }
+}
+
+:root[data-theme="light"]{
+  --keypad-surface:#E5E5EA;
+}
+
+:root[data-theme="dark"]{
+  --keypad-surface:#202224;
+}
+
+/* Phone: make the action region read as a real lower surface rather than a group of
+   floating keys. It bleeds to the calculator canvas edges but keeps controls aligned
+   to the same content rail. */
+@media(max-width:599px){
+  body .app{
+    padding-block-end:0;
+  }
+
+  body .display-region{
+    padding-block-end:var(--space-xs);
+  }
+
+  body .keypad-region{
+    background:var(--keypad-surface);
+    border-block-start:1px solid var(--divider);
+    margin-inline:calc(-1 * var(--space-md));
+    padding-inline:var(--space-md);
+    padding-block-start:var(--space-sm);
+    padding-block-end:calc(clamp(8px,1.5vh,16px) + env(safe-area-inset-bottom,0px));
+  }
+}
+
+@media(max-width:319px){
+  body .keypad-region{
+    margin-inline:calc(-1 * var(--space-sm));
+    padding-inline:var(--space-sm);
+  }
+}
+
+/* Medium single-column windows: keep the same semantic surface, but do not force
+   full-bleed geometry across a large canvas. */
+@media(min-width:600px) and (max-width:839px) and (min-height:680px){
+  body .keypad-region{
+    background:var(--keypad-surface);
+    border-block-start:1px solid var(--divider);
+    padding:var(--space-md);
+  }
+}
+
+/* Split layouts already have spatial separation. The keypad still receives the same
+   neutral action surface, without adding another divider or card treatment. */
+@media(min-width:840px), (min-width:600px) and (max-height:679px){
+  body .keypad-region{
+    background:var(--keypad-surface);
+    border-block-start:0;
+    padding:var(--space-md);
+  }
+}
