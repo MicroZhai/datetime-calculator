@@ -36,6 +36,16 @@
     return `${date.replaceAll('-', '/')} ${time}`;
   }
 
+  function buildLocalDate(year, month, day, hour, minute) {
+    // `new Date(year, ...)` remaps years 0..99 to 1900..1999. Build from an
+    // existing Date and set the full year explicitly so four-digit early years
+    // such as 0099 retain their actual calendar meaning.
+    const probe = new Date(0);
+    probe.setFullYear(year, month - 1, day);
+    probe.setHours(hour, minute, 0, 0);
+    return probe;
+  }
+
   function parseLocalDateTimeMs(value) {
     const normalized = normalizeAnchorValue(value);
     if (!normalized) return null;
@@ -43,9 +53,9 @@
     const [year, month, day] = datePart.split('-').map(Number);
     const [hour, minute] = timePart.split(':').map(Number);
     if (![year, month, day, hour, minute].every(Number.isInteger)) return null;
-    if (month < 1 || month > 12 || day < 1 || day > 31 || hour < 0 || hour > 23 || minute < 0 || minute > 59) return null;
+    if (year < 1 || month < 1 || month > 12 || day < 1 || day > 31 || hour < 0 || hour > 23 || minute < 0 || minute > 59) return null;
 
-    const probe = new Date(year, month - 1, day, hour, minute, 0, 0);
+    const probe = buildLocalDate(year, month, day, hour, minute);
     if (Number.isNaN(probe.getTime())) return null;
     if (probe.getFullYear() !== year || probe.getMonth() !== month - 1 || probe.getDate() !== day ||
         probe.getHours() !== hour || probe.getMinutes() !== minute) return null;
