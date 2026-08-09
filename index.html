@@ -2,8 +2,10 @@
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
-<meta name="theme-color" content="#050505">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#F1F3F5" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
 <meta name="description" content="像普通计算器一样进行时长加减：支持天、时、分、秒、冒号快捷输入、多行表达式编辑与历史恢复。">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -19,84 +21,97 @@
     <div></div>
     <div class="title">时间计算器</div>
     <div class="top-actions">
-      <button class="icon-btn" id="historyBtn" aria-label="计算历史" title="计算历史">↶</button>
+      <button class="icon-btn" id="historyBtn" type="button" aria-label="计算历史" title="计算历史">
+        <svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path d="M4.75 7.75V3.9M4.75 7.75H8.6M4.75 7.75A8 8 0 1 1 4 15.15"/>
+          <path d="M12 7.5V12l3 1.8"/>
+        </svg>
+      </button>
     </div>
   </header>
 
-  <section class="display-card">
-    <div class="status-row"><span class="badge" id="badge">输入数字后选择单位</span></div>
+  <main>
+    <section class="display-region" aria-label="计算内容">
+      <div class="status-row" aria-live="polite"><span class="badge" id="badge">输入数字，再选择单位</span></div>
 
-    <div class="expr-scroll" id="exprScroll">
-      <div id="expression"></div>
-    </div>
-
-    <div class="row-actions" id="rowActions">
-      <span class="label" id="rowActionLabel">已选择一行</span>
-      <button class="small-btn toggle" id="toggleOpBtn">切换 ±</button>
-      <button class="small-btn danger" id="deleteRowBtn">删除行</button>
-      <button class="small-btn blue" id="doneRowBtn">完成</button>
-    </div>
-
-    <div class="normalized" id="normalized"></div>
-    <div class="result" id="result">0分</div>
-    <div class="secondary" id="secondary">00:00:00</div>
-    <div class="error-line" id="errorLine"></div>
-
-    <div class="format-row">
-      <div class="format-switch">
-        <button class="format-option active" data-format="0">天时分秒</button>
-        <button class="format-option" data-format="1">小时</button>
-        <button class="format-option" data-format="2">分</button>
+      <div class="expr-scroll" id="exprScroll">
+        <div id="expression"></div>
       </div>
-    </div>
-  </section>
 
-  <section class="keypad-wrap">
-    <div class="keypad">
-      <button class="key unit k-day" data-unit="d">天</button>
-      <button class="key unit k-hour" data-unit="h">时</button>
-      <button class="key unit k-minute" data-unit="m">分</button>
-      <button class="key unit k-second" data-unit="s">秒</button>
+      <div class="row-actions" id="rowActions">
+        <span class="label" id="rowActionLabel">已选择一行</span>
+        <button class="small-btn toggle" id="toggleOpBtn" type="button">切换加减</button>
+        <button class="small-btn danger" id="deleteRowBtn" type="button">删除行</button>
+        <button class="small-btn" id="doneRowBtn" type="button">完成</button>
+      </div>
 
-      <button class="key util k-clear" data-action="clear">清空</button>
-      <button class="key util k-back" data-action="back">⌫</button>
-      <button class="key colon-key k-colon" data-action="colon">:</button>
-      <button class="key op k-minus" data-op="-">−</button>
+      <div class="normalized" id="normalized"></div>
+      <div class="result-group" aria-live="polite" aria-atomic="true">
+        <div class="result" id="result">0分</div>
+        <div class="secondary" id="secondary">00:00:00</div>
+      </div>
+      <div class="error-line" id="errorLine" role="status" aria-live="polite"></div>
 
-      <button class="key k7" data-digit="7">7</button>
-      <button class="key k8" data-digit="8">8</button>
-      <button class="key k9" data-digit="9">9</button>
-      <button class="key op k-plus" data-op="+">+</button>
+      <div class="format-row">
+        <div class="format-switch" role="radiogroup" aria-label="结果显示方式">
+          <button class="format-option active" data-format="0" type="button" role="radio" aria-checked="true">天时分秒</button>
+          <button class="format-option" data-format="1" type="button" role="radio" aria-checked="false">小时</button>
+          <button class="format-option" data-format="2" type="button" role="radio" aria-checked="false">分</button>
+        </div>
+      </div>
+    </section>
 
-      <button class="key k4" data-digit="4">4</button>
-      <button class="key k5" data-digit="5">5</button>
-      <button class="key k6" data-digit="6">6</button>
-      <button class="key equal k-equal" data-action="equals">=</button>
+    <section class="keypad-region" aria-label="计算键盘">
+      <div class="keypad">
+        <button class="key unit k-day" data-unit="d" type="button" aria-keyshortcuts="D">天</button>
+        <button class="key unit k-hour" data-unit="h" type="button" aria-keyshortcuts="H">时</button>
+        <button class="key unit k-minute" data-unit="m" type="button" aria-keyshortcuts="M">分</button>
+        <button class="key unit k-second" data-unit="s" type="button" aria-keyshortcuts="S">秒</button>
 
-      <button class="key k1" data-digit="1">1</button>
-      <button class="key k2" data-digit="2">2</button>
-      <button class="key k3" data-digit="3">3</button>
+        <button class="key util danger-text k-clear" data-action="clear" type="button">清空</button>
+        <button class="key util k-back" data-action="back" type="button" aria-label="退格" aria-keyshortcuts="Backspace">⌫</button>
+        <button class="key colon-key k-colon" data-action="colon" type="button" aria-label="冒号输入" aria-keyshortcuts=":">:</button>
+        <button class="key op k-minus" data-op="-" type="button" aria-label="减" aria-keyshortcuts="-">−</button>
 
-      <button class="key k0" data-digit="0">0</button>
-      <button class="key k00" data-digit="00">00</button>
-      <button class="key kdot" data-digit=".">.</button>
-    </div>
-    <div class="hint">按 = 后保存完整表达式；点右上角历史按钮，可恢复原始输入并继续编辑。</div>
-  </section>
+        <button class="key k7" data-digit="7" type="button">7</button>
+        <button class="key k8" data-digit="8" type="button">8</button>
+        <button class="key k9" data-digit="9" type="button">9</button>
+        <button class="key op k-plus" data-op="+" type="button" aria-label="加" aria-keyshortcuts="+">+</button>
+
+        <button class="key k4" data-digit="4" type="button">4</button>
+        <button class="key k5" data-digit="5" type="button">5</button>
+        <button class="key k6" data-digit="6" type="button">6</button>
+        <button class="key equal k-equal" data-action="equals" type="button" aria-label="计算" aria-keyshortcuts="Enter =">=</button>
+
+        <button class="key k1" data-digit="1" type="button">1</button>
+        <button class="key k2" data-digit="2" type="button">2</button>
+        <button class="key k3" data-digit="3" type="button">3</button>
+
+        <button class="key k0" data-digit="0" type="button">0</button>
+        <button class="key k00" data-digit="00" type="button">00</button>
+        <button class="key kdot" data-digit="." type="button" aria-label="小数点">.</button>
+      </div>
+      <p class="hint">按 = 保存到历史；历史记录可恢复后继续编辑。</p>
+    </section>
+  </main>
 </div>
 
 <div class="history-mask" id="historyMask">
-  <section class="history-sheet" role="dialog" aria-modal="true" aria-label="计算历史">
+  <section class="history-sheet" role="dialog" aria-modal="true" aria-labelledby="historyTitle">
     <div class="history-head">
-      <button class="history-head-btn" id="closeHistoryBtn">关闭</button>
-      <div class="history-title">计算历史</div>
-      <button class="history-head-btn danger" id="clearHistoryBtn">清空</button>
+      <button class="history-head-btn" id="closeHistoryBtn" type="button">关闭</button>
+      <div class="history-title" id="historyTitle">计算历史</div>
+      <button class="history-head-btn danger" id="clearHistoryBtn" type="button">清空</button>
     </div>
     <div class="history-list" id="historyList"></div>
   </section>
 </div>
 
-<div class="toast" id="toast"></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<div class="undo-bar" id="undoBar" role="status" aria-live="polite" aria-atomic="true">
+  <span id="undoMessage"></span>
+  <button id="undoButton" type="button">撤销</button>
+</div>
 <script src="js/duration-core.js"></script>
 <script src="js/duration-ui.js"></script>
 <script src="js/duration-app.js"></script>
