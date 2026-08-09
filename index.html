@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="color-scheme" content="light dark">
 <meta name="theme-color" id="themeColorMeta" content="#F1F3F5">
-<meta name="description" content="像普通计算器一样进行时长加减：支持天、时、分、秒、冒号快捷输入、多行表达式编辑与历史恢复。">
+<meta name="description" content="像普通计算器一样进行时长加减：支持天、时、分、秒、基准日期推算、冒号快捷输入、多行表达式编辑与历史恢复。">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -24,6 +24,7 @@
 <title>时间计算器</title>
 <link rel="stylesheet" href="css/duration-calculator.css">
 <link rel="stylesheet" href="css/theme.css">
+<link rel="stylesheet" href="css/date-anchor.css">
 </head>
 <body>
 <div class="app">
@@ -142,6 +143,7 @@
 <script src="js/duration-core.js"></script>
 <script src="js/duration-ui.js"></script>
 <script src="js/duration-app.js"></script>
+<script src="js/date-anchor.js"></script>
 <script src="js/theme.js"></script>
 <script>
 (() => {
@@ -155,7 +157,8 @@
     try {
       const inputActive = numberBuffer !== '' || colonMode || currentParts.length > 0 ||
         currentOp !== null || selectedRow !== null || partEdit !== null;
-      const unfinishedExpression = rows.length > 0 && !justEvaluated;
+      const dateOnly = rows.length === 0 && Boolean(document.querySelector('.date-anchor.has-date'));
+      const unfinishedExpression = (rows.length > 0 && !justEvaluated) || dateOnly;
       return !inputActive && !unfinishedExpression;
     } catch (_) {
       return true;
