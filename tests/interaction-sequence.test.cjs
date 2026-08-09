@@ -27,21 +27,33 @@ function classList() {
 }
 
 function fakeElement() {
+  const attributes = new Map();
   return {
     textContent: '',
     innerHTML: '',
     value: '',
     disabled: false,
+    hidden: false,
     tabIndex: 0,
+    title: '',
+    type: '',
+    className: '',
     style: {},
     dataset: {},
     classList: classList(),
     scrollTop: 0,
     scrollHeight: 0,
+    firstChild: null,
     onclick: null,
     addEventListener() {},
-    setAttribute() {},
+    setAttribute(name, value) { attributes.set(name, String(value)); },
+    getAttribute(name) { return attributes.has(name) ? attributes.get(name) : null; },
     focus() {},
+    click() { if (typeof this.onclick === 'function') this.onclick(); },
+    append() {},
+    appendChild() {},
+    insertBefore() {},
+    insertAdjacentElement() {},
     querySelector() { return null; },
     querySelectorAll() { return []; },
     getClientRects() { return [1]; },
@@ -56,15 +68,22 @@ function createHarness() {
     return elements.get(id);
   };
 
+  const body = fakeElement();
   const document = {
     hidden: false,
     activeElement: null,
+    body,
+    createElement() { return fakeElement(); },
     getElementById: byId,
     querySelector(selector) {
       if (selector === '[data-action="colon"]') return byId('action-colon');
       if (selector === '[data-action="clear"]') return byId('action-clear');
       if (selector === '[data-action="back"]') return byId('action-back');
       if (selector === '[data-action="equals"]') return byId('action-equals');
+      if (selector.includes('date-toggle') || selector.includes('date-now')) return byId('action-date');
+      if (selector === '.status-row') return byId('status-row');
+      if (selector === '.result-group') return byId('result-group');
+      if (selector === '.k-day') return byId('day-key');
       return fakeElement();
     },
     querySelectorAll() { return []; },
@@ -108,6 +127,7 @@ function createHarness() {
   run('js/duration-core.js');
   run('js/duration-ui.js');
   run('js/duration-app.js');
+  run('js/date-anchor.js');
   run('js/calculator-state-runtime.js');
 
   const call = expression => vm.runInNewContext(expression, context);
@@ -182,6 +202,23 @@ sequence('history restore can continue calculating', ({ call, result, history, s
   call("inputOperator('-'); inputDigit('1'); commitUnit('h'); equals();");
   assert.equal(result(), '25919999996400001');
   assert.equal(history().length, 2);
+});
+
+sequence('dated history restores date context and continues calculating', ({ call, result, history, state }) => {
+  call("restoreCalculator({...snapshotCalculator(), anchorDateTime:'2026-08-09T00:00'}); inputDigit('1'); commitUnit('d'); equals();");
+  assert.equal(result(), '86400000');
+  assert.equal(history().length, 1);
+  assert.equal(history()[0].anchorDateTime, '2026-08-09T00:00');
+
+  call('clearAll(false);');
+  assert.equal(state().anchorDateTime, null);
+  call('restoreHistory(0);');
+  assert.equal(state().anchorDateTime, '2026-08-09T00:00');
+  assert.equal(result(), '86400000');
+
+  call("inputOperator('+'); inputDigit('1'); commitUnit('h'); equals();");
+  assert.equal(result(), '90000000');
+  assert.equal(history()[0].anchorDateTime, '2026-08-09T00:00');
 });
 
 sequence('display format changes never change exact result', ({ call, result }) => {
