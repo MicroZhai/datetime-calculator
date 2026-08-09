@@ -1,0 +1,253 @@
+{
+  "schemaVersion": 1,
+  "description": "Shared corruption and legacy-migration fixtures for persisted calculator data.",
+  "strictRows": [
+    {
+      "id": "legacy-one-digit-colon-minute-is-safe-to-pad",
+      "input": [
+        {
+          "op": null,
+          "parts": [
+            { "kind": "colon", "hours": "1", "minutes": "5", "seconds": null }
+          ]
+        }
+      ],
+      "expected": [
+        {
+          "op": null,
+          "parts": [
+            { "kind": "colon", "hours": "1", "minutes": "05", "seconds": null }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "legacy-leading-plus-is-safe-to-remove",
+      "input": [
+        {
+          "op": "+",
+          "parts": [
+            { "kind": "unit", "unit": "m", "value": 5 }
+          ]
+        }
+      ],
+      "expected": [
+        {
+          "op": null,
+          "parts": [
+            { "kind": "unit", "unit": "m", "value": "5" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "overlong-colon-minute-is-not-truncated",
+      "input": [
+        {
+          "op": null,
+          "parts": [
+            { "kind": "colon", "hours": "1", "minutes": "005", "seconds": null }
+          ]
+        }
+      ],
+      "expected": null
+    },
+    {
+      "id": "unknown-sibling-part-rejects-whole-row-set",
+      "input": [
+        {
+          "op": null,
+          "parts": [
+            { "kind": "unit", "unit": "s", "value": "1" },
+            { "kind": "unknown", "value": "999" }
+          ]
+        }
+      ],
+      "expected": null
+    },
+    {
+      "id": "unknown-following-operator-is-not-rewritten-to-plus",
+      "input": [
+        {
+          "op": null,
+          "parts": [
+            { "kind": "unit", "unit": "s", "value": "1" }
+          ]
+        },
+        {
+          "op": "*",
+          "parts": [
+            { "kind": "unit", "unit": "s", "value": "1" }
+          ]
+        }
+      ],
+      "expected": null
+    }
+  ],
+  "history": [
+    {
+      "id": "unknown-part-drops-corrupted-record",
+      "input": {
+        "rows": [
+          {
+            "op": null,
+            "parts": [
+              { "kind": "unit", "unit": "s", "value": "1" },
+              { "kind": "unknown", "value": "999" }
+            ]
+          }
+        ]
+      },
+      "expected": null
+    },
+    {
+      "id": "overlong-colon-minute-drops-record",
+      "input": {
+        "rows": [
+          {
+            "op": null,
+            "parts": [
+              { "kind": "colon", "hours": "1", "minutes": "005", "seconds": null }
+            ]
+          }
+        ]
+      },
+      "expected": null
+    },
+    {
+      "id": "unknown-operator-drops-record",
+      "input": {
+        "rows": [
+          {
+            "op": null,
+            "parts": [
+              { "kind": "unit", "unit": "s", "value": "1" }
+            ]
+          },
+          {
+            "op": "*",
+            "parts": [
+              { "kind": "unit", "unit": "s", "value": "1" }
+            ]
+          }
+        ]
+      },
+      "expected": null
+    },
+    {
+      "id": "over-limit-unit-drops-record",
+      "input": {
+        "rows": [
+          {
+            "op": null,
+            "parts": [
+              {
+                "kind": "unit",
+                "unit": "d",
+                "value": "99999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999"
+              }
+            ]
+          }
+        ]
+      },
+      "expected": null
+    },
+    {
+      "id": "invalid-optional-anchor-is-dropped-but-duration-survives",
+      "input": {
+        "rows": [
+          {
+            "op": null,
+            "parts": [
+              { "kind": "unit", "unit": "s", "value": "1" }
+            ]
+          }
+        ],
+        "anchorDateTime": "2026-02-29T00:00"
+      },
+      "expected": {
+        "resultMs": "1000"
+      },
+      "expectedAbsent": ["anchorDateTime"]
+    },
+    {
+      "id": "valid-legacy-one-digit-colon-is-migrated-not-dropped",
+      "input": {
+        "rows": [
+          {
+            "op": null,
+            "parts": [
+              { "kind": "colon", "hours": "1", "minutes": 5, "seconds": null }
+            ]
+          }
+        ]
+      },
+      "expected": {
+        "resultMs": "3900000",
+        "rows": [
+          {
+            "op": null,
+            "parts": [
+              { "kind": "colon", "hours": "1", "minutes": "05", "seconds": null }
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "state": [
+    {
+      "id": "damaged-committed-rows-are-not-partially-salvaged",
+      "input": {
+        "rows": [
+          {
+            "op": null,
+            "parts": [
+              { "kind": "unit", "unit": "s", "value": "1" },
+              { "kind": "unknown", "value": "999" }
+            ]
+          }
+        ],
+        "lastResultMs": "1000"
+      },
+      "expected": {
+        "rows": []
+      }
+    },
+    {
+      "id": "invalid-calendar-anchor-is-removed-from-state",
+      "input": {
+        "rows": [
+          {
+            "op": null,
+            "parts": [
+              { "kind": "unit", "unit": "s", "value": "1" }
+            ]
+          }
+        ],
+        "anchorDateTime": "2026-02-29T00:00"
+      },
+      "expected": {
+        "anchorDateTime": null
+      }
+    },
+    {
+      "id": "editing-drafts-remain-permissive",
+      "input": {
+        "colonMode": true,
+        "colonHours": "12",
+        "colonMinutes": "5",
+        "colonSeconds": "",
+        "colonStage": "minute",
+        "numberBuffer": "123."
+      },
+      "expected": {
+        "colonMode": true,
+        "colonHours": "12",
+        "colonMinutes": "5",
+        "colonSeconds": "",
+        "numberBuffer": "123."
+      }
+    }
+  ]
+}
