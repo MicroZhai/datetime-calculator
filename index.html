@@ -1,228 +1,104 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <meta name="theme-color" content="#F5F5F5">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>时间计算器</title>
-  <link rel="manifest" href="manifest.json">
-  <link rel="apple-touch-icon" href="icons/icon-192.png">
-  <link rel="stylesheet" href="css/style.css">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#050505">
+<meta name="description" content="像普通计算器一样进行时长加减：支持天、时、分、秒、冒号快捷输入、多行表达式编辑与历史恢复。">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<title>时间计算器</title>
+<link rel="stylesheet" href="css/duration-calculator.css">
 </head>
 <body>
-
-  <!-- ====== 更新横幅 ====== -->
-  <div id="update-banner" class="update-banner hidden">
-    <span>发现新版本</span>
-    <button id="update-btn" class="update-btn">更新</button>
-  </div>
-
-  <!-- ====== 时钟头部 ====== -->
-  <header id="clock-header">
-    <p class="clock-label">时间计算器</p>
-    <div id="current-time-display" class="clock-time">--:--:--</div>
-    <p id="current-date-display" class="clock-date"></p>
+<div class="app">
+  <header class="topbar">
+    <div></div>
+    <div class="title">时间计算器</div>
+    <div class="top-actions">
+      <button class="icon-btn" id="historyBtn" aria-label="计算历史" title="计算历史">↶</button>
+    </div>
   </header>
 
-  <!-- ====== 计算器列表 ====== -->
-  <main id="calc-list" class="calc-list">
-    <!-- JS 动态渲染卡片 -->
-  </main>
+  <section class="display-card">
+    <div class="status-row"><span class="badge" id="badge">输入数字后选择单位</span></div>
 
-  <!-- ====== 空状态提示 ====== -->
-  <div id="empty-state" class="empty-state hidden">
-    <div class="empty-icon">⏱️</div>
-    <p>还没有计算器</p>
-    <button id="empty-new-btn" class="btn-primary">新建第一个</button>
-  </div>
-
-  <!-- ====== 底部导航 + 新建按钮 ====== -->
-  <nav id="bottom-nav" class="bottom-nav">
-    <button id="nav-toggle" class="nav-item nav-item--active" data-nav="toggle">
-      <span class="nav-icon" id="nav-toggle-icon">☰</span>
-      <span class="nav-label" id="nav-toggle-label">简洁</span>
-    </button>
-    <button id="nav-history" class="nav-item" data-nav="history">
-      <span class="nav-icon">🕘</span>
-      <span class="nav-label">历史</span>
-    </button>
-    <button id="nav-settings" class="nav-item" data-nav="settings">
-      <span class="nav-icon">⚙️</span>
-      <span class="nav-label">设置</span>
-    </button>
-  </nav>
-
-  <button id="new-btn-bottom" class="fab-btn" title="新建计算器" aria-label="新建计算器">＋</button>
-
-  <!-- ====== 编辑弹窗（底部抽屉） ====== -->
-  <div id="sheet-overlay" class="sheet-overlay hidden"></div>
-  <div id="edit-sheet" class="edit-sheet">
-    <div class="sheet-handle"></div>
-
-    <div class="sheet-header">
-      <h2 id="sheet-title">新建计算器</h2>
-      <button id="sheet-close-btn" class="icon-btn" aria-label="关闭">✕</button>
+    <div class="expr-scroll" id="exprScroll">
+      <div id="expression"></div>
     </div>
 
-    <div class="sheet-body">
-      <!-- 名称 -->
-      <div class="form-group">
-        <label for="input-name">名称</label>
-        <input type="text" id="input-name" maxlength="30" placeholder="例如：会议结束时间">
-      </div>
+    <div class="row-actions" id="rowActions">
+      <span class="label" id="rowActionLabel">已选择一行</span>
+      <button class="small-btn toggle" id="toggleOpBtn">切换 ±</button>
+      <button class="small-btn danger" id="deleteRowBtn">删除行</button>
+      <button class="small-btn blue" id="doneRowBtn">完成</button>
+    </div>
 
-      <!-- 时段列表 -->
-      <div class="form-group">
-        <label>时段列表</label>
-        <div id="segments-container">
-          <!-- JS 动态渲染时段编辑器 -->
-        </div>
-        <button id="add-segment-btn" class="btn-add-segment">+ 添加时段</button>
-      </div>
+    <div class="normalized" id="normalized"></div>
+    <div class="result" id="result">0分</div>
+    <div class="secondary" id="secondary">00:00:00</div>
+    <div class="error-line" id="errorLine"></div>
 
-      <!-- 时长历史 -->
-      <div class="form-group">
-        <label>历史时长（填入当前时段）</label>
-        <div id="duration-history" class="quick-durations">
-          <!-- JS 动态渲染 -->
-        </div>
+    <div class="format-row">
+      <div class="format-switch">
+        <button class="format-option active" data-format="0">天时分秒</button>
+        <button class="format-option" data-format="1">小时</button>
+        <button class="format-option" data-format="2">分</button>
       </div>
     </div>
+  </section>
 
-    <div class="sheet-footer">
-      <button id="save-btn" class="btn-primary">保存</button>
-      <button id="delete-btn" class="btn-danger hidden">删除此计算器</button>
+  <section class="keypad-wrap">
+    <div class="keypad">
+      <button class="key unit k-day" data-unit="d">天</button>
+      <button class="key unit k-hour" data-unit="h">时</button>
+      <button class="key unit k-minute" data-unit="m">分</button>
+      <button class="key unit k-second" data-unit="s">秒</button>
+
+      <button class="key util k-clear" data-action="clear">清空</button>
+      <button class="key util k-back" data-action="back">⌫</button>
+      <button class="key colon-key k-colon" data-action="colon">:</button>
+      <button class="key op k-minus" data-op="-">−</button>
+
+      <button class="key k7" data-digit="7">7</button>
+      <button class="key k8" data-digit="8">8</button>
+      <button class="key k9" data-digit="9">9</button>
+      <button class="key op k-plus" data-op="+">+</button>
+
+      <button class="key k4" data-digit="4">4</button>
+      <button class="key k5" data-digit="5">5</button>
+      <button class="key k6" data-digit="6">6</button>
+      <button class="key equal k-equal" data-action="equals">=</button>
+
+      <button class="key k1" data-digit="1">1</button>
+      <button class="key k2" data-digit="2">2</button>
+      <button class="key k3" data-digit="3">3</button>
+
+      <button class="key k0" data-digit="0">0</button>
+      <button class="key k00" data-digit="00">00</button>
+      <button class="key kdot" data-digit=".">.</button>
     </div>
-  </div>
+    <div class="hint">按 = 后保存完整表达式；点右上角历史按钮，可恢复原始输入并继续编辑。</div>
+  </section>
+</div>
 
-  <!-- ====== 设置弹窗 ====== -->
-  <div id="settings-overlay" class="sheet-overlay hidden"></div>
-  <div id="settings-sheet" class="edit-sheet">
-    <div class="sheet-handle"></div>
-    <div class="sheet-header">
-      <h2>设置</h2>
-      <button id="settings-close-btn" class="icon-btn" aria-label="关闭">✕</button>
+<div class="history-mask" id="historyMask">
+  <section class="history-sheet" role="dialog" aria-modal="true" aria-label="计算历史">
+    <div class="history-head">
+      <button class="history-head-btn" id="closeHistoryBtn">关闭</button>
+      <div class="history-title">计算历史</div>
+      <button class="history-head-btn danger" id="clearHistoryBtn">清空</button>
     </div>
-    <div class="sheet-body">
-      <!-- 深色模式 -->
-      <div class="settings-row">
-        <div class="settings-row-icon">🌓</div>
-        <div class="settings-row-main">
-          <div class="settings-row-title">深色模式</div>
-          <div class="settings-row-desc">跟随系统 / 浅色 / 深色</div>
-        </div>
-        <select id="settings-theme-select" class="settings-select">
-          <option value="auto">跟随系统</option>
-          <option value="light">浅色</option>
-          <option value="dark">深色</option>
-        </select>
-      </div>
+    <div class="history-list" id="historyList"></div>
+  </section>
+</div>
 
-      <!-- 提醒设置 -->
-      <div class="settings-row">
-        <div class="settings-row-icon">🔔</div>
-        <div class="settings-row-main">
-          <div class="settings-row-title">到期提醒</div>
-          <div class="settings-row-desc" id="settings-reminder-desc">未开启</div>
-        </div>
-        <button id="settings-reminder-btn" class="btn-now-inline">设置</button>
-      </div>
-
-      <!-- 关于 -->
-      <div class="settings-row">
-        <div class="settings-row-icon">ℹ️</div>
-        <div class="settings-row-main">
-          <div class="settings-row-title">关于</div>
-          <div class="settings-row-desc">版本 1.0.0</div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ====== 提醒设置弹窗 ====== -->
-  <div id="reminder-overlay" class="sheet-overlay hidden"></div>
-  <div id="reminder-sheet" class="edit-sheet">
-    <div class="sheet-handle"></div>
-    <div class="sheet-header">
-      <h2>到期提醒</h2>
-      <button id="reminder-close-btn" class="icon-btn" aria-label="关闭">✕</button>
-    </div>
-    <div class="sheet-body">
-      <div class="form-group">
-        <label>开启提醒</label>
-        <div class="settings-row">
-          <div class="settings-row-main">
-            <div class="settings-row-desc">在计算器结束前提醒您</div>
-          </div>
-          <label class="switch">
-            <input type="checkbox" id="reminder-enabled">
-            <span class="switch-slider"></span>
-          </label>
-        </div>
-      </div>
-      <div class="form-group">
-        <label>提前提醒</label>
-        <select id="reminder-lead" class="form-select">
-          <option value="0">结束时</option>
-          <option value="5">提前 5 分钟</option>
-          <option value="10">提前 10 分钟</option>
-          <option value="15">提前 15 分钟</option>
-          <option value="30">提前 30 分钟</option>
-          <option value="60">提前 1 小时</option>
-        </select>
-      </div>
-      <p class="reminder-note">说明：当应用处于打开状态时，提醒会准时弹出。浏览器在后台或锁屏时可能无法弹窗，这是浏览器的安全限制。</p>
-    </div>
-  </div>
-
-  <!-- ====== 历史弹窗 ====== -->
-  <div id="history-overlay" class="sheet-overlay hidden"></div>
-  <div id="history-sheet" class="edit-sheet">
-    <div class="sheet-handle"></div>
-    <div class="sheet-header">
-      <h2>计算历史</h2>
-      <button id="history-close-btn" class="icon-btn" aria-label="关闭">✕</button>
-    </div>
-    <div class="sheet-body" id="history-list">
-      <!-- JS 动态渲染 -->
-    </div>
-    <div class="sheet-footer">
-      <button id="clear-history-btn" class="btn-danger">清空全部历史</button>
-    </div>
-  </div>
-
-  <!-- ====== 右键菜单（卡片上的 ⋮） ====== -->
-  <div id="context-menu" class="context-menu hidden">
-    <button id="ctx-pin">📌 置顶</button>
-    <button id="ctx-rename">✏️ 重命名</button>
-    <button id="ctx-copy-detail">📋 复制计算详情</button>
-    <button id="ctx-delete">🗑️ 删除</button>
-  </div>
-
-  <!-- ====== 确认弹窗 ====== -->
-  <div id="confirm-overlay" class="confirm-overlay hidden"></div>
-  <div id="confirm-dialog" class="confirm-dialog">
-    <p id="confirm-msg" class="confirm-msg"></p>
-    <div class="confirm-btns">
-      <button id="confirm-cancel-btn" class="confirm-btn confirm-btn--cancel">取消</button>
-      <button id="confirm-ok-btn" class="confirm-btn confirm-btn--danger">删除</button>
-    </div>
-  </div>
-
-  <!-- ====== Toast 提示 ====== -->
-  <div id="toast" class="toast hidden"></div>
-
-  <script src="js/storage.js"></script>
-  <script src="js/history.js"></script>
-  <script src="js/calculator.js"></script>
-  <script src="js/theme.js"></script>
-  <script src="js/notification.js"></script>
-  <script src="js/ui.js"></script>
-  <script src="js/ui-render.js"></script>
-  <script src="js/ui-sheet.js"></script>
-  <script src="js/ui-history.js"></script>
-  <script src="js/app.js"></script>
+<div class="toast" id="toast"></div>
+<script src="js/duration-core.js"></script>
+<script src="js/duration-ui.js"></script>
+<script src="js/duration-app.js"></script>
 </body>
 </html>
