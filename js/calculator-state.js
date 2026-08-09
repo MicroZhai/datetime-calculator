@@ -6,8 +6,44 @@
   'use strict';
 
   const SCHEMA_VERSION = 1;
+  const LEGACY_UNVERSIONED = 0;
   const FORMAT_MIN = 0;
   const FORMAT_MAX = 2;
+
+  function schemaVersionOf(snapshot) {
+    if (!snapshot || typeof snapshot !== 'object' || Array.isArray(snapshot)) return null;
+    if (!Object.prototype.hasOwnProperty.call(snapshot, 'schemaVersion')) return LEGACY_UNVERSIONED;
+    return Number.isInteger(snapshot.schemaVersion) && snapshot.schemaVersion >= 0
+      ? snapshot.schemaVersion
+      : null;
+  }
+
+  function migrateV0ToV1(snapshot) {
+    const next = { ...snapshot, schemaVersion: 1 };
+    if (!next.anchorDateTime && next.anchorDate) next.anchorDateTime = next.anchorDate;
+    return next;
+  }
+
+  const MIGRATORS = Object.freeze({
+    0: migrateV0ToV1
+  });
+
+  function migrateSnapshot(snapshot) {
+    if (!snapshot || typeof snapshot !== 'object' || Array.isArray(snapshot)) return null;
+    let version = schemaVersionOf(snapshot);
+    if (version === null || version > SCHEMA_VERSION) return null;
+
+    let current = { ...snapshot };
+    while (version < SCHEMA_VERSION) {
+      const migrate = MIGRATORS[version];
+      if (typeof migrate !== 'function') return null;
+      current = migrate(current);
+      const nextVersion = schemaVersionOf(current);
+      if (nextVersion === null || nextVersion <= version || nextVersion > SCHEMA_VERSION) return null;
+      version = nextVersion;
+    }
+    return current;
+  }
 
   function normalizeRows(rows) {
     if (DurationPrecisionRef?.normalizeStoredRowsStrict) {
@@ -125,7 +161,7 @@
     return value === 'sexagesimal' ? 'sexagesimal' : 'decimal';
   }
 
-  function normalizeSnapshot(snapshot = {}) {
+  function normalizeCanonicalSnapshot(snapshot) {
     const rows = normalizeRows(snapshot.rows);
     const currentParts = normalizeParts(snapshot.currentParts);
     const colonMode = Boolean(snapshot.colonMode);
@@ -160,7 +196,12 @@
   }
 
   function emptySnapshot() {
-    return normalizeSnapshot({});
+    return normalizeCanonicalSnapshot({ schemaVersion: SCHEMA_VERSION });
+  }
+
+  function normalizeSnapshot(snapshot = {}) {
+    const migrated = migrateSnapshot(snapshot);
+    return migrated ? normalizeCanonicalSnapshot(migrated) : emptySnapshot();
   }
 
   function serialize(snapshot) {
@@ -198,6 +239,7 @@
 
     return normalizeSnapshot({
       ...base,
+      schemaVersion: SCHEMA_VERSION,
       rows,
       currentOp: null,
       currentParts: [],
@@ -218,6 +260,9 @@
 
   return Object.freeze({
     SCHEMA_VERSION,
+    LEGACY_UNVERSIONED,
+    schemaVersionOf,
+    migrateSnapshot,
     normalizeSnapshot,
     emptySnapshot,
     serialize,
