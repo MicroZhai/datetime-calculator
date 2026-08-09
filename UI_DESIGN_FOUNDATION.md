@@ -10,9 +10,12 @@
 - 主要设备：手机竖屏，触控优先。
 - 次要输入：桌面 / 平板浏览器的键盘与鼠标。
 - 主题：提供 `跟随系统 / 浅色 / 深色` 三种模式；默认跟随系统，手动选择持久化；Light / Dark 保持相同层级和交互职责。
-- xs `<320`：保持单列，缩减非必要说明与键盘间距，但触控区不低于 40px。
-- sm `≥320`：默认手机布局。
-- md `≥600` 及以上：仍保持单任务单列，不因为窗口变宽自动增加侧栏或第二工作区。
+- Width 使用 Zhai min-width：xs `<320`、sm `≥320`、md `≥600`、lg `≥840`、xl `≥1440`。
+- Height 使用项目 Profile：Regular `≥820`、Compact `680–819`、Short `<680`。
+- xs：保持单列，缩减非必要横向 chrome 与间距，但触控区不低于 40px。
+- sm：默认手机单列。
+- md 及以上：高度充足时仍保持单任务居中列，不因窗口变宽自动增加侧栏；只有“宽且短”时允许将同一任务从 Stack 转为左右 Split。
+- 响应式判断不按手机 / 平板 / PC 型号分支，而由实际窗口宽度、高度、方向和输入上下文决定。
 
 ## 2. Core Task
 
@@ -43,11 +46,15 @@
 3. `Keypad Region`：日期、单位、数字、运算与结算；
 4. `History Overlay`：低频次级历史，通过 Sheet 保持原任务上下文。
 
-关系：
+默认关系：
 
 `Expression → Result → Keypad`
 
-历史不是常驻导航，不占主页面 Rail。
+Short 且 md+ 时允许：
+
+`Expression / Result | Keypad`
+
+这仍是同一任务的关系重排，不生成新的业务 Region。历史不是常驻导航，不占主页面 Rail。
 
 ## 5. Signature / Dials
 
@@ -78,7 +85,7 @@
 ## 7. Typography / Alignment
 
 - Page Title：18px / Medium。
-- 核心结果：38px / Bold，Value 与 Unit 作为同一语义组。
+- 核心结果：Regular 38px / Bold；Compact / Short 可在不破坏可读性的前提下轻微降级。
 - 表达式：20px，数字使用 tabular numerals。
 - 基准时间 / 结束时间：Metadata 层级，使用 tabular numerals；默认单行显示，不主动拆成“日期一行 + 时间一行”。
 - 正常控件文字：14px；说明 / Metadata：12px。
@@ -142,6 +149,7 @@
 - `prefers-reduced-motion` 下去除非必要动画，状态仍可理解。
 - 字体放大后允许 Reflow，不通过禁止缩放维持版式。
 - 日期键和行内基准时间必须分别说明“设为此刻”与“修改基准时间”的可访问语义。
+- 响应式不能以缩小到低于 40px 的触控区换取“一屏全见”。
 
 ## 12. Content Language
 
@@ -160,7 +168,20 @@
 
 文案保持短、准、直接；不增加欢迎语、营销语或重复说明。
 
-## 13. Review Gate
+## 13. Responsive / Window Transform
+
+详细矩阵见 `RESPONSIVE_LAYOUT_PLAN.md`。长期规则：
+
+- 宽度决定 Composition，高度决定 Density。
+- Regular `≥820px`：完整信息与正常键盘密度。
+- Compact `680–819px`：隐藏底部说明；空的规范化 / 错误区不占位；表达式降低最大高度并内部滚动；键盘使用 48px 行高。
+- Short `<680px`：隐藏次级 `HH:MM:SS` 与说明；表达式成为主要局部滚动区；键盘使用 44px 行高，触控区仍 ≥40px。
+- md+ 且 Short：允许 `Stack → Split`，左侧 Expression / Result，右侧 Keypad；不新增 SideBar / Card / 第二业务工作区。
+- 长表达式增长到当前 Profile 的上限后只在 `Expression` 内部滚动，不能持续把 Keypad 推出主视区。
+- 空间不足优先级：结果 / 核心操作 / 当前表达式 > 基准与结束时间 > 格式切换 > 状态 > 辅助结果 > 说明 > 装饰。
+- 正常窗口目标是“不滚动整个页面即可完成核心计算”；字体放大、浏览器缩放和极端窗口允许必要 Reflow / 页面滚动。
+
+## 14. Review Gate
 
 每次 UI 修改至少检查：
 
@@ -173,4 +194,7 @@
 - State 是否在不改变几何的情况下清楚表达；
 - 可逆删除是否仍可撤销；
 - Light / Dark 是否语义等价；
-- 320px、字体放大、键盘 Focus、Reduce Motion 下是否仍可完成核心任务。
+- 320×568、360×640、360×780、390×844、600×600、840×480、1024×768、1440×900 是否覆盖；
+- Compact / Short 是否先降级次级内容，而不是先牺牲触控尺寸；
+- 长表达式是否只滚动表达式区域；
+- 字体放大、浏览器缩放、键盘 Focus、Reduce Motion 下是否仍可完成核心任务。
