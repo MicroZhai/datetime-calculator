@@ -1,5 +1,6 @@
 (() => {
   let hourDisplayMode = 'decimal';
+  let fitFrame = 0;
   const formatButtons = [...document.querySelectorAll('.format-option')];
   const hourButton = document.querySelector('.format-option[data-format="1"]');
 
@@ -46,10 +47,37 @@
     }
   }
 
+  function fitPrimaryResult() {
+    cancelAnimationFrame(fitFrame);
+    resultEl.style.fontSize = '';
+    resultEl.removeAttribute('title');
+
+    fitFrame = requestAnimationFrame(() => {
+      const width = resultEl.clientWidth;
+      if (!width) return;
+
+      const computed = Number.parseFloat(getComputedStyle(resultEl).fontSize) || 38;
+      const minSize = window.innerWidth < 360 ? 21 : 23;
+      let size = computed;
+      resultEl.style.fontSize = `${size}px`;
+
+      while (size > minSize && resultEl.scrollWidth > resultEl.clientWidth + 1) {
+        size -= 1;
+        resultEl.style.fontSize = `${size}px`;
+      }
+
+      if (resultEl.scrollWidth > resultEl.clientWidth + 1) {
+        resultEl.style.fontSize = `${minSize}px`;
+        resultEl.title = resultEl.textContent || '';
+      }
+    });
+  }
+
   const renderBase = render;
   render = function() {
     renderBase();
     syncHourMode();
+    fitPrimaryResult();
   };
 
   formatButtons.forEach((button, index) => {
@@ -85,5 +113,6 @@
     clearAllBase(show);
   };
 
+  window.addEventListener('resize', fitPrimaryResult);
   render();
 })();
