@@ -20,8 +20,16 @@ Web 与页面运行时之间的桥接：`js/calculator-state-runtime.js`。
 
 ## 共享机器可读测试向量
 
-- `tests/duration-core-vectors.json` — 纯时长
-- `tests/cross-platform-conformance-vectors.json` — Date / History / State
+- `tests/duration-core-vectors.json` — 纯时长解析与算术
+- `tests/cross-platform-conformance-vectors.json` — Display Format / Date / History / State
+
+显示格式向量已经锁定：
+
+- 天时分秒与毫秒尾数；
+- 正负 `H:MM:SS`；
+- 超大 HMS 不使用科学计数法；
+- 十进制小时 / 分钟 6 位小数的确定性舍入；
+- 十进制显示进位与 60 进制精确值之间的边界。
 
 ## Web 验证入口
 
@@ -40,8 +48,8 @@ GitHub Actions：`.github/workflows/core-tests.yml`。
 ```text
 实现四层平台无关能力
 -> 读取同一批共享 fixtures
--> 全部 conformance cases 通过
+-> 算术、显示、日期、历史、状态全部 conformance cases 通过
 -> 再连接 ArkUI 页面
 ```
 
-只有 Web 与 HarmonyOS 对同一输入得到相同规范状态与整数毫秒字符串，才视为核心迁移完成。
+只有 Web 与 HarmonyOS 对同一输入得到相同规范状态、整数毫秒字符串和规范显示文本，才视为核心迁移完成。
