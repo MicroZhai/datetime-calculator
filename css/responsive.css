@@ -115,12 +115,29 @@ body .key{
   }
 }
 
-/* Short phones: once a real expression grows, cap it around two visible rows.
-   Additional rows scroll inside Expression instead of pushing Keypad out of view. */
-@media(max-width:599px) and (max-height:679px){
+/* Compact phones with a populated display need a bounded expression viewport.
+   Keep the keys comfortable; take surplus height from repeated expression rows first. */
+@media(max-width:599px) and (min-height:680px) and (max-height:819px){
+  body .expr-scroll{
+    max-block-size:112px;
+  }
+
+  body .keypad{
+    gap:var(--space-xs);
+  }
+}
+
+/* Short phones: show roughly one-and-a-half to two expression rows and scroll the rest.
+   A 46px row keeps the keypad calculator-like while preserving >=44px touch targets. */
+@media(max-width:599px) and (min-height:580px) and (max-height:679px){
   body .expr-scroll{
     min-block-size:48px;
-    max-block-size:96px;
+    max-block-size:84px;
+  }
+
+  body .keypad{
+    grid-template-rows:repeat(6,46px);
+    gap:var(--space-xs);
   }
 }
 
@@ -236,21 +253,6 @@ body .key{
 
   body .format-switch{
     inline-size:100%;
-  }
-
-  body .line-value.has-date-anchor{
-    padding-inline-start:116px;
-  }
-
-  body .date-anchor{
-    max-inline-size:112px;
-    font-size:11px;
-  }
-
-  body .calendar-result{
-    min-inline-size:108px;
-    max-inline-size:120px;
-    font-size:11px;
   }
 }
 
