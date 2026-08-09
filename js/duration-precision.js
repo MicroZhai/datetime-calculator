@@ -122,7 +122,10 @@
     if (negative) value = -value;
     const whole = value / den;
     const remainder = value % den;
-    if (!remainder || decimals <= 0) return `${negative ? '-' : ''}${whole}`;
+    if (!remainder || decimals <= 0) {
+      if (whole === 0n) return '0';
+      return `${negative ? '-' : ''}${whole}`;
+    }
     const scale = 10n ** BigInt(decimals);
     const scaledTen = (remainder * scale * 10n) / den;
     let fraction = scaledTen / 10n;
@@ -133,6 +136,7 @@
       fraction -= scale;
     }
     const fracText = fraction.toString().padStart(decimals, '0').replace(/0+$/, '');
+    if (adjustedWhole === 0n && !fracText) return '0';
     return `${negative ? '-' : ''}${adjustedWhole}${fracText ? `.${fracText}` : ''}`;
   }
 
@@ -151,7 +155,11 @@
     if (m) raw.push({ kind: 'unit', unit: 'm', value: m.toString() });
     if (value) raw.push({ kind: 'unit', unit: 's', value: formatMillisecondsAsSeconds(value) });
     if (!raw.length) raw.push({ kind: 'unit', unit: 'm', value: '0' });
-    if (negative) raw[0].value = `-${raw[0].value}`;
+    // A row sums its parts. For a negative composite duration every non-zero part
+    // must carry the sign; negating only the first part changes the represented value.
+    if (negative) {
+      raw.forEach(part => { part.value = `-${part.value}`; });
+    }
     return raw;
   }
 
