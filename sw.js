@@ -1,4 +1,4 @@
-const CACHE_NAME = 'dtc-duration-v12-10-20260809';
+const CACHE_NAME = 'dtc-duration-v12-11-20260809';
 const APP_SHELL = [
   './',
   './index.html',
@@ -41,8 +41,6 @@ self.addEventListener('activate', event => {
 
 async function fetchWithRevalidation(request) {
   try {
-    // cache:no-cache 允许浏览器继续使用 HTTP 缓存，但会优先通过
-    // ETag / Last-Modified 与服务器协商，资源没变化时无需重新下载正文。
     const response = await fetch(request, { cache: 'no-cache' });
 
     if (response && response.ok) {
@@ -71,7 +69,5 @@ self.addEventListener('fetch', event => {
   const url = new URL(event.request.url);
   if (url.origin !== self.location.origin) return;
 
-  // 在线时网络优先 + 协商缓存；离线时回退 Cache Storage。
-  // 这样用户刷新页面即可立即获得新 CSS / JS，而不是先命中旧 PWA 缓存。
   event.respondWith(fetchWithRevalidation(event.request));
 });
