@@ -1,0 +1,7 @@
+{
+  "name": "datetime-calculator-web",
+  "private": true,
+  "scripts": {
+    "test": "node tests/duration-precision.test.cjs"
+  }
+}
