@@ -8,10 +8,7 @@
     return formatIndex === 1 && !partEdit && selectedRow === null && !colonMode &&
       numberBuffer === '' && currentParts.length === 0 && currentOp === null;
   }
-
-  function hourModeLabel() {
-    return hourDisplayMode === 'sexagesimal' ? '60进制' : '十进制';
-  }
+  function hourModeLabel() {return hourDisplayMode === 'sexagesimal' ? '60进制' : '十进制'}
 
   const formatResultBase = formatResult;
   formatResult = function(totalMs) {
@@ -30,88 +27,55 @@
         hourButton.setAttribute('aria-label', '切换到小时显示，默认十进制');
       }
     }
-
     if (formatIndex !== 1) return;
-    const evaluated = evaluateRows(true);
-    if (!evaluated.ok) return;
-
+    const evaluated = evaluateRows(true);if (!evaluated.ok) return;
     if (hourDisplayMode === 'sexagesimal') {
-      secondaryEl.textContent = `${trim(evaluated.value / factorMs.h, 6)}小时`;
+      secondaryEl.textContent = `${DurationPrecision.roundedRatioText(evaluated.value, factorMs.h, 6)}小时`;
     } else {
       secondaryEl.textContent = hms(evaluated.value);
     }
-
-    if (isHourIdleState()) {
-      badge.textContent = `小时 · ${hourModeLabel()}`;
-      badge.className = 'badge';
-    }
+    if (isHourIdleState()) {badge.textContent = `小时 · ${hourModeLabel()}`;badge.className = 'badge'}
   }
 
   function fitPrimaryResult() {
     cancelAnimationFrame(fitFrame);
     resultEl.style.fontSize = '';
     resultEl.removeAttribute('title');
-
+    resultEl.classList.remove('result-scrollable');
     fitFrame = requestAnimationFrame(() => {
-      const width = resultEl.clientWidth;
-      if (!width) return;
-
+      const width = resultEl.clientWidth;if (!width) return;
       const computed = Number.parseFloat(getComputedStyle(resultEl).fontSize) || 38;
       const minSize = window.innerWidth < 360 ? 21 : 23;
-      let size = computed;
-      resultEl.style.fontSize = `${size}px`;
-
-      while (size > minSize && resultEl.scrollWidth > resultEl.clientWidth + 1) {
-        size -= 1;
-        resultEl.style.fontSize = `${size}px`;
-      }
-
+      let size = computed;resultEl.style.fontSize = `${size}px`;
+      while (size > minSize && resultEl.scrollWidth > resultEl.clientWidth + 1) {size -= 1;resultEl.style.fontSize = `${size}px`}
       if (resultEl.scrollWidth > resultEl.clientWidth + 1) {
         resultEl.style.fontSize = `${minSize}px`;
+        resultEl.classList.add('result-scrollable');
         resultEl.title = resultEl.textContent || '';
+        requestAnimationFrame(()=>{resultEl.scrollLeft=resultEl.scrollWidth});
       }
     });
   }
 
   const renderBase = render;
-  render = function() {
-    renderBase();
-    syncHourMode();
-    fitPrimaryResult();
-  };
+  render = function() {renderBase();syncHourMode();fitPrimaryResult()};
 
   formatButtons.forEach((button, index) => {
     button.onclick = () => {
       if (index === 1) {
-        if (formatIndex === 1) {
-          hourDisplayMode = hourDisplayMode === 'decimal' ? 'sexagesimal' : 'decimal';
-        } else {
-          formatIndex = 1;
-          hourDisplayMode = 'decimal';
-        }
-      } else {
-        formatIndex = index;
-      }
+        if (formatIndex === 1) hourDisplayMode = hourDisplayMode === 'decimal' ? 'sexagesimal' : 'decimal';
+        else {formatIndex = 1;hourDisplayMode = 'decimal'}
+      } else formatIndex = index;
       render();
     };
   });
 
   const snapshotCalculatorBase = snapshotCalculator;
-  snapshotCalculator = function() {
-    return { ...snapshotCalculatorBase(), hourDisplayMode };
-  };
-
+  snapshotCalculator = function() {return { ...snapshotCalculatorBase(), hourDisplayMode }};
   const restoreCalculatorBase = restoreCalculator;
-  restoreCalculator = function(snapshot) {
-    hourDisplayMode = snapshot?.hourDisplayMode === 'sexagesimal' ? 'sexagesimal' : 'decimal';
-    restoreCalculatorBase(snapshot);
-  };
-
+  restoreCalculator = function(snapshot) {hourDisplayMode = snapshot?.hourDisplayMode === 'sexagesimal' ? 'sexagesimal' : 'decimal';restoreCalculatorBase(snapshot)};
   const clearAllBase = clearAll;
-  clearAll = function(show = true) {
-    hourDisplayMode = 'decimal';
-    clearAllBase(show);
-  };
+  clearAll = function(show = true) {hourDisplayMode = 'decimal';clearAllBase(show)};
 
   window.addEventListener('resize', fitPrimaryResult);
   render();
