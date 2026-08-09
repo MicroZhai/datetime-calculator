@@ -213,6 +213,11 @@ body .key{
     inline-size:min(100%,720px);
     padding-inline:var(--space-xxl);
   }
+
+  body .keypad-region{
+    border-radius:var(--radius-xl);
+    overflow:hidden;
+  }
 }
 
 @media(min-width:600px) and (max-width:839px) and (min-height:800px){
@@ -289,8 +294,18 @@ body .key{
 /* Desktop action surface: give the keypad a true desktop rhythm instead of
    leaving it at phone density inside a wide empty canvas. */
 @media(min-width:840px) and (min-height:680px){
+  body .keypad-region{
+    display:flex;
+    flex-direction:column;
+  }
+
   body .keypad{
-    grid-template-rows:repeat(6,clamp(56px,7vh,68px));
+    flex:1 1 auto;
+    min-block-size:0;
+    grid-template-rows:repeat(6,minmax(56px,1fr));
+  }
+
+  body .keypad{
     gap:var(--space-md);
   }
 

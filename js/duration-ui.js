@@ -52,7 +52,7 @@ function updateBadge(){
   if(partEdit){badge.textContent=partEdit.kind==='unit'?`编辑片段 · ${partEdit.buffer}${label[partEdit.unit]}`:'编辑冒号片段';badge.className='badge edit';return}
   if(selectedRow!==null){badge.textContent=`已选择第 ${selectedRow+1} 行`;badge.className='badge edit';return}
   if(colonMode){badge.textContent=colonStage==='minute'?'冒号输入 · 分钟 00～59':'冒号输入 · 秒 00～59';badge.className='badge colon';return}
-  if(numberBuffer){badge.textContent=`${numberBuffer} → 请选择 天 / 时 / 分 / 秒`;badge.className='badge wait';return}
+  if(numberBuffer){badge.textContent=`已输入 ${numberBuffer}，请选择单位`;badge.className='badge wait';return}
   if(rows.length&&currentOp!==null){badge.textContent=`${currentOp==='-'?'减':'加'} · 等待下一时间`;badge.className='badge';return}
   badge.textContent='输入数字后选择单位';badge.className='badge';
 }

@@ -1,8 +1,17 @@
 (() => {
-  let hourDisplayMode = 'decimal';
+  const HOUR_MODE_KEY = 'dtc-hour-display-mode';
+  let hourDisplayMode = (() => {
+    try {
+      return localStorage.getItem(HOUR_MODE_KEY) === 'sexagesimal' ? 'sexagesimal' : 'decimal';
+    } catch { return 'decimal'; }
+  })();
   let fitFrame = 0;
   const formatButtons = [...document.querySelectorAll('.format-option')];
   const hourButton = document.querySelector('.format-option[data-format="1"]');
+
+  function persistHourMode() {
+    try { localStorage.setItem(HOUR_MODE_KEY, hourDisplayMode); } catch {}
+  }
 
   function isHourIdleState() {
     return formatIndex === 1 && !partEdit && selectedRow === null && !colonMode &&
@@ -64,7 +73,8 @@
     button.onclick = () => {
       if (index === 1) {
         if (formatIndex === 1) hourDisplayMode = hourDisplayMode === 'decimal' ? 'sexagesimal' : 'decimal';
-        else {formatIndex = 1;hourDisplayMode = 'decimal'}
+        else formatIndex = 1;
+        persistHourMode();
       } else formatIndex = index;
       render();
     };
@@ -73,9 +83,9 @@
   const snapshotCalculatorBase = snapshotCalculator;
   snapshotCalculator = function() {return { ...snapshotCalculatorBase(), hourDisplayMode }};
   const restoreCalculatorBase = restoreCalculator;
-  restoreCalculator = function(snapshot) {hourDisplayMode = snapshot?.hourDisplayMode === 'sexagesimal' ? 'sexagesimal' : 'decimal';restoreCalculatorBase(snapshot)};
+  restoreCalculator = function(snapshot) {hourDisplayMode = snapshot?.hourDisplayMode === 'sexagesimal' ? 'sexagesimal' : 'decimal';persistHourMode();restoreCalculatorBase(snapshot)};
   const clearAllBase = clearAll;
-  clearAll = function(show = true) {hourDisplayMode = 'decimal';clearAllBase(show)};
+  clearAll = function(show = true) {clearAllBase(show)};
 
   window.addEventListener('resize', fitPrimaryResult);
   render();
