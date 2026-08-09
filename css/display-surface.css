@@ -178,4 +178,10 @@ body .key.date-key.active{
   body .display-region{
     padding:var(--space-lg);
   }
+
+  /* Old inline-date responsive constraints no longer apply to the display header. */
+  body .date-anchor{
+    max-inline-size:none;
+    font-size:inherit;
+  }
 }
