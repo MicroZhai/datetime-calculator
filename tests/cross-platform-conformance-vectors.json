@@ -2,6 +2,92 @@
   "schemaVersion": 1,
   "description": "Shared conformance fixtures for Web and future HarmonyOS/ArkTS implementations.",
   "dateTimezone": "UTC",
+  "format": [
+    {
+      "id": "zero-duration-text",
+      "operation": "durationText",
+      "milliseconds": "0",
+      "expected": "0分"
+    },
+    {
+      "id": "mixed-duration-with-millisecond-tail",
+      "operation": "durationText",
+      "milliseconds": "90061001",
+      "expected": "1天1小时1分1.001秒"
+    },
+    {
+      "id": "negative-subsecond-duration",
+      "operation": "durationText",
+      "milliseconds": "-1001",
+      "expected": "-1.001秒"
+    },
+    {
+      "id": "huge-hms-never-scientific-notation",
+      "operation": "hms",
+      "milliseconds": "25920000000000001",
+      "expected": "7200000000:00:00.001"
+    },
+    {
+      "id": "negative-hms",
+      "operation": "hms",
+      "milliseconds": "-3661001",
+      "expected": "-01:01:01.001"
+    },
+    {
+      "id": "decimal-hour-standard-rounding",
+      "operation": "roundedRatio",
+      "milliseconds": "28851000",
+      "divisor": "hour",
+      "decimals": 6,
+      "expected": "8.014167"
+    },
+    {
+      "id": "decimal-hour-one-ms-rounds-to-zero",
+      "operation": "roundedRatio",
+      "milliseconds": "1",
+      "divisor": "hour",
+      "decimals": 6,
+      "expected": "0"
+    },
+    {
+      "id": "decimal-hour-two-ms-rounds-up",
+      "operation": "roundedRatio",
+      "milliseconds": "2",
+      "divisor": "hour",
+      "decimals": 6,
+      "expected": "0.000001"
+    },
+    {
+      "id": "decimal-hour-rounding-carries-to-next-hour",
+      "operation": "roundedRatio",
+      "milliseconds": "3599999",
+      "divisor": "hour",
+      "decimals": 6,
+      "expected": "1"
+    },
+    {
+      "id": "sexagesimal-keeps-exact-value-at-hour-carry-boundary",
+      "operation": "hms",
+      "milliseconds": "3599999",
+      "expected": "00:59:59.999"
+    },
+    {
+      "id": "decimal-minute-one-ms",
+      "operation": "roundedRatio",
+      "milliseconds": "1",
+      "divisor": "minute",
+      "decimals": 6,
+      "expected": "0.000017"
+    },
+    {
+      "id": "negative-decimal-hour-rounding",
+      "operation": "roundedRatio",
+      "milliseconds": "-2",
+      "divisor": "hour",
+      "decimals": 6,
+      "expected": "-0.000001"
+    }
+  ],
   "date": [
     {
       "id": "date-only-to-midnight",
