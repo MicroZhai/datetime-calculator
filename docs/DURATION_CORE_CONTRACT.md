@@ -69,21 +69,33 @@ HarmonyOS 迁移时：必须选择能表达任意精度整数或等价十进制�
 
 ## 7. 日期映射协议
 
-日期是可选映射层，不属于纯时长核心。
+日期是**可选平台适配层**，不属于纯时长核心。
 
 流程：
 
 `Duration Core -> integer milliseconds -> Date Adapter -> platform date/time`
 
+统一产品规则：
+
+- 点击“日期”时，默认基准必须是**设备本地当天 00:00**，而不是点击瞬间的当前时分。
+- 日期字符串的跨层规范格式为 `YYYY-MM-DDTHH:mm`；仅日期 `YYYY-MM-DD` 读取时按 `00:00` 兼容。
+- Date Adapter 先验证本地日历日期是否合法，再把基准转换为平台时间戳。
+- 与时长相加时，先把基准时间戳转成整数毫秒，再与任意精度时长相加；不得先把超大时长转换成浮点数。
+- 只有最终目标毫秒位于平台日期 API 可表示范围内时，才生成结束年月日。
+- Web 当前 `Date` 范围按 `±8,640,000,000,000,000ms` 判断。
+- HarmonyOS 未来迁移时使用该平台实际日期 API 的范围；平台范围可以不同，但失败语义必须一致。
+
 如果目标日期超出平台日期 API 的可表示范围：
 
 - 时长结果继续有效；
-- 日期 Adapter 返回“不可表示/超出范围”；
+- Date Adapter 返回明确的 `date-out-of-range` / 等价状态；
 - UI 只降级结束日期，不得把整个计算判定失败。
+
+日期 Adapter 的显示结果属于**本地日历映射**。因此跨平台一致性重点是：同一设备时区/日历语义下的基准解析、绝对毫秒相加和范围失败规则一致；纯时长结果本身始终由 Duration Core 决定。
 
 ## 8. 跨平台一致性测试
 
-`tests/duration-core-vectors.json` 是平台无关测试向量。
+`tests/duration-core-vectors.json` 是平台无关时长测试向量。
 
 Web 端由 `tests/duration-precision.test.cjs` 自动执行；未来 ArkTS 核心必须读取或等价复制同一批向量，并逐项比较最终毫秒**字符串**。
 
@@ -99,14 +111,24 @@ Web 端由 `tests/duration-precision.test.cjs` 自动执行；未来 ArkTS 核�
 - 超大冒号小时；
 - 历史字符串序列化。
 
+日期适配层另由 `tests/date-mapper.test.cjs` 检查：
+
+- 当天默认零点；
+- 日期字符串规范化；
+- 非法日历日期拒绝；
+- 正负毫秒映射；
+- 超大时长只产生 `date-out-of-range`，不反向否定时长核心。
+
 ## 9. Web 参考实现
 
-纯核心：`js/duration-precision.js`
+纯时长核心：`js/duration-precision.js`
 
-Web UI 适配层：`js/duration-core.js`、`js/duration-ui.js`
+Web 日期适配层：`js/date-mapper.js`
+
+Web UI 适配层：`js/duration-core.js`、`js/duration-ui.js`、`js/date-anchor.js`
 
 共享测试向量：`tests/duration-core-vectors.json`
 
 自动测试：`npm test`
 
-迁移到其他平台时，应以本契约和共享测试向量为准，而不是复制 Web 的 DOM/UI 代码。
+迁移到其他平台时，应以本契约、共享测试向量和 Adapter 失败语义为准，而不是复制 Web 的 DOM/UI 代码。
