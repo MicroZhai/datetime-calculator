@@ -44,9 +44,11 @@ assert.equal(P.roundedRatioText(28851000n, P.FACTOR_MS.h, 6), '8.014167');
 assert.equal(P.roundedRatioText(-28851000n, P.FACTOR_MS.h, 6), '-8.014167');
 assert.deepEqual(P.millisecondsToParts(-5400001n), [
   { kind: 'unit', unit: 'h', value: '-1' },
-  { kind: 'unit', unit: 'm', value: '30' },
-  { kind: 'unit', unit: 's', value: '0.001' }
+  { kind: 'unit', unit: 'm', value: '-30' },
+  { kind: 'unit', unit: 's', value: '-0.001' }
 ]);
+assert.equal(ok(P.partsToMs(P.millisecondsToParts(-5400001n))), -5400001n,
+  'negative normalized parts must rebuild the original duration exactly');
 
 assert.deepEqual(P.normalizeStoredRows([
   { op: '+', parts: [{ kind: 'unit', unit: 'd', value: 12 }, { kind: 'unit', unit: 's', value: '0.0010' }] },
