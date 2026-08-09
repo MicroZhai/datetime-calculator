@@ -13,7 +13,8 @@
 - **确定性的显示格式与舍入规则**；
 - 日期映射成功/失败语义；
 - 历史迁移与去重；
-- CalculatorState 的恢复行为。
+- CalculatorState 的恢复行为；
+- 旧数据与损坏持久化数据的迁移、拒绝和降级策略。
 
 因此验收标准是：
 
@@ -60,6 +61,22 @@
 - 舍入到下一整数的进位边界；
 - 十进制近似显示与 60 进制精确显示之间的区别。
 
+### 持久化完整性 / 损坏数据
+
+`tests/persistence-integrity-vectors.json`
+
+这组 fixture 专门锁定：
+
+- 哪些旧格式可以做语义等价迁移；
+- 哪些损坏字段必须拒绝；
+- committed rows 不能靠删除坏 Part 被部分抢救；
+- 未知运算符不能默认成 `+`；
+- colon 一位分钟可补零，但超过两位不能截断；
+- 非法可选日期只降级日期上下文；
+- 编辑草稿仍允许中间态。
+
+对应正式规则见 `docs/PERSISTENCE_INTEGRITY_CONTRACT.md`。
+
 ---
 
 ## 3. 日期时区规则
@@ -80,7 +97,7 @@
 
 ## 4. Fixture Schema
 
-当前总 Schema：
+正常跨平台 fixture：
 
 ```json
 {
@@ -88,6 +105,17 @@
   "dateTimezone": "UTC",
   "format": [],
   "date": [],
+  "history": [],
+  "state": []
+}
+```
+
+持久化完整性 fixture：
+
+```json
+{
+  "schemaVersion": 1,
+  "strictRows": [],
   "history": [],
   "state": []
 }
@@ -149,20 +177,24 @@
 
 ## 6. Web 验证器
 
-Web 参考执行器：
+正常跨平台执行器：
 
 `tests/cross-platform-conformance.test.cjs`
 
-它会：
+持久化完整性执行器：
+
+`tests/persistence-integrity.test.cjs`
+
+它们共同完成：
 
 1. 读取共享 JSON；
-2. 固定测试时区；
-3. 执行共享显示向量；
-4. 调用 Date / History / State 参考实现；
+2. 固定需要固定的测试时区；
+3. 执行共享算术/显示/日期/历史/状态向量；
+4. 执行损坏数据与旧格式迁移向量；
 5. 逐字段验证 expected；
-6. 对 CalculatorState 再执行一次 JSON round-trip。
+6. 对 CalculatorState 执行 JSON round-trip。
 
-它已加入：
+全部已加入：
 
 ```bash
 npm test
@@ -182,14 +214,16 @@ DateMapperArkTS
 HistoryStoreArkTS
 CalculatorStateArkTS
        ↓
-读取共享 fixtures
+读取全部共享 fixtures
        ↓
-Conformance Runner
+Conformance / Integrity Runner
        ↓
 逐 case 比较 expected
 ```
 
 不要直接读取 Web DOM 代码作为测试依据，也不要用 ArkTS 自带浮点格式化替代已经定义好的定点舍入协议。
+
+对于损坏持久化数据，也不能因为语言/框架不同而自行“更智能地修复”。只有契约明确允许的等价迁移才能执行。
 
 ---
 
@@ -202,11 +236,13 @@ Conformance Runner
 3. 日期共享向量全部通过；
 4. HistoryStore 迁移向量全部通过；
 5. CalculatorState 向量全部通过；
-6. Web 与 ArkTS 对所有整数毫秒结果输出完全相同的十进制字符串；
-7. 同一个毫秒值在两个平台得到相同的规范显示文本；
-8. Date 越界只影响结束日期，不反向影响时长结果；
-9. 历史恢复后可以继续计算；
-10. Undo 中间态恢复行为一致。
+6. Persistence Integrity 向量全部通过；
+7. Web 与 ArkTS 对所有整数毫秒结果输出完全相同的十进制字符串；
+8. 同一个毫秒值在两个平台得到相同的规范显示文本；
+9. Date 越界只影响结束日期，不反向影响时长结果；
+10. 历史恢复后可以继续计算；
+11. Undo 中间态恢复行为一致；
+12. 对同一份损坏/旧数据，两端必须做出相同的迁移、拒绝或降级。
 
 ---
 
@@ -221,6 +257,7 @@ Conformance Runner
 - 新的日期语义；
 - 新的历史字段；
 - 新的编辑状态；
+- 新的持久化迁移规则；
 
 正确顺序是：
 
@@ -248,10 +285,12 @@ CalculatorState
 对应契约：
 
 - `docs/DURATION_CORE_CONTRACT.md`
+- `docs/DURATION_INVARIANTS.md`
 - `docs/HISTORY_SERIALIZATION_CONTRACT.md`
 - `docs/CALCULATOR_STATE_CONTRACT.md`
+- `docs/PERSISTENCE_INTEGRITY_CONTRACT.md`
 - 本文件 `docs/CROSS_PLATFORM_CONFORMANCE.md`
 
 迁移入口：`docs/PLATFORM_CORE_INDEX.md`。
 
-这四层稳定后，Web 与 HarmonyOS 的 UI 可以完全不同，但计算行为和显示结果仍可被同一套自动测试证明一致。
+这四层稳定后，Web 与 HarmonyOS 的 UI 可以完全不同，但计算行为、显示结果和损坏数据处理仍可被同一套自动测试证明一致。
