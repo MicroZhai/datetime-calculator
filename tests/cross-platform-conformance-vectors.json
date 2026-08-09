@@ -50,6 +50,14 @@
       "expected": "0"
     },
     {
+      "id": "negative-decimal-hour-one-ms-never-shows-negative-zero",
+      "operation": "roundedRatio",
+      "milliseconds": "-1",
+      "divisor": "hour",
+      "decimals": 6,
+      "expected": "0"
+    },
+    {
       "id": "decimal-hour-two-ms-rounds-up",
       "operation": "roundedRatio",
       "milliseconds": "2",
@@ -86,6 +94,16 @@
       "divisor": "hour",
       "decimals": 6,
       "expected": "-0.000001"
+    },
+    {
+      "id": "negative-composite-parts-preserve-total-sign",
+      "operation": "millisecondsToParts",
+      "milliseconds": "-5400001",
+      "expected": [
+        { "kind": "unit", "unit": "h", "value": "-1" },
+        { "kind": "unit", "unit": "m", "value": "-30" },
+        { "kind": "unit", "unit": "s", "value": "-0.001" }
+      ]
     }
   ],
   "date": [
