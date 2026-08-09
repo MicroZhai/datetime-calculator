@@ -24,6 +24,7 @@ function assertSubset(actual, expected, message) {
 for (const vector of vectors.format || []) {
   const label = `format/${vector.id}`;
   let actual;
+  let structural = false;
   if (vector.operation === 'durationText') {
     actual = P.durationText(vector.milliseconds);
   } else if (vector.operation === 'hms') {
@@ -36,10 +37,14 @@ for (const vector of vectors.format || []) {
         : null;
     assert.notEqual(divisor, null, `${label}: known divisor`);
     actual = P.roundedRatioText(vector.milliseconds, divisor, vector.decimals);
+  } else if (vector.operation === 'millisecondsToParts') {
+    actual = P.millisecondsToParts(vector.milliseconds);
+    structural = true;
   } else {
     assert.fail(`${label}: unknown operation ${vector.operation}`);
   }
-  assert.equal(actual, vector.expected, label);
+  if (structural) assert.deepEqual(actual, vector.expected, label);
+  else assert.equal(actual, vector.expected, label);
 }
 
 for (const vector of vectors.date) {
