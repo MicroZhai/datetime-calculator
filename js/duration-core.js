@@ -120,7 +120,7 @@ function notify(msg){
   clearTimeout(notify.t);notify.t=setTimeout(()=>toast.classList.remove('show'),1450);
 }
 function setError(msg=''){errorEl.textContent=msg}
-function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot',"'":'&#039;'}[c]))}
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]))}
 function trim(value){return DurationPrecision.normalizeDecimalString(value)??String(value)}
 function clone(v){return JSON.parse(JSON.stringify(v))}
 function valueToMs(value,unit){
