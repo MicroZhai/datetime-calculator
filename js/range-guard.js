@@ -29,6 +29,25 @@
     return Number.isSafeInteger(ms) && Math.abs(ms) <= MAX_SAFE_MS;
   }
 
+  const notifyBase = notify;
+  notify = function(message) {
+    if (message === '该时间值过大' || message === '当前时间过大') {
+      return notifyBase('时长超出精确计算范围');
+    }
+    return notifyBase(message);
+  };
+
+  const setErrorBase = setError;
+  setError = function(message = '') {
+    if (message === '时间数值过大' || message === '当前时间过大' || message === '当前输入超出安全范围') {
+      return setErrorBase('时长超出精确计算范围');
+    }
+    if (message === '计算结果超出安全范围') {
+      return setErrorBase(resultRangeMessage());
+    }
+    return setErrorBase(message);
+  };
+
   function showUnitRangeError(unit) {
     const message = unitRangeMessage(unit);
     setError(message);
@@ -102,9 +121,21 @@
     return finishColonBase();
   };
 
+  const renderNormalizedBase = renderNormalized;
+  renderNormalized = function() {
+    renderNormalizedBase();
+    if (normalizedEl.textContent.trim() === '当前输入超出安全范围') {
+      normalizedEl.innerHTML = '<strong>当前时长超出精确计算范围</strong>';
+    }
+  };
+
   const renderBase = render;
   render = function() {
     renderBase();
+
+    if (secondaryEl.textContent.trim() === '超出安全范围') {
+      secondaryEl.textContent = '超出精确范围';
+    }
 
     const calendarResult = document.querySelector('.calendar-result');
     if (calendarResult && !calendarResult.hidden && calendarResult.textContent.trim() === '日期超出范围') {
