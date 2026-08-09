@@ -9,7 +9,7 @@
     dateKey.className = 'key date-key k-date';
     dateKey.dataset.action = 'date-toggle';
     dateKey.textContent = '日期';
-    dateKey.setAttribute('aria-label', '添加当前时间作为基准');
+    dateKey.setAttribute('aria-label', '添加今天零点作为日期起点');
     dateKey.setAttribute('aria-pressed', 'false');
     dayKey.insertAdjacentElement('beforebegin', dateKey);
   }
@@ -24,7 +24,7 @@
 
   const anchorLabel = document.createElement('span');
   anchorLabel.className = 'date-anchor-label';
-  anchorLabel.textContent = '基准';
+  anchorLabel.textContent = '日期';
   const anchorValue = document.createElement('span');
   anchorValue.className = 'date-anchor-value';
   anchorButton.append(anchorLabel, anchorValue);
@@ -46,9 +46,9 @@
   resultGroup.insertBefore(resultMainRow, resultEl);
   resultMainRow.append(calendarResult, resultEl);
 
-  function localNowValue() {
+  function localTodayStartValue() {
     const now = new Date();
-    return `${String(now.getFullYear()).padStart(4, '0')}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}T${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+    return `${String(now.getFullYear()).padStart(4, '0')}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}T00:00`;
   }
 
   function normalizeAnchorValue(value) {
@@ -108,8 +108,8 @@
     if (dateKey) {
       dateKey.classList.toggle('active', active);
       dateKey.setAttribute('aria-pressed', String(active));
-      dateKey.title = active ? '取消基准时间' : '添加当前时间作为基准';
-      dateKey.setAttribute('aria-label', active ? '取消基准时间' : '添加当前时间作为基准');
+      dateKey.title = active ? '取消日期' : '添加今天 00:00';
+      dateKey.setAttribute('aria-label', active ? '取消日期' : '添加今天零点作为日期起点');
     }
 
     anchorButton.hidden = !active;
@@ -121,8 +121,8 @@
 
     const labelText = formatAnchorLabel(anchorDateTime);
     anchorValue.textContent = labelText;
-    anchorButton.title = '修改基准时间';
-    anchorButton.setAttribute('aria-label', `基准时间 ${labelText}，点击修改`);
+    anchorButton.title = '修改日期时间';
+    anchorButton.setAttribute('aria-label', `日期 ${labelText}，点击修改`);
   }
 
   function renderDateResult() {
@@ -161,8 +161,8 @@
     badge.className = 'badge';
   }
 
-  function setAnchorToNow() {
-    anchorDateTime = localNowValue();
+  function setAnchorToTodayStart() {
+    anchorDateTime = localTodayStartValue();
     setError('');
     render();
   }
@@ -174,7 +174,7 @@
       render();
       return;
     }
-    setAnchorToNow();
+    setAnchorToTodayStart();
   }
 
   function openDatePicker() {
@@ -255,7 +255,7 @@
       }
 
       const existingLabel = item.getAttribute('aria-label') || '历史记录';
-      item.setAttribute('aria-label', `基准时间 ${formatAnchorLabel(recordAnchor)}，${existingLabel}`);
+      item.setAttribute('aria-label', `日期 ${formatAnchorLabel(recordAnchor)}，${existingLabel}`);
     });
   };
 
