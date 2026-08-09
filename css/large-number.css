@@ -1,0 +1,53 @@
+/* Arbitrary-precision number presentation.
+   Keep numeric content exact and readable: no wrapping, no ellipsis, horizontal inspection when needed. */
+
+body .line-value{
+  min-inline-size:0;
+  max-inline-size:100%;
+  white-space:nowrap;
+  word-break:normal;
+  overflow-wrap:normal;
+  overflow-x:auto;
+  overflow-y:hidden;
+  text-overflow:unset;
+  scrollbar-width:none;
+  overscroll-behavior-inline:contain;
+  -webkit-overflow-scrolling:touch;
+}
+body .line-value::-webkit-scrollbar{display:none}
+
+body .history-row-value,
+body .history-result{
+  min-inline-size:0;
+  max-inline-size:100%;
+  white-space:nowrap;
+  overflow-x:auto;
+  overflow-y:hidden;
+  text-overflow:unset;
+  scrollbar-width:none;
+  overscroll-behavior-inline:contain;
+  -webkit-overflow-scrolling:touch;
+}
+body .history-row-value::-webkit-scrollbar,
+body .history-result::-webkit-scrollbar{display:none}
+
+body .calendar-result,
+body .secondary{
+  min-inline-size:0;
+  max-inline-size:100%;
+  white-space:nowrap;
+  overflow-x:auto;
+  overflow-y:hidden;
+  text-overflow:unset;
+  scrollbar-width:none;
+  overscroll-behavior-inline:contain;
+  -webkit-overflow-scrolling:touch;
+}
+body .calendar-result::-webkit-scrollbar,
+body .secondary::-webkit-scrollbar{display:none}
+
+body .result.numeric-overflow,
+body .history-row-value.numeric-overflow,
+body .history-result.numeric-overflow{
+  cursor:ew-resize;
+}
