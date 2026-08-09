@@ -8,6 +8,21 @@
 - 核心不得依赖 DOM、ArkUI、localStorage、Preferences、系统日期选择器或 Toast。
 - 日期/时间戳映射属于上层 Adapter；日期超出平台可表示范围时，不得使纯时长结果失效。
 - 历史记录/序列化属于独立 Store/Codec；完整规则见 `docs/HISTORY_SERIALIZATION_CONTRACT.md`。
+- 编辑状态、历史恢复与 Undo Snapshot 属于独立 Calculator State；完整规则见 `docs/CALCULATOR_STATE_CONTRACT.md`。
+
+当前跨平台基础栈：
+
+```text
+DurationPrecision
+      ↓
+DateMapper
+      ↓
+HistoryStore
+      ↓
+CalculatorState
+      ↓
+Platform UI Runtime
+```
 
 ## 2. 唯一真值
 
@@ -26,7 +41,7 @@ HarmonyOS 迁移时：必须选择能表达任意精度整数或等价十进制�
 
 ## 3. 输入协议
 
-单位输入在进入算术前保持十进制字符串。
+单位输入在进入核心前保持十进制字符串。
 
 - 允许整数和十进制小数。
 - 只有最终能够**整除并精确落到整数毫秒**的输入才合法。
@@ -68,6 +83,7 @@ HarmonyOS 迁移时：必须选择能表达任意精度整数或等价十进制�
 - 不允许把超大整数先转换成 Number 再序列化。
 - 历史记录加载时，以可恢复表达式 `rows` 为真值重新计算 `resultMs`；旧 Number `resultMs` 只作为遗留字段读取，不作为精确真值继续传播。
 - 历史 Schema、日期上下文、签名去重、旧版本迁移与撤销规则统一由 `docs/HISTORY_SERIALIZATION_CONTRACT.md` 定义。
+- Undo / 编辑 Snapshot 中的 `lastResultMs` 同样必须保存为十进制字符串，不能直接把 BigInt 放入 JSON；状态规则统一由 `docs/CALCULATOR_STATE_CONTRACT.md` 定义。
 
 ## 7. 日期映射协议
 
@@ -95,7 +111,29 @@ HarmonyOS 迁移时：必须选择能表达任意精度整数或等价十进制�
 
 日期 Adapter 的显示结果属于**本地日历映射**。因此跨平台一致性重点是：同一设备时区/日历语义下的基准解析、绝对毫秒相加和范围失败规则一致；纯时长结果本身始终由 Duration Core 决定。
 
-## 8. 跨平台一致性测试
+## 8. 状态恢复协议
+
+历史恢复与 Undo 不允许直接复制平台 UI 对象。
+
+统一流程：
+
+```text
+Platform Runtime
+-> CalculatorState Snapshot
+-> JSON-safe canonical state
+-> restore / undo
+-> Platform Runtime
+```
+
+关键规则：
+
+- `rows`、日期上下文和编辑中间态必须可恢复；
+- 未完成的裸数字、小数点和冒号输入也属于合法 Undo 状态；
+- 历史恢复后进入“可继续编辑的表达式”状态，而不是锁死结果页；
+- 显示格式与小时十进制/60进制属于显示偏好，可随 Snapshot 恢复，但它们单独存在不算计算内容；
+- Web Runtime 恢复 Snapshot 时把毫秒字符串重新转回 BigInt；未来 ArkTS 使用自己的任意精度整数实现。
+
+## 9. 跨平台一致性测试
 
 `tests/duration-core-vectors.json` 是平台无关时长测试向量。
 
@@ -113,7 +151,7 @@ Web 端由 `tests/duration-precision.test.cjs` 自动执行；未来 ArkTS 核�
 - 超大冒号小时；
 - 历史字符串序列化。
 
-日期适配层另由 `tests/date-mapper.test.cjs` 检查：
+日期适配层由 `tests/date-mapper.test.cjs` 检查：
 
 - 当天默认零点；
 - 日期字符串规范化；
@@ -121,15 +159,30 @@ Web 端由 `tests/duration-precision.test.cjs` 自动执行；未来 ArkTS 核�
 - 正负毫秒映射；
 - 超大时长只产生 `date-out-of-range`，不反向否定时长核心。
 
-历史/状态链由 `tests/history-store.test.cjs` 与 `tests/state-flow.test.cjs` 检查：
+历史层由 `tests/history-store.test.cjs` 检查：
 
-- 保存 -> JSON -> 重载 -> 恢复 -> 继续计算；
 - 旧 Number / date-only 历史迁移；
 - 日期参与 signature 去重；
 - 删除、撤销与容量规则；
-- 负结果和超大数恢复后继续保持毫秒级精确。
+- rows 作为历史真值重新生成精确 resultMs。
 
-## 9. Web 参考实现
+状态与完整链路由以下测试检查：
+
+- `tests/calculator-state.test.cjs`
+- `tests/state-flow.test.cjs`
+- `tests/state-runtime-wiring.test.cjs`
+
+覆盖：
+
+- 保存 -> JSON -> 重载 -> State -> 继续计算；
+- 超大 BigInt Snapshot JSON 往返；
+- 未完成小数/冒号输入 Undo；
+- 日期 + 小时 60 进制状态恢复；
+- 负结果恢复后继续保持毫秒级精确；
+- Web Runtime 的 `string -> BigInt` 桥接；
+- PWA 脚本加载顺序和离线缓存接线。
+
+## 10. Web 参考实现
 
 纯时长核心：`js/duration-precision.js`
 
@@ -137,7 +190,11 @@ Web 日期适配层：`js/date-mapper.js`
 
 Web 历史序列化层：`js/history-store.js`
 
-Web UI 适配层：`js/duration-core.js`、`js/duration-ui.js`、`js/date-anchor.js`
+跨平台计算器状态：`js/calculator-state.js`
+
+Web 状态桥接层：`js/calculator-state-runtime.js`
+
+Web UI 适配层：`js/duration-core.js`、`js/duration-ui.js`、`js/date-anchor.js`、`js/display-mode.js`
 
 共享测试向量：`tests/duration-core-vectors.json`
 
@@ -145,4 +202,4 @@ Web UI 适配层：`js/duration-core.js`、`js/duration-ui.js`、`js/date-anchor
 
 CI 门禁：`.github/workflows/core-tests.yml`
 
-迁移到其他平台时，应以本契约、历史序列化契约、共享测试向量和 Adapter 失败语义为准，而不是复制 Web 的 DOM/UI 代码。
+迁移到其他平台时，应以本契约、历史序列化契约、状态契约、共享测试向量和 Adapter 失败语义为准，而不是复制 Web 的 DOM/UI 代码。
