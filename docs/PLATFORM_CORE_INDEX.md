@@ -17,12 +17,14 @@ Web 与页面运行时之间的桥接：`js/calculator-state-runtime.js`。
 - `docs/DURATION_INVARIANTS.md`
 - `docs/HISTORY_SERIALIZATION_CONTRACT.md`
 - `docs/CALCULATOR_STATE_CONTRACT.md`
+- `docs/PERSISTENCE_INTEGRITY_CONTRACT.md`
 - `docs/CROSS_PLATFORM_CONFORMANCE.md`
 
 ## 共享机器可读测试向量
 
 - `tests/duration-core-vectors.json` — 纯时长解析与算术
 - `tests/cross-platform-conformance-vectors.json` — Display Format / Date / History / State
+- `tests/persistence-integrity-vectors.json` — 旧数据迁移、损坏数据拒绝与降级策略
 
 显示格式向量已经锁定：
 
@@ -41,6 +43,14 @@ partsToMs(millisecondsToParts(x)) === x
 
 对正负、毫秒尾数与超大 BigInt 都成立。负复合时长拆成多个 Part 时，每个组成部分必须共同保持负号，确保结算后继续 `+ / -` 不改变原值。
 
+持久化完整性还要求：
+
+- committed rows 不能通过删除坏 Part 被“部分抢救”；
+- 未知后续运算符不能默认成 `+`；
+- colon 一位分钟可以补零，但超过两位不能截断；
+- 非法可选日期只降级日期，不反向丢掉可靠纯时长；
+- 编辑中间态仍允许不完整输入。
+
 ## Web 验证入口
 
 ```bash
@@ -58,8 +68,8 @@ GitHub Actions：`.github/workflows/core-tests.yml`。
 ```text
 实现四层平台无关能力
 -> 读取同一批共享 fixtures
--> 算术、性质、显示、日期、历史、状态全部 conformance cases 通过
+-> 算术、性质、显示、日期、历史、状态、持久化完整性全部通过
 -> 再连接 ArkUI 页面
 ```
 
-只有 Web 与 HarmonyOS 对同一输入得到相同规范状态、整数毫秒字符串和规范显示文本，并满足相同核心不变量，才视为核心迁移完成。
+只有 Web 与 HarmonyOS 对同一输入得到相同规范状态、整数毫秒字符串和规范显示文本，同时对损坏/旧数据做出相同的迁移、拒绝与降级，并满足相同核心不变量，才视为核心迁移完成。
