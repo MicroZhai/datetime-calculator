@@ -1,0 +1,61 @@
+{
+  "version": 1,
+  "minimumPrecision": "1ms",
+  "unitFactorsMs": {
+    "d": "86400000",
+    "h": "3600000",
+    "m": "60000",
+    "s": "1000"
+  },
+  "parseCases": [
+    { "name": "one day", "value": "1", "unit": "d", "expectedMs": "86400000" },
+    { "name": "decimal hour", "value": "1.5", "unit": "h", "expectedMs": "5400000" },
+    { "name": "fractional minute exact to ms", "value": "0.0001", "unit": "m", "expectedMs": "6" },
+    { "name": "one millisecond through seconds", "value": "0.001", "unit": "s", "expectedMs": "1" },
+    { "name": "sub millisecond rejected", "value": "0.0001", "unit": "s", "expectedError": "当前数值无法精确到 1 毫秒" },
+    { "name": "three hundred million days", "value": "300000000", "unit": "d", "expectedMs": "25920000000000000" },
+    {
+      "name": "one hundred digit days",
+      "value": "9999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999",
+      "unit": "d",
+      "expectedMs": "863999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999913600000"
+    }
+  ],
+  "expressionCases": [
+    {
+      "name": "normal arithmetic",
+      "rows": [
+        { "op": null, "parts": [{ "kind": "unit", "unit": "d", "value": "1" }] },
+        { "op": "+", "parts": [{ "kind": "unit", "unit": "h", "value": "2" }] },
+        { "op": "-", "parts": [{ "kind": "unit", "unit": "m", "value": "30" }] }
+      ],
+      "expectedMs": "91800000"
+    },
+    {
+      "name": "huge duration keeps one millisecond",
+      "rows": [
+        { "op": null, "parts": [{ "kind": "unit", "unit": "d", "value": "300000000" }] },
+        { "op": "+", "parts": [{ "kind": "unit", "unit": "s", "value": "0.001" }] },
+        { "op": "-", "parts": [{ "kind": "colon", "hours": "1", "minutes": "00", "seconds": "00" }] }
+      ],
+      "expectedMs": "25919999996400001"
+    },
+    {
+      "name": "two hundred-digit durations plus one millisecond",
+      "rows": [
+        { "op": null, "parts": [{ "kind": "unit", "unit": "d", "value": "9999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999" }] },
+        { "op": "+", "parts": [{ "kind": "unit", "unit": "d", "value": "9999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999" }] },
+        { "op": "+", "parts": [{ "kind": "unit", "unit": "s", "value": "0.001" }] }
+      ],
+      "expectedMs": "1727999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999827200001"
+    },
+    {
+      "name": "negative result remains exact",
+      "rows": [
+        { "op": null, "parts": [{ "kind": "unit", "unit": "m", "value": "30" }] },
+        { "op": "-", "parts": [{ "kind": "unit", "unit": "h", "value": "1" }] }
+      ],
+      "expectedMs": "-1800000"
+    }
+  ]
+}
