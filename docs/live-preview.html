@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>时间计算器 · 实时预览</title>
+  <style>
+    :root{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color:#172033;background:#eef1f5}
+    *{box-sizing:border-box}body{margin:0;padding:20px}header{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:16px}h1{margin:0;font-size:22px}#state{font-size:13px;color:#687284}.views{display:flex;flex-wrap:wrap;gap:20px}.view{margin:0}.view figcaption{margin:0 0 7px;font-weight:600}.frame{padding:9px;background:#dfe4eb;border:1px solid #c9d0da;border-radius:22px;box-shadow:0 8px 24px #17203318}.frame iframe{display:block;border:0;background:#fff;border-radius:14px}.phone iframe{width:390px;height:844px}.tablet iframe{width:1024px;height:768px;max-width:calc(100vw - 60px)}.desktop iframe{width:1280px;height:800px;max-width:calc(100vw - 60px)}
+    @media(max-width:600px){body{padding:12px}header{display:block}#state{display:block;margin-top:5px}.phone iframe,.tablet iframe,.desktop iframe{width:calc(100vw - 42px);height:680px}}
+  </style>
+</head>
+<body>
+  <header><h1>时间计算器实时预览</h1><span id="state">正在监测文件变化…</span></header>
+  <main class="views">
+    <figure class="view phone"><figcaption>手机 · 390 × 844</figcaption><div class="frame"><iframe src="../index.html" title="手机实时预览"></iframe></div></figure>
+    <figure class="view tablet"><figcaption>平板 · 1024 × 768</figcaption><div class="frame"><iframe src="../index.html" title="平板实时预览"></iframe></div></figure>
+    <figure class="view desktop"><figcaption>桌面 · 1280 × 800</figcaption><div class="frame"><iframe src="../index.html" title="桌面实时预览"></iframe></div></figure>
+  </main>
+  <script>
+    const frames=[...document.querySelectorAll('iframe')];
+    let version='';
+    async function check(){
+      try{
+        const response=await fetch('../index.html?preview='+Date.now(),{cache:'no-store'});
+        const next=response.headers.get('last-modified')||await response.text().then(text=>String(text.length));
+        if(version&&next!==version){
+          document.getElementById('state').textContent='检测到修改，正在刷新…';
+          frames.forEach(frame=>{frame.src='../index.html?preview='+Date.now()});
+          setTimeout(()=>document.getElementById('state').textContent='实时预览已同步',700);
+        }
+        version=next;
+      }catch(_){document.getElementById('state').textContent='等待本地预览服务器…'}
+    }
+    check();setInterval(check,1000);
+  </script>
+  <script>
+    const watchedPreviewFiles=['../index.html','../sw.js','../css/duration-calculator.css','../css/display-surface.css','../css/keypad-surface.css','../js/duration-ui.js','../js/display-mode.js','../js/language.js'];
+    let watchedPreviewVersion='';
+    async function watchPreviewAssets(){
+      try{
+        const stamp=Date.now();
+        const parts=await Promise.all(watchedPreviewFiles.map(async file=>{
+          const response=await fetch(file+'?preview='+stamp,{cache:'no-store'});
+          const body=await response.text();
+          return file+'|'+(response.headers.get('last-modified')||body.length)+'|'+body.length;
+        }));
+        const next=parts.join(';');
+        if(watchedPreviewVersion&&next!==watchedPreviewVersion){
+          document.querySelectorAll('iframe').forEach(frame=>{frame.src='../index.html?preview='+Date.now()});
+        }
+        watchedPreviewVersion=next;
+      }catch(_){/* the primary watcher reports server availability */}
+    }
+    watchPreviewAssets();
+    setInterval(watchPreviewAssets,1000);
+  </script>
+</body>
+</html>

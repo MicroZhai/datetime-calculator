@@ -38,8 +38,8 @@
     <div class="top-actions">
       <button class="icon-btn" id="settingsBtn" type="button" aria-label="设置" title="设置" aria-haspopup="menu" aria-expanded="false" aria-controls="themeMenu">
         <svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-          <path d="M12 3.8 13.3 5.7a6.7 6.7 0 0 1 1.8.8l2.2-.4 1.5 2.6-1.4 1.7a6.7 6.7 0 0 1 0 2.1l1.4 1.7-1.5 2.6-2.2-.4a6.7 6.7 0 0 1-1.8.8L12 19.2H9l-1.3-1.9a6.7 6.7 0 0 1-1.8-.8l-2.2.4-1.5-2.6 1.4-1.7a6.7 6.7 0 0 1 0-2.1L2.2 8.7l1.5-2.6 2.2.4a6.7 6.7 0 0 1 1.8-.8L9 3.8h3Z"/>
-          <circle cx="11.5" cy="11.2" r="2.5"/>
+          <path d="M12 3.75 13.25 5.35c.52.15 1.01.35 1.46.6l2-.45.95 1.65-.9 1.8c.25.45.44.94.55 1.45l1.69 1.15v1.9l-1.69 1.15c-.11.51-.3 1-.55 1.45l.9 1.8-.95 1.65-2-.45c-.45.25-.94.45-1.46.6L12 20.25l-1.25-1.6c-.52-.15-1.01-.35-1.46-.6l-2 .45-.95-1.65.9-1.8a6.9 6.9 0 0 1-.55-1.45L5 13.45v-1.9l1.69-1.15c.11-.51.3-1 .55-1.45l-.9-1.8.95-1.65 2 .45c.45-.25.94-.45 1.46-.6L12 3.75Z"/>
+          <circle cx="12" cy="12" r="2.6"/>
         </svg>
       </button>
       <button class="icon-btn" id="themeBtn" type="button" aria-label="主题：跟随系统" title="主题：跟随系统" aria-haspopup="menu" aria-expanded="false" aria-controls="themeMenu">
@@ -85,18 +85,17 @@
 
       <div class="normalized" id="normalized"></div>
       <div class="result-group" aria-live="polite" aria-atomic="true">
+        <div class="format-row">
+          <div class="format-control" id="formatControl">
+            <button class="format-trigger" id="formatTrigger" type="button" aria-label="切换结果显示方式，当前天" title="切换结果显示方式，当前天">
+              <span class="format-trigger-label active" id="formatTriggerLabel" aria-hidden="true">天</span>
+            </button>
+          </div>
+        </div>
         <div class="result" id="result">0分</div>
         <div class="secondary" id="secondary">00:00:00</div>
       </div>
       <div class="error-line" id="errorLine" role="status" aria-live="polite"></div>
-
-      <div class="format-row">
-        <div class="format-switch" role="radiogroup" aria-label="结果显示方式">
-          <button class="format-option active" data-format="0" type="button" role="radio" aria-checked="true">天时分秒</button>
-          <button class="format-option" data-format="1" type="button" role="radio" aria-checked="false">小时</button>
-          <button class="format-option" data-format="2" type="button" role="radio" aria-checked="false">分</button>
-        </div>
-      </div>
     </section>
 
     <section class="keypad-region" aria-label="计算键盘">
@@ -131,7 +130,6 @@
         <button class="key k00" data-digit="00" type="button">00</button>
         <button class="key kdot" data-digit="." type="button" aria-label="小数点">.</button>
       </div>
-      <p class="hint">按 = 保存到历史；历史记录可恢复后继续编辑。</p>
     </section>
   </main>
 </div>

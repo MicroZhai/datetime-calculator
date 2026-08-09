@@ -32,6 +32,8 @@
   body .keypad-region{
     background:var(--keypad-surface);
     border-block-start:1px solid var(--divider);
+    border-radius:var(--radius-xl);
+    overflow:hidden;
     margin-inline:calc(-1 * var(--space-md));
     padding-inline:var(--space-md);
     padding-block-start:var(--space-sm);

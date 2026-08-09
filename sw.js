@@ -23,6 +23,7 @@ const APP_SHELL = [
   './js/range-guard.js',
   './js/large-number-ui.js',
   './js/theme.js',
+  './js/language.js',
   './icons/icon-192.png',
   './icons/icon-512.png'
 ];

@@ -6,8 +6,27 @@
     } catch { return 'decimal'; }
   })();
   let fitFrame = 0;
-  const formatButtons = [...document.querySelectorAll('.format-option')];
-  const hourButton = document.querySelector('.format-option[data-format="1"]');
+  const formatTrigger = document.getElementById('formatTrigger');
+  const formatTriggerLabel = document.getElementById('formatTriggerLabel');
+
+
+  function syncFormatControl() {
+    if (!formatTrigger) return;
+    const labels = ['天', '时', '分'];
+    const label = labels[formatIndex] || labels[0];
+    if (formatTriggerLabel) {
+      formatTriggerLabel.textContent = label;
+      formatTriggerLabel.classList.add('active');
+    }
+    formatTrigger.dataset.format = String(formatIndex);
+    formatTrigger.title = `切换结果显示方式，当前${label}`;
+    formatTrigger.setAttribute('aria-label', `切换结果显示方式，当前${label}`);
+  }
+
+  formatTrigger?.addEventListener('click', () => {
+    formatIndex = (formatIndex + 1) % 3;
+    render();
+  });
 
   function persistHourMode() {
     try { localStorage.setItem(HOUR_MODE_KEY, hourDisplayMode); } catch {}
@@ -26,16 +45,6 @@
   };
 
   function syncHourMode() {
-    if (hourButton) {
-      hourButton.dataset.hourMode = hourDisplayMode;
-      if (formatIndex === 1) {
-        hourButton.title = `小时 · ${hourModeLabel()}，再次点击切换`;
-        hourButton.setAttribute('aria-label', `小时显示，当前${hourModeLabel()}，再次点击切换`);
-      } else {
-        hourButton.title = '小时 · 默认十进制';
-        hourButton.setAttribute('aria-label', '切换到小时显示，默认十进制');
-      }
-    }
     if (formatIndex !== 1) return;
     const evaluated = evaluateRows(true);if (!evaluated.ok) return;
     if (hourDisplayMode === 'sexagesimal') {
@@ -67,18 +76,7 @@
   }
 
   const renderBase = render;
-  render = function() {renderBase();syncHourMode();fitPrimaryResult()};
-
-  formatButtons.forEach((button, index) => {
-    button.onclick = () => {
-      if (index === 1) {
-        if (formatIndex === 1) hourDisplayMode = hourDisplayMode === 'decimal' ? 'sexagesimal' : 'decimal';
-        else formatIndex = 1;
-        persistHourMode();
-      } else formatIndex = index;
-      render();
-    };
-  });
+  render = function() {renderBase();syncHourMode();syncFormatControl();fitPrimaryResult()};
 
   const snapshotCalculatorBase = snapshotCalculator;
   snapshotCalculator = function() {return { ...snapshotCalculatorBase(), hourDisplayMode }};

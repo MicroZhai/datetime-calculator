@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>时间计算器 · 响应式预览</title>
+  <style>
+    :root{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color:#172033;background:#eef1f5}
+    *{box-sizing:border-box}body{margin:0;padding:24px}h1{margin:0 0 8px;font-size:22px}p{margin:0 0 24px;color:#687284}
+    .previews{display:flex;flex-wrap:wrap;align-items:flex-start;gap:24px}.preview{margin:0}.preview figcaption{margin:0 0 8px;font-weight:600}.frame{background:#dfe4eb;border:1px solid #c9d0da;border-radius:24px;padding:10px;box-shadow:0 8px 24px #17203318}.frame iframe{display:block;border:0;background:#fff;border-radius:16px}
+    .phone iframe{width:390px;height:844px}.tablet iframe{width:1024px;height:768px;max-width:calc(100vw - 68px)}.desktop iframe{width:1280px;height:800px;max-width:calc(100vw - 68px)}
+    @media(max-width:600px){body{padding:16px}.phone iframe{width:calc(100vw - 54px);height:760px}.tablet iframe,.desktop iframe{width:calc(100vw - 54px);height:620px}}
+  </style>
+</head>
+<body>
+  <h1>时间计算器响应式预览</h1>
+  <p>分别检查手机竖屏、平板横屏和桌面布局，重点测试输入提示是否遮挡表达式或键盘。</p>
+  <main class="previews">
+    <figure class="preview phone"><figcaption>手机 · 390 × 844</figcaption><div class="frame"><iframe src="../index.html" title="手机预览"></iframe></div></figure>
+    <figure class="preview tablet"><figcaption>平板 · 1024 × 768</figcaption><div class="frame"><iframe src="../index.html" title="平板预览"></iframe></div></figure>
+    <figure class="preview desktop"><figcaption>桌面 · 1280 × 800</figcaption><div class="frame"><iframe src="../index.html" title="桌面预览"></iframe></div></figure>
+  </main>
+</body>
+</html>

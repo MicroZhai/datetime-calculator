@@ -43,7 +43,7 @@ function renderExpression(){
   });
   const showCurrent=!justEvaluated&&(!rows.length||currentParts.length||numberBuffer||colonMode||currentOp!==null);
   if(showCurrent)out.push(renderCurrentLine());
-  if(rows.length>=2||(rows.length&&(currentParts.length||colonMode||numberBuffer||currentOp!==null)))out.push('<div class="expr-divider"></div>');
+  if(rows.length>=2||(rows.length&&(currentParts.length||colonMode||numberBuffer||currentOp!==null)))out.push(`<div class="expr-divider ${!justEvaluated&&!currentParts.length&&!numberBuffer&&!colonMode?'next-divider':''}"></div>`);
   expressionEl.innerHTML=out.join('');
   requestAnimationFrame(()=>{exprScroll.scrollTop=exprScroll.scrollHeight});
 }
@@ -82,7 +82,6 @@ function render(){
   }else{
     resultEl.textContent='—';secondaryEl.textContent='无法精确表示';setError(r.error);
   }
-  document.querySelectorAll('.format-option').forEach((b,i)=>b.classList.toggle('active',i===formatIndex));
   document.querySelectorAll('.key.unit').forEach(b=>b.classList.toggle('disabled',colonMode));
 }
 

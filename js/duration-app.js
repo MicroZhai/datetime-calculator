@@ -6,9 +6,6 @@ let undoTimer=null;
 let historyFocusReturn=null;
 
 function syncA11yState(){
-  document.querySelectorAll('.format-option').forEach((button,index)=>{
-    button.setAttribute('aria-checked',String(index===formatIndex));
-  });
   document.querySelectorAll('.key.unit').forEach(button=>{
     button.disabled=colonMode;
     button.setAttribute('aria-disabled',String(colonMode));
@@ -212,7 +209,6 @@ document.querySelector('[data-action="clear"]').onclick=clearCalculatorWithUndo;
 document.querySelector('[data-action="back"]').onclick=backspace;
 document.querySelector('[data-action="equals"]').onclick=equals;
 
-document.querySelectorAll('.format-option').forEach((button,index)=>button.onclick=()=>{formatIndex=index;render()});
 toggleOpBtn.onclick=toggleSelectedOpQuiet;
 document.getElementById('deleteRowBtn').onclick=deleteSelectedRowWithUndo;
 document.getElementById('doneRowBtn').onclick=()=>{if(partEdit)commitPartEdit();selectedRow=null;render()};

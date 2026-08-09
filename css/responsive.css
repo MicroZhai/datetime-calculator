@@ -29,22 +29,21 @@ body .icon-btn{
 }
 
 body .display-region{
-  flex:1 1 auto;
+  flex:0 0 auto;
   min-block-size:0;
   display:flex;
   flex-direction:column;
-  padding-block-start:0;
 }
 
 body .status-row{
   min-block-size:0;
-  margin-block-end:clamp(2px,.5vh,4px);
+  margin-block-end:var(--space-sm);
 }
 
 body .expr-scroll{
-  min-block-size:clamp(56px,10vh,88px);
+  min-block-size:56px;
   max-block-size:min(200px,24dvh);
-  padding-block:clamp(0px,.5vh,4px);
+  padding-block:0;
 }
 
 /* Empty feedback slots must not reserve vertical space. */
@@ -59,11 +58,11 @@ body .error-line{
   margin-block-start:2px;
 }
 
-/* Spare height belongs to the display workspace. The result naturally settles toward
-   the lower part of that workspace, keeping the keypad close to the viewport bottom. */
+/* The result follows the expression at a stable distance. Empty space belongs to the
+   page canvas, never to a visually empty display card. */
 body .result-group{
-  margin-block-start:auto;
-  padding-block-start:clamp(4px,1vh,8px);
+  margin-block-start:var(--space-md);
+  padding-block-start:0;
 }
 
 body .result{
@@ -75,16 +74,7 @@ body .secondary{
 }
 
 body .format-row{
-  margin-block-start:clamp(4px,1vh,8px);
-}
-
-body .format-switch{
-  min-block-size:clamp(44px,6.2vh,48px);
-  padding:clamp(2px,.5vh,4px);
-}
-
-body .format-option{
-  min-block-size:40px;
+  margin-block-start:0;
 }
 
 body .keypad-region{
@@ -112,6 +102,22 @@ body .key{
 
   body .hint{
     display:none;
+  }
+}
+
+/* On normal and tall phones, preserve the keypad's four-column layout while it
+   absorbs the space released by the compact display card. */
+@media(max-width:599px) and (min-height:680px){
+  body .keypad-region{
+    flex:1 1 auto;
+    min-block-size:0;
+    display:flex;
+  }
+
+  body .keypad{
+    flex:1 1 auto;
+    min-block-size:0;
+    grid-template-rows:repeat(6,minmax(48px,1fr));
   }
 }
 
@@ -164,15 +170,6 @@ body .key{
 
   body .result{
     font-size:30px;
-  }
-
-  body .format-switch{
-    min-block-size:40px;
-  }
-
-  body .format-option{
-    min-block-size:40px;
-    font-size:13px;
   }
 
   body .keypad{
@@ -228,10 +225,13 @@ body .key{
     margin-block-end:auto;
   }
 
-  body .display-region{
-    inline-size:min(100%,640px);
-    align-self:center;
-    justify-self:center;
+  /* Portrait tablets use one shared outer panel width and radius. */
+  body .display-region,
+  body .keypad-region{
+    inline-size:100%;
+    align-self:stretch;
+    justify-self:stretch;
+    border-radius:var(--radius-xl);
   }
 }
 
@@ -251,7 +251,7 @@ body .key{
     display:grid;
     grid-template-columns:minmax(0,1fr) minmax(0,1fr);
     gap:var(--space-xxxl);
-    align-items:stretch;
+    align-items:start;
     flex:0 1 auto;
     margin-block-start:clamp(24px,5vh,56px);
     margin-block-end:auto;
@@ -266,9 +266,6 @@ body .key{
     max-block-size:min(156px,30dvh);
   }
 
-  body .format-switch{
-    inline-size:100%;
-  }
 }
 
 /* Compact split: tablet landscape and narrow desktop windows keep the same
@@ -319,11 +316,11 @@ body .key{
   }
 
   body .line-value{
-    font-size:22px;
+    font-size:20px;
   }
 
   body .result{
-    font-size:clamp(42px,5.5vh,48px);
+    font-size:clamp(32px,4.5vh,38px);
   }
 }
 
@@ -337,8 +334,5 @@ body .key{
     font-size:30px;
   }
 
-  body .format-option{
-    font-size:12px;
-  }
 }
 
