@@ -36,6 +36,12 @@
     <div aria-hidden="true"></div>
     <div class="title">时间计算器</div>
     <div class="top-actions">
+      <button class="icon-btn" id="settingsBtn" type="button" aria-label="设置" title="设置" aria-haspopup="menu" aria-expanded="false" aria-controls="themeMenu">
+        <svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path d="M12 3.8 13.3 5.7a6.7 6.7 0 0 1 1.8.8l2.2-.4 1.5 2.6-1.4 1.7a6.7 6.7 0 0 1 0 2.1l1.4 1.7-1.5 2.6-2.2-.4a6.7 6.7 0 0 1-1.8.8L12 19.2H9l-1.3-1.9a6.7 6.7 0 0 1-1.8-.8l-2.2.4-1.5-2.6 1.4-1.7a6.7 6.7 0 0 1 0-2.1L2.2 8.7l1.5-2.6 2.2.4a6.7 6.7 0 0 1 1.8-.8L9 3.8h3Z"/>
+          <circle cx="11.5" cy="11.2" r="2.5"/>
+        </svg>
+      </button>
       <button class="icon-btn" id="themeBtn" type="button" aria-label="主题：跟随系统" title="主题：跟随系统" aria-haspopup="menu" aria-expanded="false" aria-controls="themeMenu">
         <svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
           <circle cx="12" cy="12" r="7.5"/>
@@ -159,6 +165,7 @@
 <script src="js/range-guard.js"></script>
 <script src="js/large-number-ui.js"></script>
 <script src="js/theme.js"></script>
+<script src="js/language.js"></script>
 <script>
 (() => {
   if (!('serviceWorker' in navigator)) return;

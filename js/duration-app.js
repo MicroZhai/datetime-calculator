@@ -105,6 +105,10 @@ function clearCalculatorWithUndo(){
   if(!hasCalculatorContent())return;
   const snapshot=snapshotCalculator();
   clearAll(false);
+  clearTimeout(undoTimer);
+  pendingUndo=()=>restoreCalculator(snapshot);
+  undoTimer=setTimeout(()=>{pendingUndo=null;undoTimer=null},6000);
+  return;
   showUndo('已清空计算内容',()=>restoreCalculator(snapshot));
 }
 
@@ -213,6 +217,7 @@ toggleOpBtn.onclick=toggleSelectedOpQuiet;
 document.getElementById('deleteRowBtn').onclick=deleteSelectedRowWithUndo;
 document.getElementById('doneRowBtn').onclick=()=>{if(partEdit)commitPartEdit();selectedRow=null;render()};
 document.getElementById('historyBtn').onclick=openHistoryAccessible;
+document.getElementById('settingsBtn').onclick=()=>document.getElementById('themeBtn')?.click();
 
 document.getElementById('closeHistoryBtn').onclick=closeHistoryAccessible;
 document.getElementById('clearHistoryBtn').onclick=clearHistoryWithUndo;

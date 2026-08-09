@@ -185,8 +185,8 @@ main{display:flex;flex-direction:column;gap:var(--space-md)}
   border:0;border-radius:var(--radius-lg);background:var(--card);color:var(--text-primary);font-size:20px;font-weight:400;
   cursor:pointer;min-inline-size:0;min-block-size:48px;transition:background var(--motion),color var(--motion),transform var(--motion),box-shadow var(--motion);
 }
-.key:hover{background:color-mix(in srgb,var(--card) 88%,var(--text-primary) 12%)}
-.key:active{background:color-mix(in srgb,var(--card) 80%,var(--text-primary) 20%);transform:scale(.95)}
+.key:hover{background:var(--card);box-shadow:inset 0 0 0 1px var(--divider)}
+.key:active{background:color-mix(in srgb,var(--card) 94%,var(--accent) 6%);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--accent) 28%,var(--divider));transform:scale(.98)}
 .key.util{font-size:14px;font-weight:500;color:var(--text-secondary)}
 .key.util.k-clear{font-size:18px;color:var(--text-secondary);display:grid;place-items:center}
 .key.util.k-back{display:grid;place-items:center}
@@ -197,7 +197,7 @@ main{display:flex;flex-direction:column;gap:var(--space-md)}
 .key.unit{background:var(--card-alt);color:var(--text-primary);font-size:14px;font-weight:500}
 .key.unit.disabled,.key.unit:disabled{opacity:.45;cursor:not-allowed}
 .key.equal{background:var(--accent);color:var(--text-on-accent);font-size:28px;font-weight:500}
-.key.equal:hover{background:color-mix(in srgb,var(--accent) 90%,black 10%)}
+.key.equal:hover{background:color-mix(in srgb,var(--accent) 94%,black 6%);box-shadow:none}
 .key.equal:active{background:color-mix(in srgb,var(--accent) 82%,black 18%);transform:scale(.95)}
 
 .k-day{grid-column:1;grid-row:1}.k-hour{grid-column:2;grid-row:1}.k-minute{grid-column:3;grid-row:1}.k-second{grid-column:4;grid-row:1}
@@ -232,6 +232,20 @@ main{display:flex;flex-direction:column;gap:var(--space-md)}
 }
 .undo-bar button:hover{background:var(--state-hover)}
 .undo-bar button:active{background:var(--state-pressed);transform:scale(.95)}
+
+/* On phones the keypad occupies the lower part of the viewport. Keep the
+   recover action above the calculator instead of covering touch targets. */
+@media(max-width:599px){
+  body .undo-bar{
+    inset-block-end:auto;
+    inset-block-start:calc(56px + env(safe-area-inset-top,0px) + var(--space-sm));
+    inline-size:calc(100vw - 24px);
+    min-block-size:44px;
+    padding-inline-start:var(--space-md);
+    transform:translateX(-50%) translateY(calc(-100% - 16px));
+  }
+  body .undo-bar.show{transform:translateX(-50%) translateY(0)}
+}
 
 .history-mask{
   position:fixed;inset:0;background:var(--overlay);display:none;align-items:flex-end;justify-content:center;z-index:40;
