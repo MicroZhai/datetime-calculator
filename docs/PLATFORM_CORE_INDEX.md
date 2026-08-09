@@ -15,6 +15,7 @@ Web 与页面运行时之间的桥接：`js/calculator-state-runtime.js`。
 
 - `docs/DURATION_CORE_CONTRACT.md`
 - `docs/DURATION_INVARIANTS.md`
+- `docs/DATE_MAPPING_CONTRACT.md`
 - `docs/HISTORY_SERIALIZATION_CONTRACT.md`
 - `docs/CALCULATOR_STATE_CONTRACT.md`
 - `docs/PERSISTENCE_INTEGRITY_CONTRACT.md`
@@ -24,6 +25,7 @@ Web 与页面运行时之间的桥接：`js/calculator-state-runtime.js`。
 ## 共享机器可读测试向量
 
 - `tests/duration-core-vectors.json` — 纯时长解析与算术
+- `tests/date-edge-vectors.json` — 月底、闰年、跨年、时区与夏令时日期边界
 - `tests/cross-platform-conformance-vectors.json` — Display Format / Date / History / State
 - `tests/persistence-integrity-vectors.json` — 旧数据内容完整性、损坏数据拒绝与降级策略
 - `tests/schema-migration-vectors.json` — Schema 版本升级与未来版本拒绝策略
@@ -44,6 +46,15 @@ partsToMs(millisecondsToParts(x)) === x
 ```
 
 对正负、毫秒尾数与超大 BigInt 都成立。负复合时长拆成多个 Part 时，每个组成部分必须共同保持负号，确保结算后继续 `+ / -` 不改变原值。
+
+日期映射还要求：
+
+- `1天` 永远是 24 小时真实经过时长，不是简单“日历翻一天”；
+- 月底、闰年、跨年与负时长必须按真实日历映射；
+- 夏令时地区允许本地一天出现 23 / 25 小时；
+- 春季跳过的不存在本地时间必须判无效；
+- 0099 这类早期四位年份不能被误解释成 1999；
+- 日期越界只影响结束日期，不反向影响纯时长。
 
 持久化完整性还要求：
 
@@ -77,8 +88,8 @@ GitHub Actions：`.github/workflows/core-tests.yml`。
 ```text
 实现四层平台无关能力
 -> 读取同一批共享 fixtures
--> 算术、性质、显示、日期、历史、状态、完整性、Schema migration 全部通过
+-> 算术、性质、显示、日期边界、历史、状态、完整性、Schema migration 全部通过
 -> 再连接 ArkUI 页面
 ```
 
-只有 Web 与 HarmonyOS 对同一输入得到相同规范状态、整数毫秒字符串和规范显示文本，同时对旧版本、未来版本和损坏数据做出相同的迁移、拒绝与降级，并满足相同核心不变量，才视为核心迁移完成。
+只有 Web 与 HarmonyOS 对同一输入得到相同规范状态、整数毫秒字符串和规范显示文本，同时对日期边界、旧版本、未来版本和损坏数据做出相同处理，并满足相同核心不变量，才视为核心迁移完成。
