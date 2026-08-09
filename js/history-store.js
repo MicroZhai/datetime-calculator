@@ -9,17 +9,35 @@
   const DEFAULT_LIMIT = 50;
 
   function normalizeRows(rows) {
+    if (DurationPrecisionRef?.normalizeStoredRowsStrict) {
+      const normalized = DurationPrecisionRef.normalizeStoredRowsStrict(rows);
+      return Array.isArray(normalized) ? normalized : [];
+    }
     if (!DurationPrecisionRef?.normalizeStoredRows) return [];
     return DurationPrecisionRef.normalizeStoredRows(rows);
   }
 
   function normalizeAnchorValue(value) {
     if (value === null || value === undefined || value === '') return null;
-    if (DateMapperRef?.normalizeAnchorValue) return DateMapperRef.normalizeAnchorValue(value);
-    if (typeof value !== 'string') return null;
-    if (/^\d{4,}-\d{2}-\d{2}$/.test(value)) return `${value}T00:00`;
-    const match = value.match(/^(\d{4,}-\d{2}-\d{2})T(\d{2}):(\d{2})/);
-    return match ? `${match[1]}T${match[2]}:${match[3]}` : null;
+
+    let normalized = null;
+    if (DateMapperRef?.normalizeAnchorValue) {
+      normalized = DateMapperRef.normalizeAnchorValue(value);
+    } else if (typeof value === 'string') {
+      if (/^\d{4,}-\d{2}-\d{2}$/.test(value)) normalized = `${value}T00:00`;
+      else {
+        const match = value.match(/^(\d{4,}-\d{2}-\d{2})T(\d{2}):(\d{2})/);
+        normalized = match ? `${match[1]}T${match[2]}:${match[3]}` : null;
+      }
+    }
+
+    if (!normalized) return null;
+    // Syntax-only normalization is not enough for persistence. Invalid optional
+    // calendar metadata is dropped while the exact duration record remains usable.
+    if (DateMapperRef?.parseLocalDateTimeMs && DateMapperRef.parseLocalDateTimeMs(normalized) === null) {
+      return null;
+    }
+    return normalized;
   }
 
   function normalizeLimit(limit) {
