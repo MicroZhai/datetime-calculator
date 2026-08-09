@@ -1,4 +1,4 @@
-const CACHE_NAME = 'dtc-duration-v13-7-20260809';
+const CACHE_NAME = 'dtc-duration-v13-8-20260809';
 const APP_SHELL = [
   './',
   './index.html',
