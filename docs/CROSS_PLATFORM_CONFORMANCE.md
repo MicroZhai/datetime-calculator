@@ -10,6 +10,7 @@
 
 - 输入协议；
 - 任意精度毫秒结果；
+- **确定性的显示格式与舍入规则**；
 - 日期映射成功/失败语义；
 - 历史迁移与去重；
 - CalculatorState 的恢复行为。
@@ -36,17 +37,28 @@
 - 多行加减；
 - 负结果。
 
-### 日期 / 历史 / 状态
+### 显示 / 日期 / 历史 / 状态
 
 `tests/cross-platform-conformance-vectors.json`
 
 当前包含：
 
+- Duration display formatting；
 - DateMapper；
 - HistoryStore；
 - CalculatorState。
 
 该文件使用纯 JSON，不包含 BigInt literal、函数或浏览器对象。
+
+显示向量专门锁定：
+
+- 天时分秒文本；
+- 毫秒尾数；
+- 正负 `H:MM:SS`；
+- 超大小时不使用科学计数法；
+- 十进制小时 / 分钟的 6 位小数舍入；
+- 舍入到下一整数的进位边界；
+- 十进制近似显示与 60 进制精确显示之间的区别。
 
 ---
 
@@ -74,6 +86,7 @@
 {
   "schemaVersion": 1,
   "dateTimezone": "UTC",
+  "format": [],
   "date": [],
   "history": [],
   "state": []
@@ -82,7 +95,20 @@
 
 每个 case 必须有稳定 `id`。
 
-例如：
+例如显示舍入：
+
+```json
+{
+  "id": "decimal-hour-two-ms-rounds-up",
+  "operation": "roundedRatio",
+  "milliseconds": "2",
+  "divisor": "hour",
+  "decimals": 6,
+  "expected": "0.000001"
+}
+```
+
+例如日期映射：
 
 ```json
 {
@@ -102,7 +128,26 @@
 
 ---
 
-## 5. Web 验证器
+## 5. 显示舍入规则
+
+显示值不是内部真值，但跨平台必须产生相同文本。
+
+十进制小时 / 分钟默认最多显示 6 位小数，使用当前 Duration Core 定义的**确定性四舍五入**，不得直接依赖不同语言运行时可能存在差异的浮点格式化。
+
+例如：
+
+- `1ms / 1小时` -> `0`（6 位小数）；
+- `2ms / 1小时` -> `0.000001`；
+- `3599999ms / 1小时` -> `1`（舍入显示）；
+- 同一 `3599999ms` 的 60 进制仍必须是 `00:59:59.999`。
+
+因此：
+
+> 十进制显示可以按显示精度舍入，但不得回写或改变内部整数毫秒真值。
+
+---
+
+## 6. Web 验证器
 
 Web 参考执行器：
 
@@ -112,9 +157,10 @@ Web 参考执行器：
 
 1. 读取共享 JSON；
 2. 固定测试时区；
-3. 调用当前 Web 参考实现；
-4. 逐字段验证 expected；
-5. 对 CalculatorState 再执行一次 JSON round-trip。
+3. 执行共享显示向量；
+4. 调用 Date / History / State 参考实现；
+5. 逐字段验证 expected；
+6. 对 CalculatorState 再执行一次 JSON round-trip。
 
 它已加入：
 
@@ -126,7 +172,7 @@ npm test
 
 ---
 
-## 6. HarmonyOS 迁移时的目标
+## 7. HarmonyOS 迁移时的目标
 
 未来 ArkTS 建议建立等价测试入口，例如：
 
@@ -143,31 +189,35 @@ Conformance Runner
 逐 case 比较 expected
 ```
 
-不要直接读取 Web DOM 代码作为测试依据。
+不要直接读取 Web DOM 代码作为测试依据，也不要用 ArkTS 自带浮点格式化替代已经定义好的定点舍入协议。
 
 ---
 
-## 7. 迁移完成条件
+## 8. 迁移完成条件
 
 鸿蒙核心迁移只有同时满足以下条件才算完成：
 
 1. 纯时长共享向量全部通过；
-2. 日期共享向量全部通过；
-3. HistoryStore 迁移向量全部通过；
-4. CalculatorState 向量全部通过；
-5. Web 与 ArkTS 对所有整数毫秒结果输出完全相同的十进制字符串；
-6. Date 越界只影响结束日期，不反向影响时长结果；
-7. 历史恢复后可以继续计算；
-8. Undo 中间态恢复行为一致。
+2. 天时分秒 / 十进制小时 / 60进制 / 分钟显示向量全部通过；
+3. 日期共享向量全部通过；
+4. HistoryStore 迁移向量全部通过；
+5. CalculatorState 向量全部通过；
+6. Web 与 ArkTS 对所有整数毫秒结果输出完全相同的十进制字符串；
+7. 同一个毫秒值在两个平台得到相同的规范显示文本；
+8. Date 越界只影响结束日期，不反向影响时长结果；
+9. 历史恢复后可以继续计算；
+10. Undo 中间态恢复行为一致。
 
 ---
 
-## 8. 新规则如何加入
+## 9. 新规则如何加入
 
 以后如果网页端增加会影响跨平台结果的新能力，例如：
 
 - 新的时间单位；
 - 新的表达式语法；
+- 新的显示格式；
+- 新的舍入规则；
 - 新的日期语义；
 - 新的历史字段；
 - 新的编辑状态；
@@ -186,7 +236,7 @@ Conformance Runner
 
 ---
 
-## 9. 当前跨平台基础栈
+## 10. 当前跨平台基础栈
 
 ```text
 DurationPrecision
@@ -202,4 +252,6 @@ CalculatorState
 - `docs/CALCULATOR_STATE_CONTRACT.md`
 - 本文件 `docs/CROSS_PLATFORM_CONFORMANCE.md`
 
-这四层稳定后，Web 与 HarmonyOS 的 UI 可以完全不同，但计算行为仍可被同一套自动测试证明一致。
+迁移入口：`docs/PLATFORM_CORE_INDEX.md`。
+
+这四层稳定后，Web 与 HarmonyOS 的 UI 可以完全不同，但计算行为和显示结果仍可被同一套自动测试证明一致。
