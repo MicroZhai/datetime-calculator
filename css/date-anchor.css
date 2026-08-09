@@ -33,39 +33,6 @@
   font-size:14px;
   font-weight:500;
 }
-.key.date-key.active{
-  color:var(--text-primary);
-}
-
-.line-value.has-date-anchor{
-  position:relative;
-  padding-inline-start:136px;
-}
-.date-anchor{
-  position:absolute;
-  inset-inline-start:0;
-  inset-block-start:50%;
-  transform:translateY(-50%);
-  min-block-size:40px;
-  max-inline-size:132px;
-  padding-inline:var(--space-xs);
-  border:0;
-  border-radius:var(--radius-sm);
-  background:transparent;
-  color:var(--text-secondary);
-  font-size:12px;
-  font-weight:500;
-  line-height:1;
-  white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis;
-  cursor:pointer;
-  font-variant-numeric:tabular-nums;
-  transition:background var(--motion),color var(--motion),transform var(--motion);
-}
-.date-anchor:hover{background:var(--state-hover)}
-.date-anchor:active{background:var(--state-pressed);transform:translateY(-50%) scale(.95)}
-.date-anchor:focus-visible{outline:3px solid var(--state-focus);outline-offset:1px}
 
 .anchor-date-input{
   position:fixed;
@@ -75,33 +42,6 @@
   block-size:1px;
   opacity:0;
   pointer-events:none;
-}
-
-.result-main-row{
-  display:flex;
-  align-items:baseline;
-  justify-content:space-between;
-  gap:var(--space-md);
-  min-inline-size:0;
-}
-.result-main-row .result{
-  flex:1;
-  min-inline-size:0;
-  inline-size:auto;
-}
-.calendar-result{
-  flex:0 0 auto;
-  min-inline-size:124px;
-  max-inline-size:148px;
-  color:var(--text-secondary);
-  font-size:12px;
-  font-weight:500;
-  line-height:1.2;
-  text-align:start;
-  white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis;
-  font-variant-numeric:tabular-nums;
 }
 
 .history-row.has-anchor{
@@ -117,12 +57,6 @@
   font-variant-numeric:tabular-nums;
 }
 
-.date-remove-btn[hidden]{display:none!important}
-
 @media(max-width:359px){
-  .line-value.has-date-anchor{padding-inline-start:116px}
-  .date-anchor{max-inline-size:112px;font-size:11px}
-  .result-main-row{gap:var(--space-sm)}
-  .calendar-result{min-inline-size:108px;max-inline-size:116px;font-size:11px}
   .history-row.has-anchor{grid-template-columns:minmax(108px,auto) 24px minmax(0,1fr)}
 }
