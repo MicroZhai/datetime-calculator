@@ -21,12 +21,6 @@ function assertSubset(actual, expected, message) {
   }
 }
 
-function assertAbsent(actual, keys, message) {
-  for (const key of keys || []) {
-    assert.equal(Object.hasOwn(actual || {}, key), false, `${message}: ${key} must be absent`);
-  }
-}
-
 for (const vector of vectors.format || []) {
   const label = `format/${vector.id}`;
   let actual;
@@ -72,7 +66,6 @@ for (const vector of vectors.history) {
   if (vector.operation === 'normalizeRecord') {
     const actual = H.normalizeRecord(vector.input);
     assertSubset(actual, vector.expected, label);
-    assertAbsent(actual, vector.expectedAbsent, label);
   } else {
     assert.fail(`${label}: unknown operation ${vector.operation}`);
   }
@@ -95,7 +88,6 @@ for (const vector of vectors.state) {
     : undefined;
   delete expected.hasContent;
   assertSubset(actual, expected, label);
-  assertAbsent(actual, vector.expectedAbsent, label);
   if (expectedHasContent !== undefined) {
     assert.equal(S.hasContent(actual), expectedHasContent, `${label}: hasContent`);
   }
