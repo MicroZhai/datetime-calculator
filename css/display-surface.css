@@ -46,6 +46,11 @@ body .status-row .badge{
   text-align:end;
 }
 
+/* When date is off, the status is the only visible header item and still owns the right edge. */
+body .status-row .date-anchor[hidden] + .badge{
+  grid-column:1 / -1;
+}
+
 body .date-anchor{
   min-inline-size:0;
   min-block-size:40px;
