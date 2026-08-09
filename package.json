@@ -2,6 +2,6 @@
   "name": "datetime-calculator-web",
   "private": true,
   "scripts": {
-    "test": "node tests/duration-precision.test.cjs && node tests/duration-invariants.test.cjs && node tests/persistence-integrity.test.cjs && node tests/schema-migration.test.cjs && node tests/date-mapper.test.cjs && node tests/history-store.test.cjs && node tests/calculator-state.test.cjs && node tests/state-flow.test.cjs && node tests/cross-platform-conformance.test.cjs && node tests/state-runtime-wiring.test.cjs && node tests/large-number-ui.test.cjs"
+    "test": "node tests/duration-precision.test.cjs && node tests/duration-invariants.test.cjs && node tests/persistence-integrity.test.cjs && node tests/schema-migration.test.cjs && node tests/date-mapper.test.cjs && node tests/date-edge.test.cjs && node tests/history-store.test.cjs && node tests/calculator-state.test.cjs && node tests/state-flow.test.cjs && node tests/cross-platform-conformance.test.cjs && node tests/state-runtime-wiring.test.cjs && node tests/large-number-ui.test.cjs"
   }
 }
