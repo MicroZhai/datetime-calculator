@@ -1,68 +1,66 @@
-const CACHE_NAME = 'dtc-v5';
-
-const FILES_TO_CACHE = [
-  '.',
-  'index.html',
-  'css/style.css',
-  'js/storage.js',
-  'js/history.js',
-  'js/calculator.js',
-  'js/theme.js',
-  'js/ui.js',
-  'js/ui-render.js',
-  'js/ui-sheet.js',
-  'js/ui-history.js',
-  'js/app.js',
-  'manifest.json',
-  'icons/icon-192.png',
-  'icons/icon-512.png'
+const CACHE_NAME = 'dtc-duration-v12-1-20260809';
+const APP_SHELL = [
+  './',
+  './index.html',
+  './manifest.json',
+  './css/duration-calculator.css',
+  './js/duration-core.js',
+  './js/duration-ui.js',
+  './js/duration-app.js',
+  './icons/icon-192.png',
+  './icons/icon-512.png'
 ];
 
-// 安装：预缓存文件
 self.addEventListener('install', event => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => cache.addAll(FILES_TO_CACHE))
+    caches.open(CACHE_NAME)
+      .then(cache => cache.addAll(APP_SHELL))
+      .then(() => self.skipWaiting())
   );
-  self.skipWaiting();
 });
 
-// 激活：清理旧缓存 + 通知所有页面刷新
 self.addEventListener('activate', event => {
   event.waitUntil(
-    caches.keys().then(keys =>
-      Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))
-    ).then(() => {
-      // 通知页面有新版本可用（由用户决定是否更新）
-      self.clients.matchAll({ type: 'window' }).then(clients => {
-        clients.forEach(client => client.postMessage('update-available'));
-      });
-    })
+    caches.keys()
+      .then(keys => Promise.all(
+        keys.filter(key => key !== CACHE_NAME).map(key => caches.delete(key))
+      ))
+      .then(() => self.clients.claim())
   );
-  self.clients.claim();
 });
 
-// 请求拦截：网络优先，缓存回退
 self.addEventListener('fetch', event => {
   if (event.request.method !== 'GET') return;
 
+  const url = new URL(event.request.url);
+  if (url.origin !== self.location.origin) return;
+
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request)
+        .then(response => {
+          const copy = response.clone();
+          caches.open(CACHE_NAME).then(cache => cache.put('./index.html', copy));
+          return response;
+        })
+        .catch(() => caches.match('./index.html'))
+    );
+    return;
+  }
+
   event.respondWith(
-    fetch(event.request, { cache: 'no-cache' }).then(response => {
-      // 网络成功 → 更新缓存 + 返回
-      if (response && response.status === 200) {
-        const clone = response.clone();
-        caches.open(CACHE_NAME).then(cache => {
-          cache.put(event.request, clone);
-        });
-      }
-      return response;
-    }).catch(() => {
-      // 网络失败 → 返回缓存
-      return caches.match(event.request).then(cached => {
-        if (cached) return cached;
-        if (event.request.mode === 'navigate') {
-          return caches.match('index.html');
-        }
-      });
+    caches.match(event.request).then(cached => {
+      const network = fetch(event.request)
+        .then(response => {
+          if (response && response.ok) {
+            const copy = response.clone();
+            caches.open(CACHE_NAME).then(cache => cache.put(event.request, copy));
+          }
+          return response;
+        })
+        .catch(() => cached);
+
+      return cached || network;
     })
   );
 });
