@@ -12,7 +12,7 @@ const toast=document.getElementById('toast');
 const historyMask=document.getElementById('historyMask');
 const historyList=document.getElementById('historyList');
 const HISTORY_KEY='time-calculator-v12-history';
-const HISTORY_LIMIT=50;
+const HISTORY_LIMIT=HistoryStore.DEFAULT_LIMIT;
 const factorMs=DurationPrecision.FACTOR_MS;
 const label={d:'天',h:'小时',m:'分',s:'秒'};
 const shortLabel={d:'天',h:'时',m:'分',s:'秒'};
@@ -34,56 +34,31 @@ let lastResultMs=0n;
 let justEvaluated=false;
 let selectedRow=null;
 let partEdit=null;
+let historyContextProvider=()=>({});
 let historyRecords=loadHistory();
 
-function normalizeHistoryRecord(record){
-  if(!record||typeof record!=='object')return null;
-  const normalizedRows=DurationPrecision.normalizeStoredRows(record.rows);
-  if(!normalizedRows.length)return null;
-  const parsedMs=DurationPrecision.toBigIntMs(record.resultMs);
-  const resultMs=parsedMs===null?'0':parsedMs.toString();
-  return {
-    ...record,
-    rows:normalizedRows,
-    resultMs,
-    signature:record.signature||rowsSignature(normalizedRows)
-  };
-}
-
 function loadHistory(){
-  try{
-    const raw=localStorage.getItem(HISTORY_KEY);
-    const parsed=raw?JSON.parse(raw):[];
-    if(!Array.isArray(parsed))return [];
-    return parsed.map(normalizeHistoryRecord).filter(Boolean).slice(0,HISTORY_LIMIT);
-  }catch(_){return []}
+  try{return HistoryStore.parse(localStorage.getItem(HISTORY_KEY),HISTORY_LIMIT)}
+  catch(_){return []}
 }
 function persistHistory(){
-  try{localStorage.setItem(HISTORY_KEY,JSON.stringify(historyRecords))}
+  try{localStorage.setItem(HISTORY_KEY,HistoryStore.serialize(historyRecords,HISTORY_LIMIT))}
   catch(_){notify('历史记录保存失败')}
 }
-function rowsSignature(rs){
-  return JSON.stringify(rs.map((r,index)=>({
-    op:index===0?null:(r.op==='-'?'-':'+'),
-    parts:r.parts.map(p=>p.kind==='unit'
-      ?{kind:'unit',unit:p.unit,value:DurationPrecision.normalizeDecimalString(p.value)||'0'}
-      :{kind:'colon',hours:String(p.hours),minutes:String(p.minutes),seconds:p.seconds===null?null:String(p.seconds)}
-    )
-  })));
-}
+function rowsSignature(rs){return HistoryStore.rowsSignature(rs)}
 function saveHistoryRecord(resultMs){
   if(!rows.length)return;
   const snapshot=clone(rows);
-  const sig=rowsSignature(snapshot);
-  historyRecords=historyRecords.filter(r=>r.signature!==sig);
-  historyRecords.unshift({
+  const context=historyContextProvider?.()||{};
+  const record=HistoryStore.createRecord({
     id:`h_${Date.now()}_${Math.random().toString(36).slice(2,7)}`,
     createdAt:Date.now(),
-    signature:sig,
     rows:snapshot,
-    resultMs:DurationPrecision.toBigIntMs(resultMs)?.toString()||'0'
+    resultMs,
+    anchorDateTime:context.anchorDateTime||null
   });
-  if(historyRecords.length>HISTORY_LIMIT)historyRecords.length=HISTORY_LIMIT;
+  if(!record)return;
+  historyRecords=HistoryStore.upsert(historyRecords,record,HISTORY_LIMIT);
   persistHistory();
 }
 function formatHistoryTime(ts){
@@ -127,14 +102,17 @@ function renderHistory(){
 function openHistory(){renderHistory();historyMask.classList.add('show')}
 function closeHistory(){historyMask.classList.remove('show')}
 function restoreHistory(index){
-  const record=historyRecords[index];
+  const record=HistoryStore.normalizeRecord(historyRecords[index]);
   if(!record)return;
-  rows=DurationPrecision.normalizeStoredRows(clone(record.rows));
+  rows=clone(record.rows);
   currentOp=null;selectedRow=null;partEdit=null;clearInput();justEvaluated=false;setError('');
   const stored=DurationPrecision.toBigIntMs(record.resultMs);lastResultMs=stored??0n;
   closeHistory();render();notify('已恢复，可继续编辑');
 }
-function deleteHistory(index){historyRecords.splice(index,1);persistHistory();renderHistory()}
+function deleteHistory(index){
+  const change=HistoryStore.removeAt(historyRecords,index,HISTORY_LIMIT);
+  historyRecords=change.records;persistHistory();renderHistory();
+}
 function clearHistory(){if(!historyRecords.length)return;historyRecords=[];persistHistory();renderHistory();notify('历史记录已清空')}
 
 function notify(msg){
@@ -142,7 +120,7 @@ function notify(msg){
   clearTimeout(notify.t);notify.t=setTimeout(()=>toast.classList.remove('show'),1450);
 }
 function setError(msg=''){errorEl.textContent=msg}
-function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]))}
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot',"'":'&#039;'}[c]))}
 function trim(value){return DurationPrecision.normalizeDecimalString(value)??String(value)}
 function clone(v){return JSON.parse(JSON.stringify(v))}
 function valueToMs(value,unit){
