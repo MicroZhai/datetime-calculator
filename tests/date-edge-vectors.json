@@ -1,0 +1,116 @@
+{
+  "schemaVersion": 1,
+  "description": "Cross-platform date edge cases. Duration arithmetic is elapsed milliseconds; calendar rendering follows the named local timezone.",
+  "cases": [
+    {
+      "id": "utc-month-end",
+      "timezone": "UTC",
+      "operation": "mapDuration",
+      "anchor": "2026-01-31T00:00",
+      "durationMs": "86400000",
+      "expected": { "ok": true, "date": "2026/02/01", "time": "00:00" }
+    },
+    {
+      "id": "utc-leap-day-entry",
+      "timezone": "UTC",
+      "operation": "mapDuration",
+      "anchor": "2028-02-28T00:00",
+      "durationMs": "86400000",
+      "expected": { "ok": true, "date": "2028/02/29", "time": "00:00" }
+    },
+    {
+      "id": "utc-leap-day-exit",
+      "timezone": "UTC",
+      "operation": "mapDuration",
+      "anchor": "2028-02-29T00:00",
+      "durationMs": "86400000",
+      "expected": { "ok": true, "date": "2028/03/01", "time": "00:00" }
+    },
+    {
+      "id": "utc-non-leap-february",
+      "timezone": "UTC",
+      "operation": "mapDuration",
+      "anchor": "2026-02-28T00:00",
+      "durationMs": "86400000",
+      "expected": { "ok": true, "date": "2026/03/01", "time": "00:00" }
+    },
+    {
+      "id": "utc-year-boundary",
+      "timezone": "UTC",
+      "operation": "mapDuration",
+      "anchor": "2026-12-31T00:00",
+      "durationMs": "86400000",
+      "expected": { "ok": true, "date": "2027/01/01", "time": "00:00" }
+    },
+    {
+      "id": "utc-negative-one-ms-across-year",
+      "timezone": "UTC",
+      "operation": "mapDuration",
+      "anchor": "2027-01-01T00:00",
+      "durationMs": "-1",
+      "expected": { "ok": true, "date": "2026/12/31", "time": "23:59:59.999" }
+    },
+    {
+      "id": "early-four-digit-year-is-valid",
+      "timezone": "UTC",
+      "operation": "parseValid",
+      "input": "0099-01-01T00:00",
+      "expected": true
+    },
+    {
+      "id": "early-four-digit-year-maps-correctly",
+      "timezone": "UTC",
+      "operation": "mapDuration",
+      "anchor": "0099-01-01T00:00",
+      "durationMs": "86400000",
+      "expected": { "ok": true, "date": "0099/01/02", "time": "00:00" }
+    },
+    {
+      "id": "new-york-spring-forward-gap-is-invalid",
+      "timezone": "America/New_York",
+      "operation": "parseValid",
+      "input": "2026-03-08T02:30",
+      "expected": false
+    },
+    {
+      "id": "new-york-spring-forward-23h-reaches-next-midnight",
+      "timezone": "America/New_York",
+      "operation": "mapDuration",
+      "anchor": "2026-03-08T00:00",
+      "durationMs": "82800000",
+      "expected": { "ok": true, "date": "2026/03/09", "time": "00:00" }
+    },
+    {
+      "id": "new-york-spring-forward-24h-is-0100",
+      "timezone": "America/New_York",
+      "operation": "mapDuration",
+      "anchor": "2026-03-08T00:00",
+      "durationMs": "86400000",
+      "expected": { "ok": true, "date": "2026/03/09", "time": "01:00" }
+    },
+    {
+      "id": "new-york-fall-back-24h-is-2300",
+      "timezone": "America/New_York",
+      "operation": "mapDuration",
+      "anchor": "2026-11-01T00:00",
+      "durationMs": "86400000",
+      "expected": { "ok": true, "date": "2026/11/01", "time": "23:00" }
+    },
+    {
+      "id": "new-york-fall-back-25h-reaches-next-midnight",
+      "timezone": "America/New_York",
+      "operation": "mapDuration",
+      "anchor": "2026-11-01T00:00",
+      "durationMs": "90000000",
+      "expected": { "ok": true, "date": "2026/11/02", "time": "00:00" }
+    },
+    {
+      "id": "shanghai-normal-day-24h-keeps-clock-time",
+      "timezone": "Asia/Shanghai",
+      "operation": "mapDuration",
+      "anchor": "2026-03-08T00:00",
+      "durationMs": "86400000",
+      "expected": { "ok": true, "date": "2026/03/09", "time": "00:00" }
+    }
+  ]
+}
