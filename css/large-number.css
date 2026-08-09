@@ -31,6 +31,7 @@ body .history-result{
 body .history-row-value::-webkit-scrollbar,
 body .history-result::-webkit-scrollbar{display:none}
 
+/* Metadata must not widen the display grid when H:MM:SS itself becomes enormous. */
 body .calendar-result,
 body .secondary{
   min-inline-size:0;
@@ -43,6 +44,7 @@ body .secondary{
   overscroll-behavior-inline:contain;
   -webkit-overflow-scrolling:touch;
 }
+body .secondary{max-inline-size:min(42vw,220px)}
 body .calendar-result::-webkit-scrollbar,
 body .secondary::-webkit-scrollbar{display:none}
 
