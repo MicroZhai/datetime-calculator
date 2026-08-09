@@ -2,6 +2,6 @@
   "name": "datetime-calculator-web",
   "private": true,
   "scripts": {
-    "test": "node tests/duration-precision.test.cjs"
+    "test": "node tests/duration-precision.test.cjs && node tests/large-number-ui.test.cjs"
   }
 }
