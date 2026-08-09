@@ -10,12 +10,22 @@
   const FORMAT_MAX = 2;
 
   function normalizeRows(rows) {
+    if (DurationPrecisionRef?.normalizeStoredRowsStrict) {
+      const normalized = DurationPrecisionRef.normalizeStoredRowsStrict(rows);
+      return Array.isArray(normalized) ? normalized : [];
+    }
     return DurationPrecisionRef?.normalizeStoredRows
       ? DurationPrecisionRef.normalizeStoredRows(rows)
       : [];
   }
 
   function normalizeParts(parts) {
+    if (DurationPrecisionRef?.normalizeStoredRowsStrict) {
+      const normalized = DurationPrecisionRef.normalizeStoredRowsStrict([
+        { op: null, parts: Array.isArray(parts) ? parts : [] }
+      ]);
+      return normalized?.[0]?.parts || [];
+    }
     const normalized = normalizeRows([{ op: null, parts: Array.isArray(parts) ? parts : [] }]);
     return normalized[0]?.parts || [];
   }
@@ -101,9 +111,14 @@
 
   function normalizeAnchorDateTime(value) {
     if (!value) return null;
-    return DateMapperRef?.normalizeAnchorValue
+    const normalized = DateMapperRef?.normalizeAnchorValue
       ? DateMapperRef.normalizeAnchorValue(value)
       : (typeof value === 'string' ? value : null);
+    if (!normalized) return null;
+    if (DateMapperRef?.parseLocalDateTimeMs && DateMapperRef.parseLocalDateTimeMs(normalized) === null) {
+      return null;
+    }
+    return normalized;
   }
 
   function normalizeHourDisplayMode(value) {
