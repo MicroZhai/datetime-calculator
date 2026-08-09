@@ -1,5 +1,6 @@
 (() => {
   let anchorDateTime = null;
+  const DATE_LIMIT_MS = 8640000000000000n;
 
   let dateKey = document.querySelector('[data-action="date-toggle"], [data-action="date-now"]');
   const dayKey = document.querySelector('.k-day');
@@ -79,8 +80,11 @@
 
   function targetDateParts(value, durationMs) {
     const baseMs = parseAnchorDateTime(value);
-    if (baseMs === null || !Number.isFinite(durationMs)) return null;
-    const target = new Date(baseMs + durationMs);
+    const duration = DurationPrecision.toBigIntMs(durationMs);
+    if (baseMs === null || duration === null) return null;
+    const targetMs = BigInt(baseMs) + duration;
+    if (targetMs > DATE_LIMIT_MS || targetMs < -DATE_LIMIT_MS) return null;
+    const target = new Date(Number(targetMs));
     if (Number.isNaN(target.getTime())) return null;
 
     const year = String(target.getFullYear()).padStart(4, '0');
@@ -94,7 +98,6 @@
     let time = `${hour}:${minute}`;
     if (target.getSeconds() || millisecond) time += `:${second}`;
     if (millisecond) time += `.${String(millisecond).padStart(3, '0')}`;
-
     return { date: `${year}/${month}/${day}`, time };
   }
 
@@ -111,14 +114,9 @@
       dateKey.title = active ? '取消日期' : '添加今天 00:00';
       dateKey.setAttribute('aria-label', active ? '取消日期' : '添加今天零点作为日期起点');
     }
-
     anchorButton.hidden = !active;
     anchorButton.classList.toggle('has-date', active);
-    if (!active) {
-      anchorValue.textContent = '';
-      return;
-    }
-
+    if (!active) { anchorValue.textContent = ''; return; }
     const labelText = formatAnchorLabel(anchorDateTime);
     anchorValue.textContent = labelText;
     anchorButton.title = '修改日期时间';
@@ -127,97 +125,61 @@
 
   function renderDateResult() {
     if (!anchorDateTime) {
-      calendarResult.hidden = true;
-      calendarResult.textContent = '';
-      resultMainRow.classList.remove('has-calendar-result');
-      return;
+      calendarResult.hidden = true;calendarResult.textContent = '';resultMainRow.classList.remove('has-calendar-result');return;
     }
-
     const evaluated = evaluateRows(true);
     if (!evaluated.ok) {
-      calendarResult.hidden = true;
-      calendarResult.textContent = '';
-      resultMainRow.classList.remove('has-calendar-result');
-      return;
+      calendarResult.hidden = true;calendarResult.textContent = '';resultMainRow.classList.remove('has-calendar-result');return;
     }
-
     const target = targetDateParts(anchorDateTime, evaluated.value);
     calendarResult.hidden = false;
     resultMainRow.classList.add('has-calendar-result');
-
     if (!target) {
-      calendarResult.textContent = '日期超出范围';
+      calendarResult.textContent = '结束日期超出范围';
+      calendarResult.title = '时长仍可精确计算，但结束日期超出浏览器可表示范围';
+      calendarResult.setAttribute('aria-label','时长仍可精确计算，但结束日期超出浏览器可表示范围');
       return;
     }
-
     calendarResult.textContent = `${target.date} ${target.time}`;
+    calendarResult.title = '';
     calendarResult.setAttribute('aria-label', `结束时间 ${target.date} ${target.time}`);
   }
 
   function syncDateHint() {
     if (!anchorDateTime) return;
     if (partEdit || selectedRow !== null || colonMode || numberBuffer || currentParts.length || currentOp !== null) return;
-    badge.textContent = '点击左侧可修改';
-    badge.className = 'badge';
+    badge.textContent = '点击左侧可修改';badge.className = 'badge';
   }
-
-  function setAnchorToTodayStart() {
-    anchorDateTime = localTodayStartValue();
-    setError('');
-    render();
-  }
-
+  function setAnchorToTodayStart() {anchorDateTime = localTodayStartValue();setError('');render()}
   function toggleAnchorDate() {
-    if (anchorDateTime) {
-      anchorDateTime = null;
-      setError('');
-      render();
-      return;
-    }
+    if (anchorDateTime) {anchorDateTime = null;setError('');render();return}
     setAnchorToTodayStart();
   }
-
   function openDatePicker() {
     if (!anchorDateTime) return;
     dateInput.value = anchorDateTime;
     requestAnimationFrame(() => {
-      try {
-        if (typeof dateInput.showPicker === 'function') dateInput.showPicker();
-        else dateInput.click();
-      } catch (_) {
-        dateInput.focus({ preventScroll: true });
-        dateInput.click();
-      }
+      try {if (typeof dateInput.showPicker === 'function') dateInput.showPicker();else dateInput.click()}
+      catch (_) {dateInput.focus({ preventScroll: true });dateInput.click()}
     });
   }
 
   function expressionSignatureWithDate(snapshot) {
-    return JSON.stringify({
-      anchorDateTime: anchorDateTime || null,
-      rows: JSON.parse(rowsSignature(snapshot))
-    });
+    return JSON.stringify({anchorDateTime: anchorDateTime || null,rows: JSON.parse(rowsSignature(snapshot))});
   }
 
   const renderBase = render;
-  render = function() {
-    renderBase();
-    renderDateAnchor();
-    renderDateResult();
-    syncDateHint();
-  };
+  render = function() {renderBase();renderDateAnchor();renderDateResult();syncDateHint()};
 
   saveHistoryRecord = function(resultMs) {
     if (!rows.length) return;
     const snapshot = clone(rows);
     const sig = expressionSignatureWithDate(snapshot);
-
     historyRecords = historyRecords.filter(record => record.signature !== sig);
     historyRecords.unshift({
       id: `h_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
-      createdAt: Date.now(),
-      signature: sig,
-      rows: snapshot,
-      resultMs,
+      createdAt: Date.now(),signature: sig,rows: snapshot,
+      resultMs: DurationPrecision.toBigIntMs(resultMs)?.toString() || '0',
       anchorDateTime: anchorDateTime || null
     });
     if (historyRecords.length > HISTORY_LIMIT) historyRecords.length = HISTORY_LIMIT;
@@ -225,70 +187,35 @@
   };
 
   const restoreHistoryBase = restoreHistory;
-  restoreHistory = function(index) {
-    const record = historyRecords[index];
-    anchorDateTime = currentRecordAnchor(record);
-    restoreHistoryBase(index);
-  };
+  restoreHistory = function(index) {const record = historyRecords[index];anchorDateTime = currentRecordAnchor(record);restoreHistoryBase(index)};
 
   const renderHistoryBase = renderHistory;
   renderHistory = function() {
     renderHistoryBase();
     historyRecords.forEach((record, index) => {
-      const recordAnchor = currentRecordAnchor(record);
-      if (!recordAnchor) return;
+      const recordAnchor = currentRecordAnchor(record);if (!recordAnchor) return;
       const item = historyList.querySelector(`[data-history-index="${index}"]`);
-      const firstRow = item?.querySelector('.history-row');
-      if (!item || !firstRow) return;
-
+      const firstRow = item?.querySelector('.history-row');if (!item || !firstRow) return;
       firstRow.classList.add('has-anchor');
-      const anchor = document.createElement('span');
-      anchor.className = 'history-anchor';
-      anchor.textContent = formatAnchorLabel(recordAnchor);
-      anchor.title = formatAnchorLabel(recordAnchor);
-      firstRow.insertBefore(anchor, firstRow.firstChild);
-
-      const target = targetDateParts(recordAnchor, Number(record.resultMs));
-      if (target) {
-        const result = item.querySelector('.history-result');
-        if (result) result.title = `结束时间 ${target.date} ${target.time}`;
-      }
-
+      const anchor = document.createElement('span');anchor.className = 'history-anchor';anchor.textContent = formatAnchorLabel(recordAnchor);anchor.title = formatAnchorLabel(recordAnchor);firstRow.insertBefore(anchor, firstRow.firstChild);
+      const target = targetDateParts(recordAnchor, record.resultMs);
+      if (target) {const result = item.querySelector('.history-result');if (result) result.title = `结束时间 ${target.date} ${target.time}`}
       const existingLabel = item.getAttribute('aria-label') || '历史记录';
       item.setAttribute('aria-label', `日期 ${formatAnchorLabel(recordAnchor)}，${existingLabel}`);
     });
   };
 
   const clearAllBase = clearAll;
-  clearAll = function(show = true) {
-    anchorDateTime = null;
-    clearAllBase(show);
-  };
-
+  clearAll = function(show = true) {anchorDateTime = null;clearAllBase(show)};
   const snapshotCalculatorBase = snapshotCalculator;
-  snapshotCalculator = function() {
-    return { ...snapshotCalculatorBase(), anchorDateTime };
-  };
-
+  snapshotCalculator = function() {return { ...snapshotCalculatorBase(), anchorDateTime }};
   const restoreCalculatorBase = restoreCalculator;
-  restoreCalculator = function(snapshot) {
-    anchorDateTime = normalizeAnchorValue(snapshot?.anchorDateTime || snapshot?.anchorDate || null);
-    restoreCalculatorBase(snapshot);
-  };
-
+  restoreCalculator = function(snapshot) {anchorDateTime = normalizeAnchorValue(snapshot?.anchorDateTime || snapshot?.anchorDate || null);restoreCalculatorBase(snapshot)};
   const hasCalculatorContentBase = hasCalculatorContent;
-  hasCalculatorContent = function() {
-    return Boolean(anchorDateTime) || hasCalculatorContentBase();
-  };
+  hasCalculatorContent = function() {return Boolean(anchorDateTime) || hasCalculatorContentBase()};
 
   if (dateKey) dateKey.addEventListener('click', toggleAnchorDate);
   anchorButton.addEventListener('click', openDatePicker);
-
-  dateInput.addEventListener('change', () => {
-    anchorDateTime = normalizeAnchorValue(dateInput.value);
-    setError('');
-    render();
-  });
-
+  dateInput.addEventListener('change', () => {anchorDateTime = normalizeAnchorValue(dateInput.value);setError('');render()});
   render();
 })();
