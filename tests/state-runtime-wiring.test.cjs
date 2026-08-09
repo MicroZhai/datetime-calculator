@@ -27,5 +27,9 @@ assert.ok(sw.includes("'./js/calculator-state-runtime.js'"), 'PWA shell must cac
 
 assert.doesNotThrow(() => new Function(state), 'calculator-state.js must parse');
 assert.doesNotThrow(() => new Function(runtime), 'calculator-state-runtime.js must parse');
+assert.match(runtime, /DurationPrecision\.toBigIntMs\(normalized\.lastResultMs\)/,
+  'runtime restore must convert JSON-safe result string back to BigInt');
+assert.match(runtime, /CalculatorState\.fromHistoryRecord\(record, snapshotCalculator\(\)\)/,
+  'history restore must route through canonical CalculatorState');
 
 console.log('state-runtime-wiring: all tests passed');
