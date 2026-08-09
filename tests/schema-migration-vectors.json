@@ -1,0 +1,114 @@
+{
+  "schemaVersion": 1,
+  "description": "Shared migration compatibility vectors for Web and future HarmonyOS/ArkTS implementations.",
+  "history": [
+    {
+      "id": "history-legacy-unversioned-migrates",
+      "input": {
+        "rows": [{ "op": null, "parts": [{ "kind": "unit", "unit": "s", "value": "1" }] }],
+        "anchorDate": "2026-08-09"
+      },
+      "expected": {
+        "accepted": true,
+        "schemaVersion": 2,
+        "resultMs": "1000",
+        "anchorDateTime": "2026-08-09T00:00"
+      }
+    },
+    {
+      "id": "history-v1-migrates-to-v2",
+      "input": {
+        "schemaVersion": 1,
+        "rows": [{ "op": null, "parts": [{ "kind": "unit", "unit": "m", "value": "2" }] }],
+        "resultMs": 120000,
+        "anchorDate": "2026-08-09"
+      },
+      "expected": {
+        "accepted": true,
+        "schemaVersion": 2,
+        "resultMs": "120000",
+        "anchorDateTime": "2026-08-09T00:00"
+      }
+    },
+    {
+      "id": "history-current-v2-stays-readable",
+      "input": {
+        "schemaVersion": 2,
+        "rows": [{ "op": null, "parts": [{ "kind": "unit", "unit": "h", "value": "1" }] }],
+        "resultMs": "3600000"
+      },
+      "expected": {
+        "accepted": true,
+        "schemaVersion": 2,
+        "resultMs": "3600000"
+      }
+    },
+    {
+      "id": "history-future-version-is-rejected",
+      "input": {
+        "schemaVersion": 3,
+        "rows": [{ "op": null, "parts": [{ "kind": "unit", "unit": "s", "value": "9" }] }],
+        "resultMs": "9000",
+        "futureMeaning": "unknown"
+      },
+      "expected": { "accepted": false }
+    },
+    {
+      "id": "history-invalid-version-is-rejected",
+      "input": {
+        "schemaVersion": "2",
+        "rows": [{ "op": null, "parts": [{ "kind": "unit", "unit": "s", "value": "9" }] }]
+      },
+      "expected": { "accepted": false }
+    }
+  ],
+  "state": [
+    {
+      "id": "state-legacy-unversioned-migrates",
+      "input": {
+        "rows": [{ "op": null, "parts": [{ "kind": "unit", "unit": "s", "value": "1" }] }],
+        "lastResultMs": 1000,
+        "anchorDate": "2026-08-09"
+      },
+      "expected": {
+        "accepted": true,
+        "schemaVersion": 1,
+        "lastResultMs": "1000",
+        "anchorDateTime": "2026-08-09T00:00"
+      }
+    },
+    {
+      "id": "state-current-v1-stays-readable",
+      "input": {
+        "schemaVersion": 1,
+        "rows": [{ "op": null, "parts": [{ "kind": "unit", "unit": "m", "value": "3" }] }],
+        "lastResultMs": "180000",
+        "hourDisplayMode": "sexagesimal"
+      },
+      "expected": {
+        "accepted": true,
+        "schemaVersion": 1,
+        "lastResultMs": "180000",
+        "hourDisplayMode": "sexagesimal"
+      }
+    },
+    {
+      "id": "state-future-version-is-rejected",
+      "input": {
+        "schemaVersion": 2,
+        "rows": [{ "op": null, "parts": [{ "kind": "unit", "unit": "s", "value": "9" }] }],
+        "lastResultMs": "9000",
+        "futureEditingMode": "unknown"
+      },
+      "expected": { "accepted": false }
+    },
+    {
+      "id": "state-invalid-version-is-rejected",
+      "input": {
+        "schemaVersion": "1",
+        "rows": [{ "op": null, "parts": [{ "kind": "unit", "unit": "s", "value": "9" }] }]
+      },
+      "expected": { "accepted": false }
+    }
+  ]
+}
