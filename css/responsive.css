@@ -1,0 +1,277 @@
+/* Viewport-adaptive layout
+   Width chooses composition; height chooses density.
+   Core rule: keep the calculator usable before preserving secondary metadata. */
+
+@media (min-width: 600px) {
+  body .app {
+    inline-size: min(100%, 600px);
+    padding-inline: var(--space-xxl);
+  }
+}
+
+/* Compact height profile: 680–819px.
+   Keep the full keypad visible; reclaim space from metadata and empty states first. */
+@media (max-height: 819px) {
+  body .app {
+    padding-block-start: calc(var(--space-xs) + env(safe-area-inset-top, 0px));
+    padding-block-end: calc(var(--space-sm) + env(safe-area-inset-bottom, 0px));
+  }
+
+  body .topbar {
+    block-size: 48px;
+  }
+
+  body .icon-btn {
+    inline-size: 44px;
+    block-size: 44px;
+  }
+
+  body main {
+    gap: var(--space-sm);
+  }
+
+  body .display-region {
+    padding-block-start: 0;
+  }
+
+  body .status-row {
+    min-block-size: 0;
+    margin-block-end: 2px;
+  }
+
+  body .expr-scroll {
+    min-block-size: 48px;
+    max-block-size: min(128px, 20dvh);
+    padding-block: 0;
+  }
+
+  body .expr-line {
+    min-block-size: 44px;
+  }
+
+  body .normalized:empty,
+  body .error-line:empty {
+    display: none;
+  }
+
+  body .normalized,
+  body .error-line {
+    min-block-size: 0;
+    margin-block-start: 2px;
+  }
+
+  body .result-group {
+    padding-block-start: var(--space-xs);
+  }
+
+  body .result {
+    font-size: 34px;
+  }
+
+  body .secondary {
+    margin-block-start: 2px;
+  }
+
+  body .format-row {
+    margin-block-start: var(--space-xs);
+  }
+
+  body .format-switch {
+    min-block-size: 44px;
+    padding: 2px;
+  }
+
+  body .format-option {
+    min-block-size: 40px;
+  }
+
+  body .keypad-region {
+    padding-block-start: 0;
+  }
+
+  body .keypad {
+    grid-template-rows: repeat(6, 48px);
+    gap: var(--space-xs);
+  }
+
+  body .key {
+    min-block-size: 44px;
+    border-radius: var(--radius-md);
+  }
+
+  body .hint {
+    display: none;
+  }
+
+  body .row-actions {
+    padding-block: var(--space-xs);
+  }
+}
+
+/* Short height profile: <680px.
+   Preserve result, expression context and all calculator actions.
+   Secondary output is demoted; the expression becomes the primary scroll surface. */
+@media (max-height: 679px) {
+  body .app {
+    padding-block-start: env(safe-area-inset-top, 0px);
+    padding-block-end: calc(var(--space-xs) + env(safe-area-inset-bottom, 0px));
+  }
+
+  body .topbar {
+    block-size: 44px;
+  }
+
+  body .icon-btn {
+    inline-size: 40px;
+    block-size: 40px;
+  }
+
+  body main {
+    gap: var(--space-xs);
+  }
+
+  body .status-row {
+    font-size: 11px;
+  }
+
+  body .expr-scroll {
+    min-block-size: 44px;
+    max-block-size: min(92px, 18dvh);
+  }
+
+  body .expr-line {
+    min-block-size: 42px;
+  }
+
+  body .line-op,
+  body .line-menu {
+    inline-size: 40px;
+    block-size: 40px;
+  }
+
+  body .result {
+    font-size: 32px;
+  }
+
+  body .secondary {
+    display: none;
+  }
+
+  body .format-switch {
+    min-block-size: 40px;
+  }
+
+  body .format-option {
+    min-block-size: 40px;
+    font-size: 13px;
+  }
+
+  body .keypad {
+    grid-template-rows: repeat(6, 44px);
+    gap: var(--space-xs);
+  }
+
+  body .key {
+    min-block-size: 40px;
+    border-radius: var(--radius-md);
+  }
+
+  body .row-actions.show {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  body .row-actions.show::-webkit-scrollbar {
+    display: none;
+  }
+
+  body .row-actions .label {
+    flex: 0 0 auto;
+  }
+
+  body .small-btn {
+    min-block-size: 40px;
+    padding-inline: var(--space-md);
+    flex: 0 0 auto;
+  }
+}
+
+/* Wide + short: relocate the same task into two rails instead of shrinking controls.
+   This is not a desktop sidebar; it is a temporary Stack → Split transform. */
+@media (min-width: 600px) and (max-height: 679px) {
+  body {
+    align-items: stretch;
+  }
+
+  body .app {
+    inline-size: min(100%, 960px);
+    padding-inline: var(--space-lg);
+  }
+
+  body main {
+    display: grid;
+    grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr);
+    gap: var(--space-lg);
+    align-items: start;
+  }
+
+  body .display-region,
+  body .keypad-region {
+    min-inline-size: 0;
+  }
+
+  body .keypad-region {
+    padding-block-start: 0;
+  }
+
+  body .expr-scroll {
+    max-block-size: min(156px, 32dvh);
+  }
+
+  body .format-switch {
+    inline-size: 100%;
+  }
+
+  body .line-value.has-date-anchor {
+    padding-inline-start: 116px;
+  }
+
+  body .date-anchor {
+    max-inline-size: 112px;
+    font-size: 11px;
+  }
+
+  body .calendar-result {
+    min-inline-size: 108px;
+    max-inline-size: 120px;
+    font-size: 11px;
+  }
+}
+
+/* xs: keep the task intact; reduce horizontal chrome, not touch semantics. */
+@media (max-width: 319px) {
+  body .app {
+    padding-inline: var(--space-sm);
+  }
+
+  body .topbar {
+    grid-template-columns: 40px minmax(0, 1fr) 40px;
+  }
+
+  body .keypad {
+    gap: var(--space-xs);
+  }
+
+  body .key {
+    border-radius: var(--radius-md);
+  }
+
+  body .result {
+    font-size: 30px;
+  }
+
+  body .format-option {
+    font-size: 12px;
+  }
+}
