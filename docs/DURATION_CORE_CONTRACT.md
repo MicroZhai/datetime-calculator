@@ -7,6 +7,7 @@
 - 核心只负责**纯时长**：解析、归一化、加减、格式化所需的确定性数值转换。
 - 核心不得依赖 DOM、ArkUI、localStorage、Preferences、系统日期选择器或 Toast。
 - 日期/时间戳映射属于上层 Adapter；日期超出平台可表示范围时，不得使纯时长结果失效。
+- 历史记录/序列化属于独立 Store/Codec；完整规则见 `docs/HISTORY_SERIALIZATION_CONTRACT.md`。
 
 ## 2. 唯一真值
 
@@ -64,8 +65,9 @@ HarmonyOS 迁移时：必须选择能表达任意精度整数或等价十进制�
 
 - `resultMs` 持久化为十进制字符串，例如 `"25920000000000001"`。
 - 单位输入值也优先保留规范化十进制字符串。
-- 旧版安全整数 Number 允许读取并迁移为字符串。
 - 不允许把超大整数先转换成 Number 再序列化。
+- 历史记录加载时，以可恢复表达式 `rows` 为真值重新计算 `resultMs`；旧 Number `resultMs` 只作为遗留字段读取，不作为精确真值继续传播。
+- 历史 Schema、日期上下文、签名去重、旧版本迁移与撤销规则统一由 `docs/HISTORY_SERIALIZATION_CONTRACT.md` 定义。
 
 ## 7. 日期映射协议
 
@@ -119,11 +121,21 @@ Web 端由 `tests/duration-precision.test.cjs` 自动执行；未来 ArkTS 核�
 - 正负毫秒映射；
 - 超大时长只产生 `date-out-of-range`，不反向否定时长核心。
 
+历史/状态链由 `tests/history-store.test.cjs` 与 `tests/state-flow.test.cjs` 检查：
+
+- 保存 -> JSON -> 重载 -> 恢复 -> 继续计算；
+- 旧 Number / date-only 历史迁移；
+- 日期参与 signature 去重；
+- 删除、撤销与容量规则；
+- 负结果和超大数恢复后继续保持毫秒级精确。
+
 ## 9. Web 参考实现
 
 纯时长核心：`js/duration-precision.js`
 
 Web 日期适配层：`js/date-mapper.js`
+
+Web 历史序列化层：`js/history-store.js`
 
 Web UI 适配层：`js/duration-core.js`、`js/duration-ui.js`、`js/date-anchor.js`
 
@@ -131,4 +143,6 @@ Web UI 适配层：`js/duration-core.js`、`js/duration-ui.js`、`js/date-anchor
 
 自动测试：`npm test`
 
-迁移到其他平台时，应以本契约、共享测试向量和 Adapter 失败语义为准，而不是复制 Web 的 DOM/UI 代码。
+CI 门禁：`.github/workflows/core-tests.yml`
+
+迁移到其他平台时，应以本契约、历史序列化契约、共享测试向量和 Adapter 失败语义为准，而不是复制 Web 的 DOM/UI 代码。
