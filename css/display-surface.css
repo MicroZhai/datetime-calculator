@@ -6,7 +6,7 @@
   --display-surface:#FFFFFF;
   /* Metadata bands separate the date/status and end-time rows from the
      editable process without introducing another card component. */
-  --display-meta-surface:#F5F6F8;
+  --display-meta-surface:#EDF0F4;
   --display-border:#E2E3E8;
   /* Shared metadata rhythm: the date/status row and the end-time row use
      the same visual height and typography across responsive layouts. */
@@ -18,20 +18,20 @@
 @media(prefers-color-scheme:dark){
   :root{
     --display-surface:#1D1D1E;
-    --display-meta-surface:#2A2B2E;
+    --display-meta-surface:#25272B;
     --display-border:#2A2A2C;
   }
 }
 
 :root[data-theme="light"]{
   --display-surface:#FFFFFF;
-  --display-meta-surface:#F5F6F8;
+  --display-meta-surface:#EDF0F4;
   --display-border:#E2E3E8;
 }
 
 :root[data-theme="dark"]{
   --display-surface:#1D1D1E;
-  --display-meta-surface:#2A2B2E;
+  --display-meta-surface:#25272B;
   --display-border:#2A2A2C;
 }
 
@@ -216,25 +216,20 @@ body .result-group{
   align-items:end;
   column-gap:var(--space-md);
   row-gap:0;
-  /* The bottom metadata row gets the same visual band as the top status row.
-     A pseudo-element keeps the existing result/end markup unchanged. */
-  position:relative;
+  /* Paint the bottom metadata band as a background slice. Unlike an
+     absolutely positioned overlay, it can never cover the dynamic end-date
+     element inserted by date-anchor.js. */
+  background:linear-gradient(
+    to bottom,
+    transparent 0,
+    transparent calc(100% - var(--display-meta-row)),
+    var(--display-meta-surface) calc(100% - var(--display-meta-row)),
+    var(--display-meta-surface) 100%
+  );
+  border-radius:0 0 var(--radius-xl) var(--radius-xl);
   margin-inline:calc(-1 * var(--display-inline-padding));
   padding-inline:var(--display-inline-padding);
 }
-
-body .result-group::before{
-  content:'';
-  position:absolute;
-  inset-inline:0;
-  inset-block-end:0;
-  block-size:var(--display-meta-row);
-  background:var(--display-meta-surface);
-  border-radius:0 0 var(--radius-xl) var(--radius-xl);
-  pointer-events:none;
-}
-
-body .result-group > *{position:relative;z-index:1}
 
 body .result-group::after{
   content:'';
@@ -243,8 +238,6 @@ body .result-group::after{
   align-self:start;
   border-block-start:1px solid var(--divider);
   pointer-events:none;
-  position:relative;
-  z-index:2;
 }
 
 body .result-main-row{
