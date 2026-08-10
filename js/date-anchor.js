@@ -131,7 +131,7 @@
     if (!anchorDateTime) return;
     if (partEdit || selectedRow !== null || colonMode || numberBuffer || currentParts.length || currentOp !== null) return;
     badge.textContent = '点击左侧可修改';
-    badge.className = 'badge';
+    badge.className = 'badge date';
   }
 
   function setAnchorToTodayStart() {

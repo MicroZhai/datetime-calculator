@@ -11,6 +11,7 @@
   let hourDisplayMode = FIXED_HOUR_MODE;
   let fitFrame = 0;
   const resultTrigger = document.getElementById('result');
+  const statusRow = document.querySelector('.status-row');
   // Keep the result switch and the status hint on one vocabulary so the
   // visible hint, button label, and accessibility text never drift apart.
   const FORMAT_CONTROL_LABELS = ['天', '时', '分'];
@@ -59,6 +60,10 @@
 
   function syncDisplayHint() {
     if (!isDisplayHintIdleState()) return;
+    // Date editing is a more actionable state than the passive format hint.
+    // Keep it visible until the date context is removed or another action
+    // starts, while the result button still exposes the current format.
+    if (statusRow?.classList.contains('has-date')) return;
     const hint = FORMAT_HINTS[formatIndex] || FORMAT_HINTS[0];
     badge.textContent = hint;
     badge.className = 'badge format';
