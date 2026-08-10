@@ -141,7 +141,9 @@ body .result-group{
   /* Keep the end date and normalized value in independent columns so a
      long localized date cannot run underneath the value on the right. */
   grid-template-columns:minmax(0,1fr) minmax(0,42%);
-  grid-template-rows:minmax(0,1fr) var(--display-meta-row);
+  /* The result card is content-sized: only the result and its end metadata
+     reserve space. Extra display height belongs to the editable process area. */
+  grid-template-rows:auto var(--display-meta-row);
   grid-template-areas:"result result" "end secondary";
   align-items:end;
   column-gap:var(--space-md);

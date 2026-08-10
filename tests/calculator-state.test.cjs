@@ -70,6 +70,9 @@ const displayOnly = S.normalizeSnapshot({ formatIndex: 1, hourDisplayMode: 'sexa
 assert.equal(S.hasContent(displayOnly), false);
 assert.equal(S.hasContent(S.emptySnapshot()), false);
 
+const legacyDecimalDisplay = S.normalizeSnapshot({ formatIndex: 1, hourDisplayMode: 'decimal' });
+assert.equal(legacyDecimalDisplay.hourDisplayMode, 'sexagesimal', 'legacy decimal display preference migrates to sexagesimal');
+
 // Invalid or stale row-selection/edit pointers are removed safely.
 const stale = S.normalizeSnapshot({
   rows: [{ op: null, parts: [{ kind: 'unit', unit: 'm', value: '1' }] }],

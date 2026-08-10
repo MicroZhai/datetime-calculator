@@ -163,7 +163,9 @@
   }
 
   function normalizeHourDisplayMode(value) {
-    return value === 'sexagesimal' ? 'sexagesimal' : 'decimal';
+    // The UI no longer offers decimal hour mode. Keep the field for snapshot
+    // compatibility, but normalize every legacy value to exact sexagesimal.
+    return 'sexagesimal';
   }
 
   function normalizeCanonicalSnapshot(snapshot) {

@@ -50,7 +50,7 @@ Web 参考实现：`js/calculator-state.js`。
   "partEdit": null,
   "error": "",
   "anchorDateTime": null,
-  "hourDisplayMode": "decimal"
+  "hourDisplayMode": "sexagesimal"
 }
 ```
 
@@ -62,7 +62,7 @@ Web 参考实现：`js/calculator-state.js`。
 - 不允许在 Snapshot 中直接存 `BigInt`；
 - 日期统一使用 `YYYY-MM-DDTHH:mm`；
 - 无日期时为 `null`；
-- 小时模式只允许 `decimal` / `sexagesimal`。
+- `hourDisplayMode` 为兼容旧 Snapshot 保留，但规范化后始终为 `sexagesimal`；旧的 `decimal` 值自动迁移。
 
 ---
 
@@ -108,7 +108,7 @@ Web 参考实现：`js/calculator-state.js`。
 包括：
 
 - `formatIndex`
-- `hourDisplayMode`
+- `hourDisplayMode`（兼容字段，规范值固定为 `sexagesimal`）
 
 显示偏好需要跟随 Undo / Restore 保持视觉上下文，但**单独改变显示偏好不算存在计算内容**。
 
@@ -195,7 +195,7 @@ Web runtime BigInt
 仅有以下状态不算计算内容：
 
 - 切换“天时分秒 / 小时 / 分”；
-- 切换“小时十进制 / 60进制”。
+- 小时结果固定使用 60 进制，不再存在可切换的十进制显示偏好。
 
 ---
 

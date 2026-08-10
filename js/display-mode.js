@@ -1,15 +1,14 @@
 /*
  * Result presentation controller.
  * Clicking the result cycles its display unit without changing the exact
- * calculated duration; the selected hour representation is persisted locally.
+ * calculated duration. Hour mode is fixed to sexagesimal so the main result
+ * always uses the exact H:MM:SS representation.
  */
 (() => {
   const HOUR_MODE_KEY = 'dtc-hour-display-mode';
-  let hourDisplayMode = (() => {
-    try {
-      return localStorage.getItem(HOUR_MODE_KEY) === 'sexagesimal' ? 'sexagesimal' : 'decimal';
-    } catch { return 'decimal'; }
-  })();
+  const FIXED_HOUR_MODE = 'sexagesimal';
+  // Legacy decimal preferences are deliberately ignored and migrated below.
+  let hourDisplayMode = FIXED_HOUR_MODE;
   let fitFrame = 0;
   const resultTrigger = document.getElementById('result');
 
@@ -39,23 +38,19 @@
     return formatIndex === 1 && !partEdit && selectedRow === null && !colonMode &&
       numberBuffer === '' && currentParts.length === 0 && currentOp === null;
   }
-  function hourModeLabel() {return hourDisplayMode === 'sexagesimal' ? '60进制' : '十进制'}
-
   const formatResultBase = formatResult;
   formatResult = function(totalMs) {
-    if (formatIndex === 1 && hourDisplayMode === 'sexagesimal') return hms(totalMs);
+    if (formatIndex === 1) return hms(totalMs);
     return formatResultBase(totalMs);
   };
 
   function syncHourMode() {
     if (formatIndex !== 1) return;
-    const evaluated = evaluateRows(true);if (!evaluated.ok) return;
-    if (hourDisplayMode === 'sexagesimal') {
-      secondaryEl.textContent = `${DurationPrecision.roundedRatioText(evaluated.value, factorMs.h, 6)}小时`;
-    } else {
-      secondaryEl.textContent = hms(evaluated.value);
-    }
-    if (isHourIdleState()) {badge.textContent = `小时 · ${hourModeLabel()}`;badge.className = 'badge'}
+    const evaluated = evaluateRows(true);
+    if (!evaluated.ok) { secondaryEl.textContent = ''; return; }
+    // Do not repeat a decimal approximation below the exact sexagesimal result.
+    secondaryEl.textContent = '';
+    if (isHourIdleState()) {badge.textContent = '小时';badge.className = 'badge'}
   }
 
   function fitPrimaryResult() {
@@ -83,10 +78,12 @@
   const snapshotCalculatorBase = snapshotCalculator;
   snapshotCalculator = function() {return { ...snapshotCalculatorBase(), hourDisplayMode }};
   const restoreCalculatorBase = restoreCalculator;
-  restoreCalculator = function(snapshot) {hourDisplayMode = snapshot?.hourDisplayMode === 'sexagesimal' ? 'sexagesimal' : 'decimal';persistHourMode();restoreCalculatorBase(snapshot)};
+  restoreCalculator = function(snapshot) {hourDisplayMode = FIXED_HOUR_MODE;persistHourMode();restoreCalculatorBase({...snapshot, hourDisplayMode: FIXED_HOUR_MODE})};
   const clearAllBase = clearAll;
   clearAll = function(show = true) {clearAllBase(show)};
 
   window.addEventListener('resize', fitPrimaryResult);
+  // Migrate any previously persisted decimal preference to the fixed mode.
+  persistHourMode();
   render();
 })();
