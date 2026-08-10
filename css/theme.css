@@ -54,7 +54,6 @@
 
 .topbar{
   position:relative;
-  grid-template-columns:96px minmax(0,1fr) 96px;
 }
 .top-actions{gap:0}
 
@@ -100,6 +99,5 @@
 .theme-option[aria-checked="true"] .theme-check{opacity:1}
 
 @media(max-width:319px){
-  .topbar{grid-template-columns:80px minmax(0,1fr) 80px}
   .theme-menu{inline-size:168px;inset-block-start:48px}
 }

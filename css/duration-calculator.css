@@ -82,10 +82,12 @@ main{display:flex;flex-direction:column;gap:var(--space-md)}
 .topbar{
   block-size:56px;
   display:grid;
-  grid-template-columns:48px minmax(0,1fr) 48px;
+  /* The title owns the flexible left track; actions stay anchored on the right. */
+  grid-template-columns:minmax(0,1fr) auto;
   align-items:center;
 }
-.title{text-align:center;font-size:18px;font-weight:500;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.topbar > div[aria-hidden="true"]{display:none}
+.title{text-align:start;font-size:18px;font-weight:500;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .top-actions{display:flex;justify-content:flex-end}
 .icon-btn{
   inline-size:48px;block-size:48px;border:0;border-radius:var(--radius-full);background:transparent;
@@ -311,7 +313,6 @@ main{display:flex;flex-direction:column;gap:var(--space-md)}
 
 @media(max-width:319px){
   .app{padding-inline:var(--space-sm)}
-  .topbar{grid-template-columns:40px minmax(0,1fr) 40px}
   .icon-btn{inline-size:40px;block-size:40px}
   .line-value{font-size:18px}
   .result{font-size:30px}
