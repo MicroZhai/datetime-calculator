@@ -249,6 +249,15 @@ sequence('active input status keeps priority over display hint', ({ call, elemen
   assert.equal(badge(), '已输入 8，请选择单位');
 });
 
+sequence('process rows and current input remain separate', ({ call, elements }) => {
+  call("inputDigit('8'); commitUnit('m'); inputOperator('+'); inputDigit('2'); commitUnit('m');");
+  assert.match(elements.get('expression').innerHTML, /data-line="0"/);
+  assert.doesNotMatch(elements.get('expression').innerHTML, /current-row/);
+  assert.match(elements.get('currentInput').innerHTML, /current-row/);
+  assert.equal(elements.get('currentInput').hidden, false);
+  assert.equal(elements.get('currentInput').classList.contains('with-divider'), true);
+});
+
 sequence('backspace can reopen the last committed row without changing truth', ({ call, result, state }) => {
   call("inputDigit('1'); commitUnit('h'); inputOperator('+'); inputDigit('30'); commitUnit('m'); inputOperator('+');");
   assert.equal(result(), '5400000');

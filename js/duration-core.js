@@ -5,6 +5,7 @@
  */
 const expressionEl=document.getElementById('expression');
 const exprScroll=document.getElementById('exprScroll');
+const currentInputEl=document.getElementById('currentInput');
 const badge=document.getElementById('badge');
 const resultEl=document.getElementById('result');
 const secondaryEl=document.getElementById('secondary');

@@ -47,9 +47,14 @@ function renderExpression(){
     </div>`);
   });
   const showCurrent=!justEvaluated&&(!rows.length||currentParts.length||numberBuffer||colonMode||currentOp!==null);
-  if(showCurrent)out.push(renderCurrentLine());
-  if(rows.length>=2||(rows.length&&(currentParts.length||colonMode||numberBuffer||currentOp!==null)))out.push(`<div class="expr-divider ${!justEvaluated&&!currentParts.length&&!numberBuffer&&!colonMode?'next-divider':''}"></div>`);
   expressionEl.innerHTML=out.join('');
+  // Keep committed rows scrollable while pinning the editable current line
+  // below them. This gives the process area room to grow without allowing it
+  // to consume the result area.
+  exprScroll.classList.toggle('empty', rows.length===0);
+  currentInputEl.hidden=!showCurrent;
+  currentInputEl.classList.toggle('with-divider', showCurrent&&rows.length>0);
+  currentInputEl.innerHTML=showCurrent?renderCurrentLine():'';
   requestAnimationFrame(()=>{exprScroll.scrollTop=exprScroll.scrollHeight});
 }
 

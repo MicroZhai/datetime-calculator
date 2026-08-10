@@ -128,6 +128,45 @@ body .status-row{
   padding-block-end:0;
 }
 
+/* The process workspace owns flexible height. Committed rows can scroll,
+   while the current input and row actions stay visible above the result. */
+body .process-workspace{
+  min-block-size:0;
+  flex:1 1 auto;
+  display:flex;
+  flex-direction:column;
+  justify-content:flex-end;
+}
+body .process-workspace .expr-scroll{
+  flex:1 1 auto;
+  min-block-size:0;
+  max-block-size:none;
+}
+body .process-workspace .expr-scroll.empty{
+  flex:0 0 0;
+}
+body .current-input{
+  flex:0 0 auto;
+  min-block-size:48px;
+  display:flex;
+  align-items:center;
+}
+body .current-input[hidden]{display:none}
+body .current-input.with-divider{
+  border-block-start:1px dashed var(--divider);
+  margin-block-start:var(--space-sm);
+  padding-block-start:var(--space-sm);
+}
+body .process-workspace .row-actions.show{
+  border-block-start:0;
+  padding-block-start:var(--space-xs);
+}
+body .process-workspace .row-actions,
+body .process-workspace .normalized,
+body .process-workspace .error-line{
+  flex:0 0 auto;
+}
+
 body .current-row .line-value{
   grid-column:2 / 4;
   text-align:end;

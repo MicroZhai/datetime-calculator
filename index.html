@@ -79,23 +79,30 @@
     <section class="display-region" aria-label="计算显示">
       <div class="status-row" aria-live="polite"><span class="badge" id="badge">输入数字，再选择单位</span></div>
 
-      <div class="expr-scroll" id="exprScroll">
-        <div id="expression"></div>
+      <!-- Process workspace: committed rows scroll above the current input;
+           the result remains outside this flexible area and is never pushed
+           off-screen by a long expression or row-edit controls. -->
+      <div class="process-workspace" id="processWorkspace">
+        <div class="expr-scroll" id="exprScroll" aria-label="已输入内容">
+          <div id="expression"></div>
+        </div>
+        <div class="current-input" id="currentInput" aria-label="输入下一时间" hidden></div>
+
+        <div class="row-actions" id="rowActions">
+          <span class="label" id="rowActionLabel">已选择一行</span>
+          <button class="small-btn toggle" id="toggleOpBtn" type="button">切换加减</button>
+          <button class="small-btn danger" id="deleteRowBtn" type="button">删除行</button>
+          <button class="small-btn" id="doneRowBtn" type="button">完成</button>
+        </div>
+
+        <div class="normalized" id="normalized"></div>
+        <div class="error-line" id="errorLine" role="status" aria-live="polite"></div>
       </div>
 
-      <div class="row-actions" id="rowActions">
-        <span class="label" id="rowActionLabel">已选择一行</span>
-        <button class="small-btn toggle" id="toggleOpBtn" type="button">切换加减</button>
-        <button class="small-btn danger" id="deleteRowBtn" type="button">删除行</button>
-        <button class="small-btn" id="doneRowBtn" type="button">完成</button>
-      </div>
-
-      <div class="normalized" id="normalized"></div>
       <div class="result-group" aria-live="polite" aria-atomic="true">
         <button class="result result-trigger" id="result" type="button" aria-label="计算结果，点击切换显示方式" title="点击切换显示方式">0分</button>
         <div class="secondary" id="secondary">00:00:00</div>
       </div>
-      <div class="error-line" id="errorLine" role="status" aria-live="polite"></div>
     </section>
 
     <section class="keypad-region" aria-label="计算键盘">
