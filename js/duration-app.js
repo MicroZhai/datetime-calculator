@@ -107,10 +107,8 @@ function clearCalculatorWithUndo(){
   if(!hasCalculatorContent())return;
   const snapshot=snapshotCalculator();
   clearAll(false);
-  clearTimeout(undoTimer);
-  pendingUndo=()=>restoreCalculator(snapshot);
-  undoTimer=setTimeout(()=>{pendingUndo=null;undoTimer=null},6000);
-  return;
+  // Route calculator clearing through the shared undo bar so the visible
+  // feedback and the restore callback cannot drift apart.
   showUndo('已清空计算内容',()=>restoreCalculator(snapshot));
 }
 

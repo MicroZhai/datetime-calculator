@@ -171,16 +171,19 @@ sequence('negative compound result continues without sign drift', ({ call, resul
   assert.equal(result(), '-5399999');
 });
 
-sequence('clear then undo restores exact editable state', ({ call, state, result }) => {
+sequence('clear then undo restores exact editable state and shows feedback', ({ call, state, result, elements }) => {
   call("inputDigit('47'); pressColon(); inputDigit('12'); inputOperator('+'); inputDigit('3'); commitUnit('m');");
   const before = state();
   const beforeResult = result();
   call('clearCalculatorWithUndo();');
   assert.equal(state().rows.length, 0);
   assert.equal(state().currentParts.length, 0);
+  assert.equal(elements.get('undoBar').classList.contains('show'), true);
+  assert.equal(elements.get('undoMessage').textContent, '已清空计算内容');
   call('runUndo();');
   assert.deepEqual(state(), before);
   assert.equal(result(), beforeResult);
+  assert.equal(elements.get('undoBar').classList.contains('show'), false);
 });
 
 sequence('delete row then undo restores expression and result', ({ call, state, result }) => {
