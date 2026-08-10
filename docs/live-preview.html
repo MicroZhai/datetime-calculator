@@ -124,8 +124,9 @@
     setInterval(watchPreviewAssets,1000);
   </script>
   <script>
-    // Preview-only iPhone shell adjustment. This keeps the simulated Dynamic
-    // Island clear of the app title without changing production layout CSS.
+    // Preview-only iPhone shell adjustment. Keep the extra top-bar height for
+    // the simulated Dynamic Island, but use the same center alignment as the
+    // production page so the title and action icons share one horizontal axis.
     const phoneFrame=document.querySelector('.phone-device iframe');
     function applyPhoneSafeArea(){
       try{
@@ -133,7 +134,7 @@
         if(!target||target.getElementById('phone-preview-safe-area'))return;
         const style=target.createElement('style');
         style.id='phone-preview-safe-area';
-        style.textContent='.topbar{block-size:88px!important;align-items:end!important;padding-block-end:8px!important}';
+        style.textContent='.topbar{block-size:88px!important;align-items:center!important;padding-block-end:0!important}';
         target.head.appendChild(style);
       }catch(_){/* preview frame may still be loading */}
     }
