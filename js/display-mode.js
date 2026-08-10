@@ -11,12 +11,15 @@
   let hourDisplayMode = FIXED_HOUR_MODE;
   let fitFrame = 0;
   const resultTrigger = document.getElementById('result');
+  // Keep the result switch and the status hint on one vocabulary so the
+  // visible hint, button label, and accessibility text never drift apart.
+  const FORMAT_CONTROL_LABELS = ['天', '时', '分'];
+  const FORMAT_HINTS = ['按天时分秒显示', '按小时显示', '按分钟显示'];
 
 
   function syncFormatControl() {
     if (!resultTrigger) return;
-    const labels = ['天', '时', '分'];
-    const label = labels[formatIndex] || labels[0];
+    const label = FORMAT_CONTROL_LABELS[formatIndex] || FORMAT_CONTROL_LABELS[0];
     resultTrigger.dataset.format = String(formatIndex);
     resultTrigger.dataset.formatLabel = label;
     resultTrigger.title = `点击切换显示方式，当前按${label}显示`;
@@ -34,9 +37,11 @@
     try { localStorage.setItem(HOUR_MODE_KEY, hourDisplayMode); } catch {}
   }
 
-  function isHourIdleState() {
-    return formatIndex === 1 && !partEdit && selectedRow === null && !colonMode &&
-      numberBuffer === '' && currentParts.length === 0 && currentOp === null;
+  function isDisplayHintIdleState() {
+    // Editing/validation messages remain higher priority than the display
+    // format hint, including when the result is clicked mid-entry.
+    return !partEdit && selectedRow === null && !colonMode && numberBuffer === '' &&
+      currentParts.length === 0 && currentOp === null;
   }
   const formatResultBase = formatResult;
   formatResult = function(totalMs) {
@@ -50,7 +55,13 @@
     if (!evaluated.ok) { secondaryEl.textContent = ''; return; }
     // Do not repeat a decimal approximation below the exact sexagesimal result.
     secondaryEl.textContent = '';
-    if (isHourIdleState()) {badge.textContent = '小时';badge.className = 'badge'}
+  }
+
+  function syncDisplayHint() {
+    if (!isDisplayHintIdleState()) return;
+    const hint = FORMAT_HINTS[formatIndex] || FORMAT_HINTS[0];
+    badge.textContent = hint;
+    badge.className = 'badge format';
   }
 
   function fitPrimaryResult() {
@@ -73,7 +84,13 @@
   }
 
   const renderBase = render;
-  render = function() {renderBase();syncHourMode();syncFormatControl();fitPrimaryResult()};
+  render = function() {
+    renderBase();
+    syncHourMode();
+    syncDisplayHint();
+    syncFormatControl();
+    fitPrimaryResult();
+  };
 
   const snapshotCalculatorBase = snapshotCalculator;
   snapshotCalculator = function() {return { ...snapshotCalculatorBase(), hourDisplayMode }};
