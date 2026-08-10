@@ -1,3 +1,5 @@
+/* Minimal no-build preview server used by docs/live-preview.html.
+   It serves the workspace as-is so CSS/JS edits can be inspected immediately. */
 const http = require('http');
 const fs = require('fs');
 const path = require('path');

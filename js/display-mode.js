@@ -1,24 +1,34 @@
+/*
+ * Result presentation controller.
+ * Clicking the result cycles its display unit without changing the exact
+ * calculated duration. Hour mode is fixed to sexagesimal so the main result
+ * always uses the exact H:MM:SS representation.
+ */
 (() => {
   const HOUR_MODE_KEY = 'dtc-hour-display-mode';
-  let hourDisplayMode = (() => {
-    try {
-      return localStorage.getItem(HOUR_MODE_KEY) === 'sexagesimal' ? 'sexagesimal' : 'decimal';
-    } catch { return 'decimal'; }
-  })();
+  const FIXED_HOUR_MODE = 'sexagesimal';
+  // Legacy decimal preferences are deliberately ignored and migrated below.
+  let hourDisplayMode = FIXED_HOUR_MODE;
   let fitFrame = 0;
   const resultTrigger = document.getElementById('result');
+  const statusRow = document.querySelector('.status-row');
+  // Keep the result switch and the status hint on one vocabulary so the
+  // visible hint, button label, and accessibility text never drift apart.
+  const FORMAT_CONTROL_LABELS = ['天', '时', '分'];
+  const FORMAT_HINTS = ['按天时分秒显示', '按小时显示', '按分钟显示'];
 
 
   function syncFormatControl() {
     if (!resultTrigger) return;
-    const labels = ['天', '时', '分'];
-    const label = labels[formatIndex] || labels[0];
+    const label = FORMAT_CONTROL_LABELS[formatIndex] || FORMAT_CONTROL_LABELS[0];
     resultTrigger.dataset.format = String(formatIndex);
     resultTrigger.dataset.formatLabel = label;
     resultTrigger.title = `点击切换显示方式，当前按${label}显示`;
     resultTrigger.setAttribute('aria-label', `计算结果 ${resultTrigger.textContent || ''}，当前按${label}显示，点击切换`);
   }
 
+  // The result itself is the format switch; no extra control is needed in the
+  // display area, which keeps the mobile layout compact.
   resultTrigger?.addEventListener('click', () => {
     formatIndex = (formatIndex + 1) % 3;
     render();
@@ -28,27 +38,35 @@
     try { localStorage.setItem(HOUR_MODE_KEY, hourDisplayMode); } catch {}
   }
 
-  function isHourIdleState() {
-    return formatIndex === 1 && !partEdit && selectedRow === null && !colonMode &&
-      numberBuffer === '' && currentParts.length === 0 && currentOp === null;
+  function isDisplayHintIdleState() {
+    // Editing/validation messages remain higher priority than the display
+    // format hint, including when the result is clicked mid-entry.
+    return !partEdit && selectedRow === null && !colonMode && numberBuffer === '' &&
+      currentParts.length === 0 && currentOp === null;
   }
-  function hourModeLabel() {return hourDisplayMode === 'sexagesimal' ? '60进制' : '十进制'}
-
   const formatResultBase = formatResult;
   formatResult = function(totalMs) {
-    if (formatIndex === 1 && hourDisplayMode === 'sexagesimal') return hms(totalMs);
+    if (formatIndex === 1) return hms(totalMs);
     return formatResultBase(totalMs);
   };
 
   function syncHourMode() {
     if (formatIndex !== 1) return;
-    const evaluated = evaluateRows(true);if (!evaluated.ok) return;
-    if (hourDisplayMode === 'sexagesimal') {
-      secondaryEl.textContent = `${DurationPrecision.roundedRatioText(evaluated.value, factorMs.h, 6)}小时`;
-    } else {
-      secondaryEl.textContent = hms(evaluated.value);
-    }
-    if (isHourIdleState()) {badge.textContent = `小时 · ${hourModeLabel()}`;badge.className = 'badge'}
+    const evaluated = evaluateRows(true);
+    if (!evaluated.ok) { secondaryEl.textContent = ''; return; }
+    // Do not repeat a decimal approximation below the exact sexagesimal result.
+    secondaryEl.textContent = '';
+  }
+
+  function syncDisplayHint() {
+    if (!isDisplayHintIdleState()) return;
+    // Date editing is a more actionable state than the passive format hint.
+    // Keep it visible until the date context is removed or another action
+    // starts, while the result button still exposes the current format.
+    if (statusRow?.classList.contains('has-date')) return;
+    const hint = FORMAT_HINTS[formatIndex] || FORMAT_HINTS[0];
+    badge.textContent = hint;
+    badge.className = 'badge format';
   }
 
   function fitPrimaryResult() {
@@ -71,15 +89,23 @@
   }
 
   const renderBase = render;
-  render = function() {renderBase();syncHourMode();syncFormatControl();fitPrimaryResult()};
+  render = function() {
+    renderBase();
+    syncHourMode();
+    syncDisplayHint();
+    syncFormatControl();
+    fitPrimaryResult();
+  };
 
   const snapshotCalculatorBase = snapshotCalculator;
   snapshotCalculator = function() {return { ...snapshotCalculatorBase(), hourDisplayMode }};
   const restoreCalculatorBase = restoreCalculator;
-  restoreCalculator = function(snapshot) {hourDisplayMode = snapshot?.hourDisplayMode === 'sexagesimal' ? 'sexagesimal' : 'decimal';persistHourMode();restoreCalculatorBase(snapshot)};
+  restoreCalculator = function(snapshot) {hourDisplayMode = FIXED_HOUR_MODE;persistHourMode();restoreCalculatorBase({...snapshot, hourDisplayMode: FIXED_HOUR_MODE})};
   const clearAllBase = clearAll;
   clearAll = function(show = true) {clearAllBase(show)};
 
   window.addEventListener('resize', fitPrimaryResult);
+  // Migrate any previously persisted decimal preference to the fixed mode.
+  persistHourMode();
   render();
 })();

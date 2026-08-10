@@ -1,3 +1,9 @@
+/*
+ * Web-to-platform state bridge.
+ * DOM code keeps BigInt values in memory, while the shared CalculatorState
+ * contract exposes JSON-safe snapshots. ArkTS should implement this bridge
+ * with the same normalize/snapshot/restore boundaries before binding UI.
+ */
 (() => {
   if (typeof CalculatorState === 'undefined') return;
 

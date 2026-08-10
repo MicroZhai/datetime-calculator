@@ -114,6 +114,7 @@ function createHarness() {
     cancelAnimationFrame() {},
     setTimeout: () => 1,
     clearTimeout() {},
+    addEventListener() {},
     structuredClone: global.structuredClone
   };
   context.globalThis = context;
@@ -128,6 +129,7 @@ function createHarness() {
   run('js/duration-ui.js');
   run('js/duration-app.js');
   run('js/date-anchor.js');
+  run('js/display-mode.js');
   run('js/calculator-state-runtime.js');
 
   const call = expression => vm.runInNewContext(expression, context);
@@ -211,7 +213,7 @@ sequence('dated history restores date context and continues calculating', ({ cal
   assert.equal(history()[0].anchorDateTime, '2026-08-09T00:00');
 
   call('clearAll(false);');
-  assert.equal(state().anchorDateTime, null);
+  assert.equal(state().anchorDateTime, '2026-08-09T00:00');
   call('restoreHistory(0);');
   assert.equal(state().anchorDateTime, '2026-08-09T00:00');
   assert.equal(result(), '86400000');
@@ -226,6 +228,34 @@ sequence('display format changes never change exact result', ({ call, result }) 
   const exact = result();
   call('formatIndex=1; render(); formatIndex=2; render(); formatIndex=0; render();');
   assert.equal(result(), exact);
+});
+
+sequence('result display changes update the idle status hint', ({ call, elements }) => {
+  const badge = () => elements.get('badge').textContent;
+  assert.equal(badge(), '按天时分秒显示');
+  call('formatIndex=1; render();');
+  assert.equal(badge(), '按小时显示');
+  call('formatIndex=2; render();');
+  assert.equal(badge(), '按分钟显示');
+  call('formatIndex=0; render();');
+  assert.equal(badge(), '按天时分秒显示');
+});
+
+sequence('active input status keeps priority over display hint', ({ call, elements }) => {
+  const badge = () => elements.get('badge').textContent;
+  call("inputDigit('8');");
+  assert.equal(badge(), '已输入 8，请选择单位');
+  call('formatIndex=1; render();');
+  assert.equal(badge(), '已输入 8，请选择单位');
+});
+
+sequence('process rows and current input remain separate', ({ call, elements }) => {
+  call("inputDigit('8'); commitUnit('m'); inputOperator('+'); inputDigit('2'); commitUnit('m');");
+  assert.match(elements.get('expression').innerHTML, /data-line="0"/);
+  assert.doesNotMatch(elements.get('expression').innerHTML, /current-row/);
+  assert.match(elements.get('currentInput').innerHTML, /current-row/);
+  assert.equal(elements.get('currentInput').hidden, false);
+  assert.equal(elements.get('currentInput').classList.contains('with-divider'), true);
 });
 
 sequence('backspace can reopen the last committed row without changing truth', ({ call, result, state }) => {

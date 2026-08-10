@@ -1,3 +1,8 @@
+/*
+ * Lightweight localization adapter.
+ * First launch follows navigator.language; an explicit choice is persisted
+ * and applied after every render so dynamic calculator messages stay aligned.
+ */
 (() => {
   const KEY = 'dtc-language';
   const root = document.documentElement;
@@ -12,6 +17,7 @@
     '已选择第':'Selected row','行':'row','基准行':'base row','切换加减':'Toggle +/-','删除行':'Delete row','完成':'Done','计算历史':'History','关闭':'Close','清空':'Clear','撤销':'Undo','点击恢复':'Restore',
     '还没有历史记录':'No history yet','点击左侧可修改':'Click the left side to edit','日期':'Date','结束日期超出范围':'End date is out of range','日期不可用':'Date unavailable',
     '跟随系统':'System','浅色':'Light','深色':'Dark','天':'day','小时':'hour','时':'hr','分':'min','秒':'sec','天时分秒':'D H M S','结果显示方式':'Result display format','切换结果显示方式':'Switch result display','当前':'current','十进制':'decimal','60进制':'base-60','请输入有效数字':'Enter a valid number',
+    '按天时分秒显示':'Display: D H M S','按小时显示':'Display: hours','按分钟显示':'Display: minutes',
     '按 = 保存到历史；历史记录可恢复后继续编辑。':'Press = to save to history; history entries can be restored and edited.',
     '请选择单位':'select a unit','已输入':'Entered','请输入两位分钟':'Enter two-digit minutes','请输入两位秒':'Enter two-digit seconds',
     '先输入数字':'Enter a number first','先选择单位':'Choose a unit first','无法精确表示':'Cannot represent precisely','当前输入无法精确到 1 毫秒':'Input cannot be precise to 1 ms',
@@ -54,6 +60,7 @@
       ['aria-label','title'].forEach(attr => { const value = node.getAttribute(attr); if (value) node.setAttribute(attr, translateText(value)); });
     });
   }
+  // Auto-detect only on first launch; localStorage takes priority afterwards.
   function detect() { return (navigator.language || '').toLowerCase().startsWith('zh') ? 'zh' : 'en'; }
   function get() { try { return localStorage.getItem(KEY) || detect(); } catch (_) { return detect(); } }
   function apply(language, persist = true) {

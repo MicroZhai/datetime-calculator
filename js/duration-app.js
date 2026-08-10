@@ -1,3 +1,8 @@
+/*
+ * Application wiring and accessibility behaviors.
+ * This layer connects calculator state to undo, history, keyboard input, and
+ * service-worker registration without owning the calculation rules.
+ */
 const undoBar=document.getElementById('undoBar');
 const undoMessage=document.getElementById('undoMessage');
 const undoButton=document.getElementById('undoButton');

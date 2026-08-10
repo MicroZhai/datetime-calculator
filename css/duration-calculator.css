@@ -1,3 +1,8 @@
+/* Base calculator contract.
+   This file defines semantic controls and the default four-column keypad.
+   responsive.css, display-surface.css, and keypad-surface.css are layered
+   overrides; a native client should preserve the same roles and minimum
+   touch targets even when its layout engine is not CSS. */
 :root{
   color-scheme:light dark;
   --bg:#F1F3F5;
@@ -77,10 +82,13 @@ main{display:flex;flex-direction:column;gap:var(--space-md)}
 .topbar{
   block-size:56px;
   display:grid;
-  grid-template-columns:48px minmax(0,1fr) 48px;
+  /* Keep the three header items in their original tracks: the zero-width
+     spacer preserves the action group's right-side position while the title
+     starts at the left edge of the content area. */
+  grid-template-columns:0 minmax(0,1fr) auto;
   align-items:center;
 }
-.title{text-align:center;font-size:18px;font-weight:500;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.title{text-align:start;font-size:18px;font-weight:500;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .top-actions{display:flex;justify-content:flex-end}
 .icon-btn{
   inline-size:48px;block-size:48px;border:0;border-radius:var(--radius-full);background:transparent;
@@ -306,7 +314,6 @@ main{display:flex;flex-direction:column;gap:var(--space-md)}
 
 @media(max-width:319px){
   .app{padding-inline:var(--space-sm)}
-  .topbar{grid-template-columns:40px minmax(0,1fr) 40px}
   .icon-btn{inline-size:40px;block-size:40px}
   .line-value{font-size:18px}
   .result{font-size:30px}

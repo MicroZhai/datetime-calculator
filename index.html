@@ -1,4 +1,9 @@
 <!doctype html>
+<!-- Main PWA shell. Keep early theme bootstrap before styles to avoid a flash
+     of the wrong theme; the calculator modules are loaded in dependency order. -->
+<!-- Cross-platform contract: data-digit, data-unit, data-op, and data-action
+     identify user intents. HarmonyOS should reproduce these state transitions
+     in ArkTS/ArkUI instead of translating the DOM literally. -->
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8">
@@ -69,29 +74,40 @@
   </header>
 
   <main>
+    <!-- Display surface: status/date metadata, editable expression, result,
+         and end-date metadata. The keypad is a separate action surface. -->
     <section class="display-region" aria-label="计算显示">
       <div class="status-row" aria-live="polite"><span class="badge" id="badge">输入数字，再选择单位</span></div>
 
-      <div class="expr-scroll" id="exprScroll">
-        <div id="expression"></div>
+      <!-- Process workspace: committed rows scroll above the current input;
+           the result remains outside this flexible area and is never pushed
+           off-screen by a long expression or row-edit controls. -->
+      <div class="process-workspace" id="processWorkspace">
+        <div class="expr-scroll" id="exprScroll" aria-label="已输入内容">
+          <div id="expression"></div>
+        </div>
+        <div class="current-input" id="currentInput" aria-label="输入下一时间" hidden></div>
+
+        <div class="row-actions" id="rowActions">
+          <span class="label" id="rowActionLabel">已选择一行</span>
+          <button class="small-btn toggle" id="toggleOpBtn" type="button">切换加减</button>
+          <button class="small-btn danger" id="deleteRowBtn" type="button">删除行</button>
+          <button class="small-btn" id="doneRowBtn" type="button">完成</button>
+        </div>
+
+        <div class="normalized" id="normalized"></div>
+        <div class="error-line" id="errorLine" role="status" aria-live="polite"></div>
       </div>
 
-      <div class="row-actions" id="rowActions">
-        <span class="label" id="rowActionLabel">已选择一行</span>
-        <button class="small-btn toggle" id="toggleOpBtn" type="button">切换加减</button>
-        <button class="small-btn danger" id="deleteRowBtn" type="button">删除行</button>
-        <button class="small-btn" id="doneRowBtn" type="button">完成</button>
-      </div>
-
-      <div class="normalized" id="normalized"></div>
       <div class="result-group" aria-live="polite" aria-atomic="true">
         <button class="result result-trigger" id="result" type="button" aria-label="计算结果，点击切换显示方式" title="点击切换显示方式">0分</button>
         <div class="secondary" id="secondary">00:00:00</div>
       </div>
-      <div class="error-line" id="errorLine" role="status" aria-live="polite"></div>
     </section>
 
     <section class="keypad-region" aria-label="计算键盘">
+      <!-- Four columns and six logical rows; '=' spans rows 4-6. Keep the
+           action mapping stable when ArkUI uses Grid instead of CSS Grid. -->
       <div class="keypad">
         <button class="key unit k-day" data-unit="d" type="button" aria-keyshortcuts="D">天</button>
         <button class="key unit k-hour" data-unit="h" type="button" aria-keyshortcuts="H">时</button>
@@ -127,6 +143,7 @@
   </main>
 </div>
 
+<!-- History is an overlay state, not a second calculator screen. -->
 <div class="history-mask" id="historyMask">
   <section class="history-sheet" role="dialog" aria-modal="true" aria-labelledby="historyTitle">
     <div class="history-head">
@@ -143,6 +160,8 @@
   <span id="undoMessage"></span>
   <button id="undoButton" type="button">撤销</button>
 </div>
+<!-- Module order is part of the runtime contract: pure precision/date/history
+     services first, then state/UI adapters, then optional presentation layers. -->
 <script src="js/duration-precision.js"></script>
 <script src="js/date-mapper.js"></script>
 <script src="js/history-store.js"></script>
@@ -159,6 +178,8 @@
 <script src="js/language.js"></script>
 <script>
 (() => {
+  // Register/revalidate the PWA shell only when the browser supports service
+  // workers; the calculator itself remains usable when it does not.
   if (!('serviceWorker' in navigator)) return;
 
   let registration = null;

@@ -1,3 +1,7 @@
+/* Shared visual tokens.
+   HarmonyOS should map these values to ArkUI resources instead of copying
+   individual colors from screenshots. Layout files consume the tokens for
+   spacing, radius, typography, state colors, and motion consistently. */
 :root[data-theme="light"]{
   color-scheme:light;
   --bg:#F1F3F5;
@@ -50,7 +54,6 @@
 
 .topbar{
   position:relative;
-  grid-template-columns:96px minmax(0,1fr) 96px;
 }
 .top-actions{gap:0}
 
@@ -96,6 +99,5 @@
 .theme-option[aria-checked="true"] .theme-check{opacity:1}
 
 @media(max-width:319px){
-  .topbar{grid-template-columns:80px minmax(0,1fr) 80px}
   .theme-menu{inline-size:168px;inset-block-start:48px}
 }

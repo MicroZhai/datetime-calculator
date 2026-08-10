@@ -1,3 +1,8 @@
+/*
+ * Date context adapter.
+ * It converts an exact duration into a local calendar result while guarding
+ * against Date's finite timestamp range and daylight-saving transitions.
+ */
 (function(root, factory) {
   const api = factory(root?.DurationPrecision);
   if (typeof module !== 'undefined' && module.exports) module.exports = api;

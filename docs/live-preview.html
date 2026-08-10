@@ -1,4 +1,6 @@
 <!doctype html>
+<!-- Development-only visual QA page. It embeds the same index.html at phone,
+     tablet, and desktop sizes; it does not define production layout. -->
 <html lang="zh-CN">
 <head>
   <meta charset="utf-8">
@@ -9,15 +11,79 @@
     *{box-sizing:border-box}body{margin:0;padding:20px}header{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:16px}h1{margin:0;font-size:22px}#state{font-size:13px;color:#687284}.views{display:flex;flex-wrap:wrap;gap:20px}.view{margin:0}.view figcaption{margin:0 0 7px;font-weight:600}.frame{padding:9px;background:#dfe4eb;border:1px solid #c9d0da;border-radius:22px;box-shadow:0 8px 24px #17203318}.frame iframe{display:block;border:0;background:#fff;border-radius:14px}.phone iframe{width:390px;height:844px}.tablet iframe{width:1024px;height:768px;max-width:calc(100vw - 60px)}.desktop iframe{width:1280px;height:800px;max-width:calc(100vw - 60px)}
     @media(max-width:600px){body{padding:12px}header{display:block}#state{display:block;margin-top:5px}.phone iframe,.tablet iframe,.desktop iframe{width:calc(100vw - 42px);height:680px}}
   </style>
+  <style>
+    .phone .phone-device{
+      position:relative;
+      padding:12px;
+      border:1px solid #3c4049;
+      border-radius:56px;
+      background:linear-gradient(145deg,#616671 0%,#20232a 12%,#06070a 38%,#2c3038 88%,#777c86 100%);
+      box-shadow:0 22px 42px #17203335, inset 0 0 0 2px #aeb4bf38, inset 0 0 0 5px #00000090;
+    }
+    .phone .phone-device::before,
+    .phone .phone-device::after{
+      content:'';
+      position:absolute;
+      z-index:4;
+      width:4px;
+      border-radius:4px;
+      background:linear-gradient(#8b9099,#282c34 45%,#787e88);
+      box-shadow:0 1px 2px #0008;
+    }
+    .phone .phone-device::before{left:-4px;top:142px;height:70px}
+    .phone .phone-device::after{right:-4px;top:190px;height:92px}
+    .phone .phone-screen{
+      position:relative;
+      overflow:hidden;
+      border-radius:45px;
+      background:#f8fafc;
+      box-shadow:inset 0 0 0 1px #ffffff30,inset 0 0 18px #0009;
+    }
+    .phone .phone-device iframe{
+      position:relative;
+      z-index:1;
+      width:402px !important;
+      height:874px !important;
+      border-radius:45px;
+    }
+    .phone .phone-island{
+      position:absolute;
+      z-index:3;
+      top:16px;
+      left:50%;
+      width:126px;
+      height:35px;
+      transform:translateX(-50%);
+      border-radius:999px;
+      background:#030406;
+      box-shadow:inset 0 1px 2px #ffffff20,0 1px 3px #000a;
+      pointer-events:none;
+    }
+    .phone .phone-home-indicator{
+      position:absolute;
+      z-index:3;
+      left:50%;
+      bottom:11px;
+      width:128px;
+      height:5px;
+      transform:translateX(-50%);
+      border-radius:999px;
+      background:#080a0e;
+      box-shadow:0 1px 2px #ffffff70;
+      pointer-events:none;
+    }
+  </style>
 </head>
 <body>
   <header><h1>时间计算器实时预览</h1><span id="state">正在监测文件变化…</span></header>
   <main class="views">
-    <figure class="view phone"><figcaption>手机 · 390 × 844</figcaption><div class="frame"><iframe src="../index.html" title="手机实时预览"></iframe></div></figure>
+    <figure class="view phone"><figcaption>手机 · Pro 参考 · 402 × 874</figcaption><div class="frame phone-device"><div class="phone-screen"><span class="phone-island" aria-hidden="true"></span><iframe src="../index.html" title="Pro 风格手机实时预览"></iframe><span class="phone-home-indicator" aria-hidden="true"></span></div></div></figure>
     <figure class="view tablet"><figcaption>平板 · 1024 × 768</figcaption><div class="frame"><iframe src="../index.html" title="平板实时预览"></iframe></div></figure>
     <figure class="view desktop"><figcaption>桌面 · 1280 × 800</figcaption><div class="frame"><iframe src="../index.html" title="桌面实时预览"></iframe></div></figure>
   </main>
   <script>
+    // Poll the entry document so the three device frames refresh without
+    // reopening the preview page after a local source edit.
     const frames=[...document.querySelectorAll('iframe')];
     let version='';
     async function check(){
@@ -35,6 +101,8 @@
     check();setInterval(check,1000);
   </script>
   <script>
+    // Watch CSS/JS assets as well as index.html; a style-only edit must update
+    // the preview even when the HTML file timestamp is unchanged.
     const watchedPreviewFiles=['../index.html','../sw.js','../css/duration-calculator.css','../css/display-surface.css','../css/keypad-surface.css','../js/duration-ui.js','../js/display-mode.js','../js/language.js'];
     let watchedPreviewVersion='';
     async function watchPreviewAssets(){
@@ -54,6 +122,24 @@
     }
     watchPreviewAssets();
     setInterval(watchPreviewAssets,1000);
+  </script>
+  <script>
+    // Preview-only iPhone shell adjustment. Keep the extra top-bar height for
+    // the simulated Dynamic Island, but use the same center alignment as the
+    // production page so the title and action icons share one horizontal axis.
+    const phoneFrame=document.querySelector('.phone-device iframe');
+    function applyPhoneSafeArea(){
+      try{
+        const target=phoneFrame.contentDocument;
+        if(!target||target.getElementById('phone-preview-safe-area'))return;
+        const style=target.createElement('style');
+        style.id='phone-preview-safe-area';
+        style.textContent='.topbar{block-size:88px!important;align-items:center!important;padding-block-end:0!important}';
+        target.head.appendChild(style);
+      }catch(_){/* preview frame may still be loading */}
+    }
+    phoneFrame.addEventListener('load',applyPhoneSafeArea);
+    applyPhoneSafeArea();
   </script>
 </body>
 </html>

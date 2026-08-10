@@ -1,3 +1,8 @@
+/*
+ * History persistence boundary.
+ * Records are serialized as JSON-safe values and migrated before the UI sees
+ * them, so restoring history cannot corrupt exact duration or date context.
+ */
 (function(root, factory) {
   const api = factory(root?.DurationPrecision, root?.DateMapper);
   if (typeof module !== 'undefined' && module.exports) module.exports = api;

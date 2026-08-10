@@ -41,8 +41,13 @@ body .status-row{
 }
 
 body .expr-scroll{
-  min-block-size:56px;
-  max-block-size:min(200px,24dvh);
+  /* Match the actual 48px expression row so the text has equal space above
+     and below without an invisible 8px tail under the current input. The
+     process area consumes all remaining display height; overflow stays inside
+     this region so the result and keypad are never pushed away. */
+  flex:1 1 auto;
+  min-block-size:48px;
+  max-block-size:none;
   padding-block:0;
 }
 
@@ -58,10 +63,11 @@ body .error-line{
   margin-block-start:2px;
 }
 
-/* Spare height belongs to the display workspace. The result settles at the lower
-   edge while the keypad keeps a stable, calculator-like density. */
+/* Spare height belongs to the process workspace. The result keeps its intrinsic
+   height immediately after the process area while the keypad stays stable. */
 body .result-group{
-  margin-block-start:auto;
+  flex:0 0 auto;
+  margin-block-start:0;
   padding-block-start:0;
 }
 
@@ -105,7 +111,7 @@ body .key{
    Keep the keys comfortable; take surplus height from repeated expression rows first. */
 @media(max-width:599px) and (min-height:680px) and (max-height:819px){
   body .expr-scroll{
-    max-block-size:112px;
+    max-block-size:none;
   }
 
   body .keypad{
@@ -118,7 +124,7 @@ body .key{
 @media(max-width:599px) and (min-height:580px) and (max-height:679px){
   body .expr-scroll{
     min-block-size:48px;
-    max-block-size:84px;
+    max-block-size:none;
   }
 
   body .keypad{
@@ -145,7 +151,7 @@ body .key{
 
   body .expr-scroll{
     min-block-size:44px;
-    max-block-size:80px;
+    max-block-size:none;
   }
 
   body .result{
@@ -245,7 +251,7 @@ body .key{
   }
 
   body .expr-scroll{
-    max-block-size:min(156px,30dvh);
+    max-block-size:none;
   }
 
 }
