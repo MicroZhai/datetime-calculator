@@ -1,3 +1,8 @@
+/* Base calculator contract.
+   This file defines semantic controls and the default four-column keypad.
+   responsive.css, display-surface.css, and keypad-surface.css are layered
+   overrides; a native client should preserve the same roles and minimum
+   touch targets even when its layout engine is not CSS. */
 :root{
   color-scheme:light dark;
   --bg:#F1F3F5;

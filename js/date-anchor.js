@@ -1,3 +1,9 @@
+/*
+ * Date-context adapter for the Web UI.
+ * The anchor date is independent from calculator input: clearing the
+ * expression must preserve it, while the date key removes it.
+ * Native clients should expose the same two-state contract and result map.
+ */
 (() => {
   let anchorDateTime = null;
 

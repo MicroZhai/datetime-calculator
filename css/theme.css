@@ -1,3 +1,7 @@
+/* Shared visual tokens.
+   HarmonyOS should map these values to ArkUI resources instead of copying
+   individual colors from screenshots. Layout files consume the tokens for
+   spacing, radius, typography, state colors, and motion consistently. */
 :root[data-theme="light"]{
   color-scheme:light;
   --bg:#F1F3F5;

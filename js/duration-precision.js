@@ -1,3 +1,9 @@
+/*
+ * Platform-neutral exact-duration service.
+ * All arithmetic is integer milliseconds backed by BigInt; formatting and
+ * UI units must never change the stored value. ArkTS should port this module
+ * before building controls so Web and native clients share the same vectors.
+ */
 (function(root, factory) {
   const api = factory();
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
