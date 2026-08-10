@@ -1,3 +1,5 @@
+/* Date mode is a keypad layout concern only: the date key occupies the same
+   grid contract as the other unit keys; its actual calendar state lives in JS. */
 .keypad{
   grid-template-columns:repeat(20,minmax(0,1fr));
 }

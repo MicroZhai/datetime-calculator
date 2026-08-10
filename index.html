@@ -1,4 +1,6 @@
 <!doctype html>
+<!-- Main PWA shell. Keep early theme bootstrap before styles to avoid a flash
+     of the wrong theme; the calculator modules are loaded in dependency order. -->
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8">
@@ -159,6 +161,8 @@
 <script src="js/language.js"></script>
 <script>
 (() => {
+  // Register/revalidate the PWA shell only when the browser supports service
+  // workers; the calculator itself remains usable when it does not.
   if (!('serviceWorker' in navigator)) return;
 
   let registration = null;

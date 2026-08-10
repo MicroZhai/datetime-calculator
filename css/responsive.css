@@ -41,7 +41,9 @@ body .status-row{
 }
 
 body .expr-scroll{
-  min-block-size:56px;
+  /* Match the actual 48px expression row so the text has equal space above
+     and below without an invisible 8px tail under the current input. */
+  min-block-size:48px;
   max-block-size:min(200px,24dvh);
   padding-block:0;
 }

@@ -1,3 +1,8 @@
+/*
+ * Calculator interaction layer.
+ * Render functions only reflect state; input handlers below are responsible
+ * for editing, validation, clear behavior, and committing calculations.
+ */
 function renderPart(p,ri,pi){
   const selected=partEdit&&partEdit.rowIndex===ri&&partEdit.partIndex===pi;
   const ep=editedPart(ri,pi);
@@ -57,8 +62,10 @@ function updateBadge(){
   badge.textContent='输入数字后选择单位';badge.className='badge';
 }
 function renderRowActions(){
-  if(selectedRow===null){rowActions.classList.remove('show');return}
+  if(selectedRow===null){rowActions.classList.remove('show','without-toggle');return}
   rowActions.classList.add('show');
+  // Keep the grid aware that the base row intentionally has no +/- control.
+  rowActions.classList.toggle('without-toggle', selectedRow===0);
   rowActionLabel.textContent=selectedRow===0?'第 1 行（基准行）':`第 ${selectedRow+1} 行`;
   toggleOpBtn.style.display=selectedRow===0?'none':'inline-flex';
 }
@@ -86,6 +93,8 @@ function render(){
 }
 
 function clearInput(){currentParts=[];numberBuffer='';colonMode=false;colonHours='';colonMinutes='';colonSeconds='';colonStage='minute'}
+// Clear only the calculator expression. The date-anchor wrapper intentionally
+// keeps the selected start date, because date context is separate from input.
 function clearAll(show=true){
   rows=[];currentOp=null;selectedRow=null;partEdit=null;clearInput();
   formatIndex=0;lastResultMs=0n;justEvaluated=false;setError('');render();

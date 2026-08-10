@@ -211,7 +211,7 @@ sequence('dated history restores date context and continues calculating', ({ cal
   assert.equal(history()[0].anchorDateTime, '2026-08-09T00:00');
 
   call('clearAll(false);');
-  assert.equal(state().anchorDateTime, null);
+  assert.equal(state().anchorDateTime, '2026-08-09T00:00');
   call('restoreHistory(0);');
   assert.equal(state().anchorDateTime, '2026-08-09T00:00');
   assert.equal(result(), '86400000');

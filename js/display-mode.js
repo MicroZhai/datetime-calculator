@@ -1,3 +1,8 @@
+/*
+ * Result presentation controller.
+ * Clicking the result cycles its display unit without changing the exact
+ * calculated duration; the selected hour representation is persisted locally.
+ */
 (() => {
   const HOUR_MODE_KEY = 'dtc-hour-display-mode';
   let hourDisplayMode = (() => {
@@ -19,6 +24,8 @@
     resultTrigger.setAttribute('aria-label', `计算结果 ${resultTrigger.textContent || ''}，当前按${label}显示，点击切换`);
   }
 
+  // The result itself is the format switch; no extra control is needed in the
+  // display area, which keeps the mobile layout compact.
   resultTrigger?.addEventListener('click', () => {
     formatIndex = (formatIndex + 1) % 3;
     render();

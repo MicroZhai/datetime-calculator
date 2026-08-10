@@ -1,3 +1,8 @@
+/*
+ * PWA cache strategy.
+ * Keep the app shell available offline, then revalidate requests so a new
+ * deployment can replace stale assets without requiring a manual reinstall.
+ */
 const CACHE_NAME = 'dtc-duration-v13-10-20260809';
 const APP_SHELL = [
   './',
@@ -29,6 +34,8 @@ const APP_SHELL = [
 ];
 
 self.addEventListener('install', event => {
+  // Pre-cache the complete application shell so the first offline launch has
+  // the same calculator, language, theme, and responsive assets as online.
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => cache.addAll(
@@ -73,6 +80,8 @@ async function fetchWithRevalidation(request) {
 }
 
 self.addEventListener('fetch', event => {
+  // Navigation and asset requests use network-first revalidation with a cache
+  // fallback; this prevents an old deployed bundle from being kept forever.
   if (event.request.method !== 'GET') return;
 
   const url = new URL(event.request.url);

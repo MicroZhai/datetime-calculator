@@ -1,3 +1,8 @@
+/*
+ * Overflow affordance for arbitrary-precision output.
+ * Long values remain complete and horizontally inspectable instead of being
+ * silently clipped or changing the exact calculation.
+ */
 (() => {
   let syncFrame = 0;
 

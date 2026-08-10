@@ -1,3 +1,8 @@
+/*
+ * Shared Web runtime state and pure-ish calculation helpers.
+ * Exact values stay as BigInt milliseconds internally; formatting belongs to
+ * the UI layer and must never change the stored result.
+ */
 const expressionEl=document.getElementById('expression');
 const exprScroll=document.getElementById('exprScroll');
 const badge=document.getElementById('badge');

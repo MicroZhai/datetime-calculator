@@ -1,3 +1,8 @@
+/*
+ * Theme preference controller.
+ * "system" remains the default, while explicit light/dark choices are stored
+ * independently from language and applied before the first paint when possible.
+ */
 (() => {
   const STORAGE_KEY = 'dtc-theme';
   const root = document.documentElement;

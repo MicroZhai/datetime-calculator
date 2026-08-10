@@ -29,6 +29,18 @@
   anchorValue.className = 'date-anchor-value';
   anchorButton.append(anchorLabel, anchorValue);
 
+  // The visible status rail may ellipsize long messages, but keep the full
+  // message available to desktop users and assistive technology. Observing
+  // the text node also keeps the title in sync after every render/language swap.
+  if (typeof MutationObserver === 'function') {
+    const badgeTextObserver = new MutationObserver(() => {
+      const fullMessage = badge.textContent.trim();
+      badge.title = fullMessage;
+      badge.setAttribute('aria-label', fullMessage);
+    });
+    badgeTextObserver.observe(badge, { childList: true, characterData: true, subtree: true });
+  }
+
   const resultGroup = document.querySelector('.result-group');
   const dateInput = document.createElement('input');
   dateInput.type = 'datetime-local';
@@ -52,6 +64,9 @@
 
   function renderDateAnchor() {
     const active = Boolean(anchorDateTime);
+    // Give the status row an explicit layout state. CSS uses this class to
+    // keep a long prompt right-aligned without depending on hidden siblings.
+    statusRow.classList.toggle('has-date', active);
     if (dateKey) {
       dateKey.classList.toggle('active', active);
       dateKey.setAttribute('aria-pressed', String(active));
@@ -191,7 +206,8 @@
 
   const clearAllBase = clearAll;
   clearAll = function(show = true) {
-    anchorDateTime = null;
+    // Clearing calculator input must not remove the date context. The date key
+    // remains the explicit control for adding or removing the anchor date.
     clearAllBase(show);
   };
 

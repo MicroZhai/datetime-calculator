@@ -1,3 +1,8 @@
+/*
+ * Platform-neutral calculator snapshot contract.
+ * Keep this module free of DOM APIs so the Web UI, tests, and future native
+ * clients can share the same migration and normalization rules.
+ */
 (function(root, factory) {
   const api = factory(root?.DurationPrecision, root?.DateMapper);
   if (typeof module !== 'undefined' && module.exports) module.exports = api;

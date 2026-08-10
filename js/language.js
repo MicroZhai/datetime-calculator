@@ -1,3 +1,8 @@
+/*
+ * Lightweight localization adapter.
+ * First launch follows navigator.language; an explicit choice is persisted
+ * and applied after every render so dynamic calculator messages stay aligned.
+ */
 (() => {
   const KEY = 'dtc-language';
   const root = document.documentElement;
@@ -54,6 +59,7 @@
       ['aria-label','title'].forEach(attr => { const value = node.getAttribute(attr); if (value) node.setAttribute(attr, translateText(value)); });
     });
   }
+  // Auto-detect only on first launch; localStorage takes priority afterwards.
   function detect() { return (navigator.language || '').toLowerCase().startsWith('zh') ? 'zh' : 'en'; }
   function get() { try { return localStorage.getItem(KEY) || detect(); } catch (_) { return detect(); } }
   function apply(language, persist = true) {
