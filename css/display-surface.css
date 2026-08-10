@@ -45,6 +45,9 @@ body .status-row{
   display:grid;
   /* Reserve a predictable right rail for longer status messages. */
   grid-template-columns:minmax(0,1fr) minmax(0,42%);
+  /* Date and prompt are one metadata band. Lock them to row 1 so CSS Grid
+     cannot create a second row when either label becomes longer. */
+  grid-template-rows:var(--display-meta-row);
   align-items:center;
   gap:var(--space-sm);
   min-block-size:var(--display-meta-row);
@@ -68,8 +71,8 @@ body .status-row .badge{
 /* The status message remains a right-aligned item even when no date anchor
    is present. This class is set by date-anchor.js instead of relying on a
    fragile sibling/hidden-element selector. */
-body .status-row:not(.has-date) .badge{grid-column:1 / -1}
-body .status-row.has-date .badge{grid-column:2}
+body .status-row:not(.has-date) .badge{grid-column:1 / -1;grid-row:1}
+body .status-row.has-date .badge{grid-column:2;grid-row:1}
 
 body .date-anchor{
   min-inline-size:0;
@@ -118,8 +121,8 @@ body .date-anchor-value{
 
 /* Keep the display header as one metadata row: date on the left and the
    current mode or status on the right. */
-body .status-row .date-anchor{grid-column:1;justify-self:start}
-body .status-row .badge{grid-column:2;min-inline-size:0}
+body .status-row .date-anchor{grid-column:1;grid-row:1;justify-self:start}
+body .status-row .badge{grid-column:2;grid-row:1;min-inline-size:0}
 body .status-row{
   border-block-end:1px solid var(--divider);
   padding-block-end:0;
