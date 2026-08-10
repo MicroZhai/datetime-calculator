@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - master
+      # Codex development branches are deployable previews; pushing one
+      # updates the same PWA automatically without a second manual dispatch.
+      - 'agent/**'
   workflow_dispatch:
 
 permissions:
