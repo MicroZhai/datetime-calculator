@@ -82,11 +82,12 @@ main{display:flex;flex-direction:column;gap:var(--space-md)}
 .topbar{
   block-size:56px;
   display:grid;
-  /* The title owns the flexible left track; actions stay anchored on the right. */
-  grid-template-columns:minmax(0,1fr) auto;
+  /* Keep the three header items in their original tracks: the zero-width
+     spacer preserves the action group's right-side position while the title
+     starts at the left edge of the content area. */
+  grid-template-columns:0 minmax(0,1fr) auto;
   align-items:center;
 }
-.topbar > div[aria-hidden="true"]{display:none}
 .title{text-align:start;font-size:18px;font-weight:500;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .top-actions{display:flex;justify-content:flex-end}
 .icon-btn{
