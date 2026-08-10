@@ -4,6 +4,9 @@
 
 :root{
   --display-surface:#FFFFFF;
+  /* Metadata bands separate the date/status and end-time rows from the
+     editable process without introducing another card component. */
+  --display-meta-surface:#F5F6F8;
   --display-border:#E2E3E8;
   /* Shared metadata rhythm: the date/status row and the end-time row use
      the same visual height and typography across responsive layouts. */
@@ -15,21 +18,25 @@
 @media(prefers-color-scheme:dark){
   :root{
     --display-surface:#1D1D1E;
+    --display-meta-surface:#2A2B2E;
     --display-border:#2A2A2C;
   }
 }
 
 :root[data-theme="light"]{
   --display-surface:#FFFFFF;
+  --display-meta-surface:#F5F6F8;
   --display-border:#E2E3E8;
 }
 
 :root[data-theme="dark"]{
   --display-surface:#1D1D1E;
+  --display-meta-surface:#2A2B2E;
   --display-border:#2A2A2C;
 }
 
 body .display-region{
+  --display-inline-padding:var(--space-md);
   background:var(--display-surface);
   border:1px solid var(--display-border);
   border-radius:var(--radius-xl);
@@ -58,6 +65,12 @@ body .status-row{
   min-block-size:var(--display-meta-row);
   flex:0 0 auto;
   margin-block-end:0;
+  /* Extend the band to the display card edges while keeping the content
+     aligned with the process area through matching horizontal padding. */
+  margin-inline:calc(-1 * var(--display-inline-padding));
+  padding-inline:var(--display-inline-padding);
+  background:var(--display-meta-surface);
+  border-radius:var(--radius-xl) var(--radius-xl) 0 0;
 }
 
 body .status-row .badge{
@@ -203,7 +216,25 @@ body .result-group{
   align-items:end;
   column-gap:var(--space-md);
   row-gap:0;
+  /* The bottom metadata row gets the same visual band as the top status row.
+     A pseudo-element keeps the existing result/end markup unchanged. */
+  position:relative;
+  margin-inline:calc(-1 * var(--display-inline-padding));
+  padding-inline:var(--display-inline-padding);
 }
+
+body .result-group::before{
+  content:'';
+  position:absolute;
+  inset-inline:0;
+  inset-block-end:0;
+  block-size:var(--display-meta-row);
+  background:var(--display-meta-surface);
+  border-radius:0 0 var(--radius-xl) var(--radius-xl);
+  pointer-events:none;
+}
+
+body .result-group > *{position:relative;z-index:1}
 
 body .result-group::after{
   content:'';
@@ -212,6 +243,8 @@ body .result-group::after{
   align-self:start;
   border-block-start:1px solid var(--divider);
   pointer-events:none;
+  position:relative;
+  z-index:2;
 }
 
 body .result-main-row{
@@ -335,6 +368,7 @@ body .key.date-key.active{
   }
 
   body .display-region{
+    --display-inline-padding:var(--space-sm);
     padding-block:0;
     padding-inline:var(--space-sm);
     border-radius:var(--radius-xl);
@@ -368,6 +402,7 @@ body .key.date-key.active{
 
 @media(max-width:599px) and (max-height:579px){
   body .display-region{
+    --display-inline-padding:var(--space-sm);
     padding-block:0;
     padding-inline:var(--space-sm);
     border-radius:var(--radius-xl);
@@ -380,6 +415,7 @@ body .key.date-key.active{
 
 @media(min-width:840px), (min-width:600px) and (max-height:679px){
   body .display-region{
+    --display-inline-padding:var(--space-lg);
     padding-block:0;
     padding-inline:var(--space-lg);
   }
