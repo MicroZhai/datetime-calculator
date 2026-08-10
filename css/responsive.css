@@ -29,10 +29,12 @@ body .icon-btn{
 }
 
 body .display-region{
-  flex:1 1 auto;
+  /* Keep the display card inside the height allocated before the keypad. */
+  flex:1 1 0;
   min-block-size:0;
   display:flex;
   flex-direction:column;
+  overflow:hidden;
 }
 
 body .status-row{

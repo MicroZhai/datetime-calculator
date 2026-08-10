@@ -38,6 +38,10 @@ body .display-region{
      card padding would make the outside gaps visibly larger. */
   padding-block:0;
   padding-inline:var(--space-md);
+  /* The display surface must never grow into the keypad. Overflow belongs
+     to the bounded process viewport below, not to this outer card. */
+  min-block-size:0;
+  overflow:hidden;
 }
 
 /* One compact header axis: date on the left, current input / format state on the right. */
@@ -138,15 +142,21 @@ body .status-row{
    while the current input and row actions stay visible above the result. */
 body .process-workspace{
   min-block-size:0;
-  flex:1 1 auto;
+  /* Establish the viewport from the available height first; expression rows
+     must not determine the flex basis and push the keypad downward. */
+  flex:1 1 0;
   display:flex;
   flex-direction:column;
   justify-content:flex-end;
+  overflow:hidden;
 }
 body .process-workspace .expr-scroll{
-  flex:1 1 auto;
+  /* This is the only region allowed to scroll when the expression grows. */
+  flex:1 1 0;
   min-block-size:0;
   max-block-size:none;
+  overflow-y:auto;
+  overflow-x:hidden;
 }
 body .process-workspace .expr-scroll.empty{
   flex:0 0 0;
