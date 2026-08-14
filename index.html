@@ -94,9 +94,6 @@
           <button class="small-btn danger" id="deleteRowBtn" type="button">删除行</button>
           <button class="small-btn" id="doneRowBtn" type="button">完成</button>
         </div>
-
-        <div class="normalized" id="normalized"></div>
-        <div class="error-line" id="errorLine" role="status" aria-live="polite"></div>
       </div>
 
       <div class="result-group" aria-live="polite" aria-atomic="true">
@@ -155,7 +152,6 @@
   </section>
 </div>
 
-<div class="toast" id="toast" role="status" aria-live="polite"></div>
 <div class="undo-bar" id="undoBar" role="status" aria-live="polite" aria-atomic="true">
   <span id="undoMessage"></span>
   <button id="undoButton" type="button">撤销</button>
@@ -207,9 +203,6 @@
     }
 
     refreshPending = true;
-    if (typeof notify === 'function') {
-      notify('新版本已就绪，完成当前计算后自动刷新');
-    }
   }
 
   async function checkForUpdate() {

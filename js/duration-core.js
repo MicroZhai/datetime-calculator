@@ -9,12 +9,9 @@ const currentInputEl=document.getElementById('currentInput');
 const badge=document.getElementById('badge');
 const resultEl=document.getElementById('result');
 const secondaryEl=document.getElementById('secondary');
-const normalizedEl=document.getElementById('normalized');
-const errorEl=document.getElementById('errorLine');
 const rowActions=document.getElementById('rowActions');
 const rowActionLabel=document.getElementById('rowActionLabel');
 const toggleOpBtn=document.getElementById('toggleOpBtn');
-const toast=document.getElementById('toast');
 const historyMask=document.getElementById('historyMask');
 const historyList=document.getElementById('historyList');
 const HISTORY_KEY='time-calculator-v12-history';
@@ -35,7 +32,8 @@ let colonMinutes='';
 let colonSeconds='';
 let colonStage='minute';
 
-let formatIndex=0;
+let resultUnit='d';
+let resultRadix=60;
 let lastResultMs=0n;
 let justEvaluated=false;
 let selectedRow=null;
@@ -49,7 +47,7 @@ function loadHistory(){
 }
 function persistHistory(){
   try{localStorage.setItem(HISTORY_KEY,HistoryStore.serialize(historyRecords,HISTORY_LIMIT))}
-  catch(_){notify('历史记录保存失败')}
+  catch(_){}
 }
 function rowsSignature(rs){return HistoryStore.rowsSignature(rs)}
 function saveHistoryRecord(resultMs){
@@ -113,19 +111,15 @@ function restoreHistory(index){
   rows=clone(record.rows);
   currentOp=null;selectedRow=null;partEdit=null;clearInput();justEvaluated=false;setError('');
   const stored=DurationPrecision.toBigIntMs(record.resultMs);lastResultMs=stored??0n;
-  closeHistory();render();notify('已恢复，可继续编辑');
+  closeHistory();render();
 }
 function deleteHistory(index){
   const change=HistoryStore.removeAt(historyRecords,index,HISTORY_LIMIT);
   historyRecords=change.records;persistHistory();renderHistory();
 }
-function clearHistory(){if(!historyRecords.length)return;historyRecords=[];persistHistory();renderHistory();notify('历史记录已清空')}
+function clearHistory(){if(!historyRecords.length)return;historyRecords=[];persistHistory();renderHistory()}
 
-function notify(msg){
-  toast.textContent=msg;toast.classList.add('show');
-  clearTimeout(notify.t);notify.t=setTimeout(()=>toast.classList.remove('show'),1450);
-}
-function setError(msg=''){errorEl.textContent=msg}
+function setError(){}
 function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]))}
 function trim(value){return DurationPrecision.normalizeDecimalString(value)??String(value)}
 function clone(v){return JSON.parse(JSON.stringify(v))}
@@ -155,10 +149,62 @@ function partsMs(parts){
 function partsText(parts){return parts.map(partText).join('')}
 function durationText(totalMs){return DurationPrecision.durationText(totalMs)}
 function hms(totalMs){return DurationPrecision.hms(totalMs)}
-function formatResult(totalMs){
-  if(formatIndex===0)return durationText(totalMs);
-  if(formatIndex===1)return `${DurationPrecision.roundedRatioText(totalMs,factorMs.h,6)}小时`;
-  return `${DurationPrecision.roundedRatioText(totalMs,factorMs.m,6)}分`;
+// 60进制·秒：总秒数
+function secondsText(totalMs){
+  let v=DurationPrecision.toBigIntMs(totalMs);
+  if(v===null)return '-';
+  const sign=v<0n?'-':'';
+  if(v<0n)v=-v;
+  const s=v/1000n;
+  const ms=v%1000n;
+  return `${sign}${s}${ms?`.${ms.toString().padStart(3,'0')}`:''}秒`;
+}
+const UNIT_LABEL={d:'天',h:'小时',m:'分',s:'秒'};
+// 把时长按所选单位向下 60 进制展开（省略零值）：
+// 60进制小字按单位展示，10进制大分母分数的括号内也用它作为细分。
+function subdivideByUnit(totalMs,unit){
+  let v=DurationPrecision.toBigIntMs(totalMs);
+  if(v===null)return '';
+  const sign=v<0n?'-':'';
+  if(v<0n)v=-v;
+  const cfg={
+    d:[['d','天'],['h','小时'],['m','分'],['s','秒']],
+    h:[['h','小时'],['m','分'],['s','秒']],
+    m:[['m','分'],['s','秒']]
+  }[unit];
+  if(!cfg)return '';
+  const out=[];
+  cfg.forEach(([key,text])=>{
+    const f=factorMs[key];
+    const q=v/f;v%=f;
+    if(q!==0n)out.push(`${q}${text}`);
+  });
+  if(v>0n)out.push(`${v}毫秒`);
+  if(!out.length)out.push('0'+cfg[cfg.length-1][1]);
+  return sign+out.join(' ');
+}
+// 底部小字：随 resultUnit/resultRadix 显示所选单位的换算。
+// 60进制按所选单位向下展开（带单位文本）；10进制为小数。
+function secondaryText(totalMs){
+  if(resultRadix===60){
+    if(resultUnit==='d')return hms(totalMs);
+    if(resultUnit==='h')return subdivideByUnit(totalMs,'h');
+    if(resultUnit==='m')return subdivideByUnit(totalMs,'m');
+    return secondsText(totalMs);
+  }
+  const divisor=factorMs[resultUnit];
+  const unitLabel=UNIT_LABEL[resultUnit];
+  return `${DurationPrecision.roundedRatioText(totalMs,divisor,6)}${unitLabel}`;
+}
+// justEvaluated 后按单位键切换结果格式。
+// 同一单位再按一次切换 60/10 进制；秒单位不切换进制。
+function switchResultFormat(unit){
+  if(unit===resultUnit){
+    if(unit!=='s')resultRadix=resultRadix===60?10:60;
+  }else{
+    resultUnit=unit;
+    resultRadix=60;
+  }
 }
 function msToNormalizedParts(totalMs){return DurationPrecision.millisecondsToParts(totalMs)}
 

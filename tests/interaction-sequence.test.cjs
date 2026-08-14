@@ -229,26 +229,26 @@ sequence('dated history restores date context and continues calculating', ({ cal
 sequence('display format changes never change exact result', ({ call, result }) => {
   call("inputDigit('3599999'); commitUnit('s'); equals();");
   const exact = result();
-  call('formatIndex=1; render(); formatIndex=2; render(); formatIndex=0; render();');
+  call("switchResultFormat('h'); switchResultFormat('h'); switchResultFormat('m'); switchResultFormat('m'); switchResultFormat('d'); render();");
   assert.equal(result(), exact);
 });
 
 sequence('result display changes update the idle status hint', ({ call, elements }) => {
   const badge = () => elements.get('badge').textContent;
-  assert.equal(badge(), '按天时分秒显示');
-  call('formatIndex=1; render();');
-  assert.equal(badge(), '按小时显示');
-  call('formatIndex=2; render();');
-  assert.equal(badge(), '按分钟显示');
-  call('formatIndex=0; render();');
-  assert.equal(badge(), '按天时分秒显示');
+  assert.equal(badge(), '按天显示 · 60进制');
+  call("switchResultFormat('h'); render();");
+  assert.equal(badge(), '按小时显示 · 60进制');
+  call('resultRadix=10; render();');
+  assert.equal(badge(), '按小时显示 · 10进制');
+  call("switchResultFormat('d'); render();");
+  assert.equal(badge(), '按天显示 · 60进制');
 });
 
 sequence('active input status keeps priority over display hint', ({ call, elements }) => {
   const badge = () => elements.get('badge').textContent;
   call("inputDigit('8');");
   assert.equal(badge(), '已输入 8，请选择单位');
-  call('formatIndex=1; render();');
+  call('resultUnit="h"; render();');
   assert.equal(badge(), '已输入 8，请选择单位');
 });
 

@@ -12,8 +12,7 @@
 
   const SCHEMA_VERSION = 1;
   const LEGACY_UNVERSIONED = 0;
-  const FORMAT_MIN = 0;
-  const FORMAT_MAX = 2;
+  const VALID_UNITS = ['d','h','m','s'];
 
   function schemaVersionOf(snapshot) {
     if (!snapshot || typeof snapshot !== 'object' || Array.isArray(snapshot)) return null;
@@ -99,8 +98,12 @@
     return /^\d*$/.test(text) && text.length <= limit ? text : '';
   }
 
-  function normalizeFormatIndex(value) {
-    return Number.isInteger(value) && value >= FORMAT_MIN && value <= FORMAT_MAX ? value : 0;
+  function normalizeResultUnit(value) {
+    return VALID_UNITS.includes(value) ? value : 'd';
+  }
+
+  function normalizeResultRadix(value) {
+    return value === 10 ? 10 : 60;
   }
 
   function normalizeResultMs(value) {
@@ -183,12 +186,12 @@
       colonMinutes: colonMode ? normalizeColonDigits(snapshot.colonMinutes) : '',
       colonSeconds: colonMode ? normalizeColonDigits(snapshot.colonSeconds) : '',
       colonStage: colonMode ? normalizeColonStage(snapshot.colonStage) : 'minute',
-      formatIndex: normalizeFormatIndex(snapshot.formatIndex),
+      resultUnit: normalizeResultUnit(snapshot.resultUnit),
+      resultRadix: normalizeResultRadix(snapshot.resultRadix),
       lastResultMs: normalizeResultMs(snapshot.lastResultMs),
       justEvaluated: Boolean(snapshot.justEvaluated),
       selectedRow: normalizeSelectedRow(snapshot.selectedRow, rows),
       partEdit: normalizePartEdit(snapshot.partEdit, rows),
-      error: typeof snapshot.error === 'string' ? snapshot.error : '',
       anchorDateTime: normalizeAnchorDateTime(snapshot.anchorDateTime || snapshot.anchorDate || null),
       hourDisplayMode: normalizeHourDisplayMode(snapshot.hourDisplayMode)
     };
@@ -260,7 +263,6 @@
       justEvaluated: false,
       selectedRow: null,
       partEdit: null,
-      error: '',
       anchorDateTime: record?.anchorDateTime || record?.anchorDate || null
     });
   }

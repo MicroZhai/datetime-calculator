@@ -53,18 +53,6 @@ body .expr-scroll{
   padding-block:0;
 }
 
-/* Empty feedback slots must not reserve vertical space. */
-body .normalized:empty,
-body .error-line:empty{
-  display:none;
-}
-
-body .normalized,
-body .error-line{
-  min-block-size:0;
-  margin-block-start:2px;
-}
-
 /* Spare height belongs to the process workspace. The result keeps its intrinsic
    height immediately after the process area while the keypad stays stable. */
 body .result-group{
@@ -74,7 +62,7 @@ body .result-group{
 }
 
 body .result{
-  font-size:clamp(32px,4.5vh,38px);
+  font-size:clamp(26px,4vh,30px);
 }
 
 body .secondary{
@@ -157,7 +145,7 @@ body .key{
   }
 
   body .result{
-    font-size:30px;
+    font-size:24px;
   }
 
   body .keypad{
@@ -306,11 +294,11 @@ body .key{
   }
 
   body .line-value{
-    font-size:20px;
+    font-size:24px;
   }
 
   body .result{
-    font-size:clamp(32px,4.5vh,38px);
+    font-size:clamp(26px,4vh,30px);
   }
 }
 
@@ -321,7 +309,7 @@ body .key{
   }
 
   body .result{
-    font-size:30px;
+    font-size:24px;
   }
 
 }

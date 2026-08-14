@@ -289,6 +289,38 @@
     return { ok: true, value: total };
   }
 
+  // BigInt 辗转相除求最大公约数。浮点计算器无法在循环小数上化简分数，
+  // 这是该计算器精度优势的基石。
+  function gcd(a, b) {
+    let x = a < 0n ? -a : a;
+    let y = b < 0n ? -b : b;
+    while (y) { [x, y] = [y, x % y]; }
+    return x;
+  }
+
+  // 把毫秒数按目标单位换算为化简后的分数文本。
+  // 能整除时返回整数文本；除不尽时返回 "分子/分母" 形式（已化简）。
+  // 例：100 小时 = 360000000ms ÷ 86400000ms/天 = 25/6 天
+  function fractionRatioText(totalMs, divisor) {
+    let value = toBigIntMs(totalMs);
+    const den = typeof divisor === 'bigint' ? divisor : BigInt(divisor);
+    if (value === null || den <= 0n) return null;
+    const negative = value < 0n;
+    if (negative) value = -value;
+    const whole = value / den;
+    const remainder = value % den;
+    if (remainder === 0n) {
+      if (whole === 0n) return '0';
+      return `${negative ? '-' : ''}${whole}`;
+    }
+    const g = gcd(remainder, den);
+    const num = remainder / g;
+    const denSimplified = den / g;
+    const sign = negative ? '-' : '';
+    if (whole === 0n) return `${sign}${num}/${denSimplified}`;
+    return `${sign}${whole} ${num}/${denSimplified}`;
+  }
+
   return Object.freeze({
     FACTOR_MS,
     MAX_INPUT_DIGITS,
@@ -300,6 +332,7 @@
     durationText,
     hms,
     roundedRatioText,
+    fractionRatioText,
     millisecondsToParts,
     normalizeStoredRows,
     normalizeStoredRowsStrict,

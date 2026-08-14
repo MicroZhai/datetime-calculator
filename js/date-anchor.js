@@ -58,11 +58,16 @@
 
   const resultMainRow = document.createElement('div');
   resultMainRow.className = 'result-main-row';
+  const equalSign = document.createElement('span');
+  equalSign.className = 'result-equal';
+  equalSign.textContent = '=';
+  equalSign.setAttribute('aria-hidden', 'true');
   const calendarResult = document.createElement('div');
   calendarResult.className = 'calendar-result';
   calendarResult.hidden = true;
   resultGroup.insertBefore(resultMainRow, resultEl);
-  resultMainRow.append(calendarResult, resultEl);
+  resultMainRow.append(equalSign, resultEl);
+  resultGroup.insertBefore(calendarResult, document.getElementById('secondary'));
 
   function currentRecordAnchor(record) {
     return HistoryStore.recordAnchor(record);

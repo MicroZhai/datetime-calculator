@@ -14,7 +14,8 @@ const source = {
   currentParts: [{ kind: 'unit', unit: 'h', value: '1.5' }],
   numberBuffer: '',
   colonMode: false,
-  formatIndex: 1,
+  resultUnit: 'h',
+  resultRadix: 10,
   lastResultMs: hugeMs,
   justEvaluated: true,
   selectedRow: 1,
@@ -36,7 +37,8 @@ assert.equal(snapshot.schemaVersion, S.SCHEMA_VERSION);
 assert.equal(snapshot.lastResultMs, '25920000000000001');
 assert.equal(snapshot.anchorDateTime, '2026-08-09T00:00');
 assert.equal(snapshot.hourDisplayMode, 'sexagesimal');
-assert.equal(snapshot.formatIndex, 1);
+assert.equal(snapshot.resultUnit, 'h');
+assert.equal(snapshot.resultRadix, 10);
 assert.equal(snapshot.partEdit.buffer, '0.00');
 assert.equal(S.hasContent(snapshot), true);
 
@@ -66,11 +68,11 @@ assert.equal(colonDraft.colonStage, 'minute');
 assert.deepEqual(S.parse(S.serialize(colonDraft)), colonDraft);
 
 // Display preference alone is not calculator content.
-const displayOnly = S.normalizeSnapshot({ formatIndex: 1, hourDisplayMode: 'sexagesimal' });
+const displayOnly = S.normalizeSnapshot({ resultUnit: 'h', resultRadix: 10, hourDisplayMode: 'sexagesimal' });
 assert.equal(S.hasContent(displayOnly), false);
 assert.equal(S.hasContent(S.emptySnapshot()), false);
 
-const legacyDecimalDisplay = S.normalizeSnapshot({ formatIndex: 1, hourDisplayMode: 'decimal' });
+const legacyDecimalDisplay = S.normalizeSnapshot({ resultUnit: 'h', resultRadix: 10, hourDisplayMode: 'decimal' });
 assert.equal(legacyDecimalDisplay.hourDisplayMode, 'sexagesimal', 'legacy decimal display preference migrates to sexagesimal');
 
 // Invalid or stale row-selection/edit pointers are removed safely.

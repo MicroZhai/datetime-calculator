@@ -19,8 +19,8 @@
     '跟随系统':'System','浅色':'Light','深色':'Dark','天':'day','小时':'hour','时':'hr','分':'min','秒':'sec','天时分秒':'D H M S','结果显示方式':'Result display format','切换结果显示方式':'Switch result display','当前':'current','十进制':'decimal','60进制':'base-60','请输入有效数字':'Enter a valid number',
     '按天时分秒显示':'Display: D H M S','按小时显示':'Display: hours','按分钟显示':'Display: minutes',
     '按 = 保存到历史；历史记录可恢复后继续编辑。':'Press = to save to history; history entries can be restored and edited.',
-    '请选择单位':'select a unit','已输入':'Entered','请输入两位分钟':'Enter two-digit minutes','请输入两位秒':'Enter two-digit seconds',
-    '先输入数字':'Enter a number first','先选择单位':'Choose a unit first','无法精确表示':'Cannot represent precisely','当前输入无法精确到 1 毫秒':'Input cannot be precise to 1 ms',
+    '请选择单位':'select a unit','已输入':'Entered',
+    '先输入数字':'Enter a number first','先选择单位':'Choose a unit first','无法精确表示':'Cannot represent precisely',
     '分钟':'minutes','秒钟':'seconds','分钟必须是 00～59':'Minutes must be 00–59','秒必须是 00～59':'Seconds must be 00–59','未知时间单位':'Unknown time unit'
   };
   const extraMap = {
@@ -29,11 +29,7 @@
     '\u6700\u591a\u652f\u6301 \u65f6:\u5206:\u79d2':'Maximum format: H:M:S', '\u8bf7\u5b8c\u6210\u5192\u53f7\u683c\u5f0f':'Complete the colon format',
     '\u5148\u5b8c\u6210\u5f53\u524d\u5192\u53f7\u8f93\u5165':'Finish the current colon input first', '\u8fd9\u4e2a\u6570\u5b57\u8fd8\u6ca1\u6709\u5355\u4f4d':'This number has no unit',
     '\u88f8\u6570\u5b57\u4e0d\u80fd\u76f4\u63a5\u7ed3\u7b97':'A bare number cannot be calculated', '\u8fd8\u6ca1\u6709\u53ef\u8ba1\u7b97\u7684\u65f6\u95f4':'There is no duration to calculate',
-    '\u5f53\u524d\u8fd0\u7b97\u7b26\u540e\u8fd8\u7f3a\u5c11\u4e00\u4e2a\u65f6\u95f4\u503c':'A duration is missing after the current operator'
-    ,'\u5f53\u524d\u8f93\u5165\u65e0\u6cd5\u7cbe\u786e\u5230 1 \u6beb\u79d2':'The current input cannot be precise to 1 ms'
-    ,'\u8bf7\u8f93\u5165\u4e24\u4f4d\u5206\u949f\uff1a00\uff5e59':'Enter two-digit minutes: 00–59'
-    ,'\u8bf7\u8f93\u5165\u4e24\u4f4d\u79d2\uff1a00\uff5e59':'Enter two-digit seconds: 00–59'
-    ,'\u8bf7\u5148\u5b8c\u6210\u4e24\u4f4d\u5206\u949f':'Complete the two-digit minutes first'
+    '\u8bf7\u5148\u5b8c\u6210\u4e24\u4f4d\u5206\u949f':'Complete the two-digit minutes first'
     ,'\u5df2\u6539\u4e3a':'Changed to'
     ,'\u51cf':'Subtract','\u52a0':'Add','\u7b49\u5f85\u4e0b\u4e00\u65f6\u95f4':'waiting for the next duration'
     ,'\u5148\u5b8c\u6210\u5f53\u524d\u6b63\u5728\u8f93\u5165\u7684\u5185\u5bb9':'Finish the current input first'

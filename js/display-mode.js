@@ -1,71 +1,50 @@
 /*
  * Result presentation controller.
- * Clicking the result cycles its display unit without changing the exact
- * calculated duration. Hour mode is fixed to sexagesimal so the main result
- * always uses the exact H:MM:SS representation.
+ * Clicking the result cycles display unit (d->h->m->s) without changing
+ * the exact calculated duration. After =, pressing a unit key switches
+ * to that unit; pressing the same key again toggles 60/10 radix.
  */
 (() => {
-  const HOUR_MODE_KEY = 'dtc-hour-display-mode';
-  const FIXED_HOUR_MODE = 'sexagesimal';
-  // Legacy decimal preferences are deliberately ignored and migrated below.
-  let hourDisplayMode = FIXED_HOUR_MODE;
   let fitFrame = 0;
   const resultTrigger = document.getElementById('result');
   const statusRow = document.querySelector('.status-row');
-  // Keep the result switch and the status hint on one vocabulary so the
-  // visible hint, button label, and accessibility text never drift apart.
-  const FORMAT_CONTROL_LABELS = ['天', '时', '分'];
-  const FORMAT_HINTS = ['按天时分秒显示', '按小时显示', '按分钟显示'];
-
+  const UNIT_ORDER = ['d','h','m','s'];
+  const UNIT_LABELS = {d:'天',h:'时',m:'分',s:'秒'};
+  const UNIT_FULL_LABELS = {d:'天',h:'小时',m:'分',s:'秒'};
 
   function syncFormatControl() {
     if (!resultTrigger) return;
-    const label = FORMAT_CONTROL_LABELS[formatIndex] || FORMAT_CONTROL_LABELS[0];
-    resultTrigger.dataset.format = String(formatIndex);
+    const label = UNIT_LABELS[resultUnit] || UNIT_LABELS.d;
+    const radixLabel = resultRadix === 60 ? '60进制' : '10进制';
+    resultTrigger.dataset.format = resultUnit;
     resultTrigger.dataset.formatLabel = label;
-    resultTrigger.title = `点击切换显示方式，当前按${label}显示`;
-    resultTrigger.setAttribute('aria-label', `计算结果 ${resultTrigger.textContent || ''}，当前按${label}显示，点击切换`);
+    resultTrigger.title = `点击切换单位，当前按${UNIT_FULL_LABELS[resultUnit]}·${radixLabel}显示`;
+    resultTrigger.setAttribute('aria-label', `计算结果 ${resultTrigger.textContent || ''}，当前按${UNIT_FULL_LABELS[resultUnit]}·${radixLabel}显示，点击切换`);
   }
 
-  // The result itself is the format switch; no extra control is needed in the
-  // display area, which keeps the mobile layout compact.
+  // 点击结果区 = 切换单位 d->h->m->s 循环（不切换进制）
   resultTrigger?.addEventListener('click', () => {
-    formatIndex = (formatIndex + 1) % 3;
+    const idx = UNIT_ORDER.indexOf(resultUnit);
+    resultUnit = UNIT_ORDER[(idx + 1) % UNIT_ORDER.length];
     render();
   });
 
-  function persistHourMode() {
-    try { localStorage.setItem(HOUR_MODE_KEY, hourDisplayMode); } catch {}
-  }
-
   function isDisplayHintIdleState() {
-    // Editing/validation messages remain higher priority than the display
-    // format hint, including when the result is clicked mid-entry.
     return !partEdit && selectedRow === null && !colonMode && numberBuffer === '' &&
       currentParts.length === 0 && currentOp === null;
   }
-  const formatResultBase = formatResult;
-  formatResult = function(totalMs) {
-    if (formatIndex === 1) return hms(totalMs);
-    return formatResultBase(totalMs);
-  };
 
-  function syncHourMode() {
-    if (formatIndex !== 1) return;
+  // 底部小字随 resultUnit/resultRadix 显示所选单位的换算
+  function syncSecondary() {
     const evaluated = evaluateRows(true);
-    if (!evaluated.ok) { secondaryEl.textContent = ''; return; }
-    // Do not repeat a decimal approximation below the exact sexagesimal result.
-    secondaryEl.textContent = '';
+    if (evaluated.ok) secondaryEl.textContent = secondaryText(evaluated.value);
   }
 
   function syncDisplayHint() {
     if (!isDisplayHintIdleState()) return;
-    // Date editing is a more actionable state than the passive format hint.
-    // Keep it visible until the date context is removed or another action
-    // starts, while the result button still exposes the current format.
     if (statusRow?.classList.contains('has-date')) return;
-    const hint = FORMAT_HINTS[formatIndex] || FORMAT_HINTS[0];
-    badge.textContent = hint;
+    const radixLabel = resultRadix === 60 ? '60进制' : '10进制';
+    badge.textContent = `按${UNIT_FULL_LABELS[resultUnit]}显示 · ${radixLabel}`;
     badge.className = 'badge format';
   }
 
@@ -91,21 +70,20 @@
   const renderBase = render;
   render = function() {
     renderBase();
-    syncHourMode();
+    syncSecondary();
     syncDisplayHint();
     syncFormatControl();
     fitPrimaryResult();
   };
 
   const snapshotCalculatorBase = snapshotCalculator;
-  snapshotCalculator = function() {return { ...snapshotCalculatorBase(), hourDisplayMode }};
+  snapshotCalculator = function() {return { ...snapshotCalculatorBase(), resultUnit, resultRadix }};
   const restoreCalculatorBase = restoreCalculator;
-  restoreCalculator = function(snapshot) {hourDisplayMode = FIXED_HOUR_MODE;persistHourMode();restoreCalculatorBase({...snapshot, hourDisplayMode: FIXED_HOUR_MODE})};
-  const clearAllBase = clearAll;
-  clearAll = function(show = true) {clearAllBase(show)};
-
+  restoreCalculator = function(snapshot) {
+    resultUnit = snapshot.resultUnit || 'd';
+    resultRadix = snapshot.resultRadix === 10 ? 10 : 60;
+    restoreCalculatorBase(snapshot);
+  };
   window.addEventListener('resize', fitPrimaryResult);
-  // Migrate any previously persisted decimal preference to the fixed mode.
-  persistHourMode();
   render();
 })();

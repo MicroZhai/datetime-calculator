@@ -74,25 +74,15 @@ function renderRowActions(){
   rowActionLabel.textContent=selectedRow===0?'第 1 行（基准行）':`第 ${selectedRow+1} 行`;
   toggleOpBtn.style.display=selectedRow===0?'none':'inline-flex';
 }
-function renderNormalized(){
-  const raw=currentRawText(),cp=currentValueParts();
-  if(raw&&cp.length){
-    const ms=partsMs(cp);
-    if(ms===null){normalizedEl.innerHTML='<strong>当前输入无法精确到 1 毫秒</strong>';return}
-    const norm=durationText(ms);
-    normalizedEl.innerHTML=norm!==raw?`当前输入规范化：<strong>${esc(norm)}</strong>`:'';
-  }else normalizedEl.innerHTML='';
-}
 function render(){
-  updateBadge();renderExpression();renderRowActions();renderNormalized();
+  updateBadge();renderExpression();renderRowActions();
   const r=evaluateRows(true);
   if(r.ok){
     lastResultMs=r.value;
-    resultEl.textContent=formatResult(r.value);
+    resultEl.textContent=durationText(r.value);
     secondaryEl.textContent=hms(r.value);
-    if(errorEl.textContent==='当前时长无法精确到 1 毫秒')setError('');
   }else{
-    resultEl.textContent='—';secondaryEl.textContent='无法精确表示';setError(r.error);
+    resultEl.textContent='—';secondaryEl.textContent='无法精确表示';
   }
   document.querySelectorAll('.key.unit').forEach(b=>b.classList.toggle('disabled',colonMode));
 }
@@ -102,12 +92,11 @@ function clearInput(){currentParts=[];numberBuffer='';colonMode=false;colonHours
 // keeps the selected start date, because date context is separate from input.
 function clearAll(show=true){
   rows=[];currentOp=null;selectedRow=null;partEdit=null;clearInput();
-  formatIndex=0;lastResultMs=0n;justEvaluated=false;setError('');render();
-  if(show)notify('已清空');
+  resultUnit='d';resultRadix=60;lastResultMs=0n;justEvaluated=false;setError('');render();
 }
 
 function beginPartEdit(ri,pi,field=null){
-  if(numberBuffer||colonMode||currentParts.length){notify('先完成当前正在输入的内容');return}
+  if(numberBuffer||colonMode||currentParts.length){return}
   selectedRow=ri;
   const p=rows[ri].parts[pi];
   if(p.kind==='unit'){
@@ -123,15 +112,15 @@ function commitPartEdit(){
   if(!partEdit)return true;
   const p=partEdit;
   if(p.kind==='unit'){
-    if(p.buffer===''||p.buffer==='.'||p.buffer==='-.'){notify('请输入有效数字');return false}
+    if(p.buffer===''||p.buffer==='.'||p.buffer==='-.'){return false}
     const parsed=DurationPrecision.parseDecimalToMs(p.buffer,p.unit);
-    if(!parsed.ok){notify(parsed.error);setError(parsed.error);return false}
+    if(!parsed.ok){setError(parsed.error);return false}
     rows[p.rowIndex].parts[p.partIndex]={kind:'unit',unit:p.unit,value:parsed.normalized};
   }else{
-    if(!/^\d+$/.test(p.hours)){notify('小时需要是整数');return false}
-    if(p.hours.length>MAX_INPUT_DIGITS){notify(`小时最多支持 ${MAX_INPUT_DIGITS} 位`);return false}
-    if(!/^\d{2}$/.test(p.minutes)||Number(p.minutes)>59){notify('分钟必须是 00～59');return false}
-    if(p.hasSeconds&&(!/^\d{2}$/.test(p.seconds)||Number(p.seconds)>59)){notify('秒必须是 00～59');return false}
+    if(!/^\d+$/.test(p.hours)){return false}
+    if(p.hours.length>MAX_INPUT_DIGITS){return false}
+    if(!/^\d{2}$/.test(p.minutes)||Number(p.minutes)>59){return false}
+    if(p.hasSeconds&&(!/^\d{2}$/.test(p.seconds)||Number(p.seconds)>59)){return false}
     rows[p.rowIndex].parts[p.partIndex]={kind:'colon',hours:normalizeIntegerText(p.hours),minutes:String(Number(p.minutes)).padStart(2,'0'),seconds:p.hasSeconds?String(Number(p.seconds)).padStart(2,'0'):null};
   }
   partEdit=null;setError('');render();return true;
@@ -140,11 +129,11 @@ function commitPartEdit(){
 function rawDigitCount(value){return String(value).replace(/\D/g,'').length}
 function appendToNumberBuffer(d){
   if(d==='.'){
-    if(numberBuffer===''){notify('小数请从 0. 开始输入');return}
+    if(numberBuffer===''){return}
     if(numberBuffer.includes('.'))return;
     numberBuffer+='.';return;
   }
-  if(rawDigitCount(numberBuffer)+rawDigitCount(d)>MAX_INPUT_DIGITS){notify(`数字最多支持 ${MAX_INPUT_DIGITS} 位`);return}
+  if(rawDigitCount(numberBuffer)+rawDigitCount(d)>MAX_INPUT_DIGITS){return}
   if(numberBuffer==='0'&&d!=='00')numberBuffer=d;
   else if(numberBuffer==='0'&&d==='00')return;
   else numberBuffer+=d;
@@ -157,7 +146,7 @@ function inputDigit(d){
   if(partEdit){
     if(partEdit.kind==='unit'){
       if(d==='.'&&partEdit.buffer.includes('.'))return;
-      if(d!=='.'&&rawDigitCount(partEdit.buffer)+rawDigitCount(d)>MAX_INPUT_DIGITS){notify(`数字最多支持 ${MAX_INPUT_DIGITS} 位`);return}
+      if(d!=='.'&&rawDigitCount(partEdit.buffer)+rawDigitCount(d)>MAX_INPUT_DIGITS){return}
       if(partEdit.fresh){partEdit.buffer=d==='.'?'0.':d;partEdit.fresh=false}
       else partEdit.buffer+=d;
       render();return;
@@ -168,11 +157,11 @@ function inputDigit(d){
     if(partEdit.fresh){v='';partEdit.fresh=false}
     for(const ch of d.split('')){
       if(f==='hour'){
-        if(v.length>=MAX_INPUT_DIGITS){notify(`小时最多支持 ${MAX_INPUT_DIGITS} 位`);break}
+        if(v.length>=MAX_INPUT_DIGITS){break}
         v+=ch;
       }else{
-        if(v.length>=2){notify(f==='minute'?'分钟已两位':'秒已两位');break}
-        if(v.length===0&&Number(ch)>5){notify(`${f==='minute'?'分钟':'秒'}范围是 00～59`);break}
+        if(v.length>=2){break}
+        if(v.length===0&&Number(ch)>5){break}
         v+=ch;
       }
     }
@@ -183,10 +172,9 @@ function inputDigit(d){
   if(colonMode){
     if(d==='.')return;
     let v=colonStage==='minute'?colonMinutes:colonSeconds;
-    const word=colonStage==='minute'?'分钟':'秒';
     for(const ch of d.split('')){
-      if(v.length>=2){notify(`${word}已经输入完成`);break}
-      if(v.length===0&&Number(ch)>5){notify(`${word}范围是 00～59`);setError(`${word}十位只能是 0～5`);break}
+      if(v.length>=2){break}
+      if(v.length===0&&Number(ch)>5){break}
       v+=ch;
     }
     if(colonStage==='minute')colonMinutes=v;else colonSeconds=v;
@@ -197,15 +185,19 @@ function inputDigit(d){
 }
 
 function commitUnit(unit){
-  if(colonMode){notify('先完成当前冒号输入');return}
+  if(colonMode){return}
   if(partEdit){
-    if(partEdit.kind!=='unit'){notify('先完成当前冒号片段编辑');return}
+    if(partEdit.kind!=='unit'){return}
     partEdit.unit=unit;commitPartEdit();return;
   }
-  if(!numberBuffer){notify(`先输入数字，再点“${shortLabel[unit]}”`);return}
+  // 计算完毕且无待输入数字：按单位键切换结果格式
+  if(justEvaluated&&!numberBuffer){
+    switchResultFormat(unit);render();return;
+  }
+  if(!numberBuffer){return}
   if(numberBuffer.endsWith('.'))numberBuffer=numberBuffer.slice(0,-1);
   const parsed=DurationPrecision.parseDecimalToMs(numberBuffer,unit);
-  if(!parsed.ok){notify(parsed.error);setError(parsed.error);return}
+  if(!parsed.ok){setError(parsed.error);return}
   currentParts.push({kind:'unit',unit,value:parsed.normalized});
   numberBuffer='';setError('');render();
 }
@@ -213,36 +205,35 @@ function commitUnit(unit){
 function pressColon(){
   setError('');
   if(partEdit){
-    if(partEdit.kind==='unit'){notify('当前正在编辑单位片段');return}
+    if(partEdit.kind==='unit'){return}
     if(partEdit.field==='hour'){partEdit.field='minute';partEdit.fresh=true;render();return}
     if(partEdit.field==='minute'){partEdit.hasSeconds=true;partEdit.field='second';partEdit.fresh=true;render();return}
-    notify('当前已在编辑秒');return;
+    return;
   }
   if(!colonMode){
-    if(!numberBuffer){notify('先输入小时，例如 47 : 12');return}
-    if(numberBuffer.includes('.')){notify('冒号小时位不使用小数');return}
-    if(rawDigitCount(numberBuffer)>MAX_INPUT_DIGITS){notify(`小时最多支持 ${MAX_INPUT_DIGITS} 位`);return}
+    if(!numberBuffer){return}
+    if(numberBuffer.includes('.')){return}
+    if(rawDigitCount(numberBuffer)>MAX_INPUT_DIGITS){return}
     colonHours=normalizeIntegerText(numberBuffer);numberBuffer='';
     colonMinutes='';colonSeconds='';colonStage='minute';colonMode=true;
-    setError('请输入两位分钟：00～59');render();return;
+    render();return;
   }
   if(colonStage==='minute'){
-    if(colonMinutes.length!==2){notify('请先完成两位分钟');return}
-    colonStage='second';setError('请输入两位秒：00～59');render();return;
+    if(colonMinutes.length!==2){return}
+    colonStage='second';render();return;
   }
-  notify('最多支持 时:分:秒');
 }
 function finishColon(){
   if(!colonMode)return true;
   if(!colonComplete()){
-    notify('请完成冒号格式');setError(colonStage==='minute'?'分钟必须两位':'秒必须两位');return false;
+    setError(colonStage==='minute'?'分钟必须两位':'秒必须两位');return false;
   }
   currentParts.push(colonPart());
   colonMode=false;colonHours='';colonMinutes='';colonSeconds='';colonStage='minute';setError('');
   return true;
 }
 function currentComplete(){
-  if(numberBuffer){notify('这个数字还没有单位');setError('请选择 天 / 时 / 分 / 秒，或使用冒号');return false}
+  if(numberBuffer){return false}
   if(colonMode&&!finishColon())return false;
   return currentParts.length>0;
 }
@@ -257,12 +248,12 @@ function inputOperator(op){
   }
 
   if(!currentParts.length&&!numberBuffer&&!colonMode){
-    if(!rows.length){notify('先输入一个时间');return}
+    if(!rows.length){return}
     currentOp=op;render();return;
   }
 
   if(!currentComplete())return;
-  if(partsMs(currentParts)===null){notify('当前时长无法精确到 1 毫秒');return}
+  if(partsMs(currentParts)===null){return}
   rows.push({op:rows.length?currentOp:null,parts:clone(currentParts)});
   clearInput();currentOp=op;selectedRow=null;render();
 }
@@ -271,22 +262,22 @@ function equals(){
   setError('');
   if(partEdit&&!commitPartEdit())return;
 
-  if(numberBuffer){notify('请先选择单位');setError('裸数字不能直接结算');return}
+  if(numberBuffer){return}
   if(colonMode&&!finishColon())return;
 
   if(currentParts.length){
-    if(partsMs(currentParts)===null){notify('当前时长无法精确到 1 毫秒');return}
+    if(partsMs(currentParts)===null){return}
     rows.push({op:rows.length?currentOp:null,parts:clone(currentParts)});
     clearInput();currentOp=null;
   }else if(rows.length&&currentOp!==null&&!justEvaluated){
-    notify('请先输入下一时间');setError('当前运算符后还缺少一个时间值');return;
+    return;
   }
 
-  if(!rows.length){notify('还没有可计算的时间');return}
+  if(!rows.length){return}
   const r=evaluateRows(false);
-  if(!r.ok){setError(r.error);notify(r.error);return}
+  if(!r.ok){setError(r.error);return}
   lastResultMs=r.value;justEvaluated=true;selectedRow=null;partEdit=null;currentOp=null;
-  saveHistoryRecord(r.value);render();normalizedEl.innerHTML='';
+  saveHistoryRecord(r.value);render();
 }
 
 function backspace(){
@@ -328,15 +319,15 @@ function backspace(){
 }
 
 function selectRow(ri){
-  if(numberBuffer||colonMode||currentParts.length){notify('先完成当前正在输入的内容');return}
+  if(numberBuffer||colonMode||currentParts.length){return}
   if(partEdit&&!commitPartEdit())return;
   selectedRow=selectedRow===ri?null:ri;render();
 }
 function toggleSelectedOp(){
   if(selectedRow===null||selectedRow===0)return;
-  rows[selectedRow].op=rows[selectedRow].op==='-'?'+':'-';render();notify(`已改为 ${rows[selectedRow].op==='-'?'减':'加'}`);
+  rows[selectedRow].op=rows[selectedRow].op==='-'?'+':'-';render();
 }
 function deleteSelectedRow(){
   if(selectedRow===null)return;
-  rows.splice(selectedRow,1);if(rows.length)rows[0].op=null;selectedRow=null;partEdit=null;render();notify('已删除这一行');
+  rows.splice(selectedRow,1);if(rows.length)rows[0].op=null;selectedRow=null;partEdit=null;render();
 }

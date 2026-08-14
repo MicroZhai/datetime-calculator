@@ -211,7 +211,8 @@
             ]
           }
         ],
-        "formatIndex": 1,
+        "resultUnit": "h",
+        "resultRadix": 10,
         "lastResultMs": "25920000000000000",
         "justEvaluated": true,
         "anchorDateTime": "2026-08-09",
@@ -220,7 +221,8 @@
       "expected": {
         "lastResultMs": "25920000000000000",
         "anchorDateTime": "2026-08-09T00:00",
-        "formatIndex": 1,
+        "resultUnit": "h",
+        "resultRadix": 10,
         "hourDisplayMode": "sexagesimal",
         "justEvaluated": true
       }
@@ -258,11 +260,13 @@
       "id": "display-only-is-not-content",
       "operation": "normalizeSnapshot",
       "input": {
-        "formatIndex": 1,
+        "resultUnit": "h",
+        "resultRadix": 10,
         "hourDisplayMode": "sexagesimal"
       },
       "expected": {
-        "formatIndex": 1,
+        "resultUnit": "h",
+        "resultRadix": 10,
         "hourDisplayMode": "sexagesimal",
         "hasContent": false
       }
@@ -288,14 +292,16 @@
         "anchorDateTime": "2026-08-09T00:00"
       },
       "base": {
-        "formatIndex": 1,
+        "resultUnit": "h",
+        "resultRadix": 10,
         "hourDisplayMode": "sexagesimal",
         "numberBuffer": "999"
       },
       "expected": {
         "lastResultMs": "-1000",
         "anchorDateTime": "2026-08-09T00:00",
-        "formatIndex": 1,
+        "resultUnit": "h",
+        "resultRadix": 10,
         "hourDisplayMode": "sexagesimal",
         "numberBuffer": "",
         "justEvaluated": false

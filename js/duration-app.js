@@ -71,12 +71,12 @@ function snapshotCalculator(){
     colonMinutes,
     colonSeconds,
     colonStage,
-    formatIndex,
+    resultUnit,
+    resultRadix,
     lastResultMs,
     justEvaluated,
     selectedRow,
-    partEdit:clone(partEdit),
-    error:errorEl.textContent
+    partEdit:clone(partEdit)
   };
 }
 
@@ -90,12 +90,12 @@ function restoreCalculator(snapshot){
   colonMinutes=snapshot.colonMinutes;
   colonSeconds=snapshot.colonSeconds;
   colonStage=snapshot.colonStage;
-  formatIndex=snapshot.formatIndex;
+  resultUnit=snapshot.resultUnit||'d';
+  resultRadix=snapshot.resultRadix===10?10:60;
   lastResultMs=snapshot.lastResultMs;
   justEvaluated=snapshot.justEvaluated;
   selectedRow=snapshot.selectedRow;
   partEdit=clone(snapshot.partEdit);
-  setError(snapshot.error||'');
   render();
 }
 

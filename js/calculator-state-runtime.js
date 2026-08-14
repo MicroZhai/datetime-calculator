@@ -36,6 +36,5 @@
     const next = CalculatorState.fromHistoryRecord(record, snapshotCalculator());
     restoreCalculator(next);
     closeHistory();
-    notify('已恢复，可继续编辑');
   };
 })();

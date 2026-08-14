@@ -37,7 +37,8 @@ assert.equal(dateMapping.ok, false);
 assert.equal(dateMapping.reason, 'date-out-of-range');
 
 const beforeRestore = S.normalizeSnapshot({
-  formatIndex: 1,
+  resultUnit: 'h',
+  resultRadix: 10,
   hourDisplayMode: 'sexagesimal',
   numberBuffer: '999'
 });
@@ -47,7 +48,8 @@ assert.equal(restoredState.lastResultMs, '25920000000000001');
 assert.equal(restoredState.numberBuffer, '');
 assert.equal(restoredState.currentOp, null);
 assert.equal(restoredState.justEvaluated, false);
-assert.equal(restoredState.formatIndex, 1, 'history restore preserves display choice');
+assert.equal(restoredState.resultUnit, 'h', 'history restore preserves display choice');
+assert.equal(restoredState.resultRadix, 10);
 assert.equal(restoredState.hourDisplayMode, 'sexagesimal');
 
 rows = restoredState.rows.map(row => ({ ...row, parts: row.parts.map(part => ({ ...part })) }));

@@ -43,7 +43,8 @@ Web 参考实现：`js/calculator-state.js`。
   "colonMinutes": "",
   "colonSeconds": "",
   "colonStage": "minute",
-  "formatIndex": 0,
+  "resultUnit": "d",
+  "resultRadix": 60,
   "lastResultMs": "0",
   "justEvaluated": false,
   "selectedRow": null,
@@ -62,6 +63,8 @@ Web 参考实现：`js/calculator-state.js`。
 - 不允许在 Snapshot 中直接存 `BigInt`；
 - 日期统一使用 `YYYY-MM-DDTHH:mm`；
 - 无日期时为 `null`；
+- `resultUnit` 取值 `d` / `h` / `m` / `s`，对应天 / 小时 / 分 / 秒显示；
+- `resultRadix` 取值 `60` / `10`，60 进制用天时分秒展开，10 进制用小数 + 括号分数显示；`s` 单位固定 60 进制，不参与进制切换；
 - `hourDisplayMode` 为兼容旧 Snapshot 保留，但规范化后始终为 `sexagesimal`；旧的 `decimal` 值自动迁移。
 
 ---
@@ -107,7 +110,7 @@ Web 参考实现：`js/calculator-state.js`。
 
 包括：
 
-- `formatIndex`
+- `resultUnit` + `resultRadix`（`d`/`h`/`m`/`s` × 60/10 进制，`s` 固定 60 进制）
 - `hourDisplayMode`（兼容字段，规范值固定为 `sexagesimal`）
 
 显示偏好需要跟随 Undo / Restore 保持视觉上下文，但**单独改变显示偏好不算存在计算内容**。
@@ -194,8 +197,7 @@ Web runtime BigInt
 
 仅有以下状态不算计算内容：
 
-- 切换“天时分秒 / 小时 / 分”；
-- 小时结果固定使用 60 进制，不再存在可切换的十进制显示偏好。
+- 切换结果单位 / 进制（`d`/`h`/`m`/`s` × 60/10 进制）；
 
 ---
 
@@ -237,7 +239,7 @@ Web runtime BigInt
 ### 8.3 其他字段
 
 - 非法 `currentOp` -> `null`；
-- 非法格式索引 -> 默认格式；
+- 非法 `resultUnit` -> `'d'`；非法 `resultRadix` -> `60`；
 - 失效的 selectedRow -> `null`；
 - 指向不存在片段的 partEdit -> `null`；
 - 非法日期 -> `null`；
